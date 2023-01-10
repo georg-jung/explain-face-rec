@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Microsoft.AspNetCore.Components.Web
 @namespace BlazorFace.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
@@ -30,5 +30,19 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+
+    <!-- https://learn.microsoft.com/en-us/aspnet/core/blazor/images?view=aspnetcore-7.0#stream-image-data -->
+    <script>
+        window.setImage = async (imageElementId, imageStream) => {
+            const arrayBuffer = await imageStream.arrayBuffer();
+            const blob = new Blob([arrayBuffer]);
+            const url = URL.createObjectURL(blob);
+            const image = document.getElementById(imageElementId);
+            image.onload = () => {
+                URL.revokeObjectURL(url);
+            }
+            image.src = url;
+        }
+    </script>
 </body>
 </html>

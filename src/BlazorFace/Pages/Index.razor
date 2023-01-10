@@ -1,7 +1,49 @@
 @page "/"
+@using FaceONNX;
+@using System.Drawing;
+@using UMapx.Visualization;
+@inject IJSRuntime JS
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<InputFile OnChange="@LoadFiles" />
 
-Welcome to your new app.
+<img id="imgx" />
+
+@code {
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        const int maxSize = 1024 * 1024 * 5; // 5 MB
+        using var file = e.File.OpenReadStream(maxSize);
+        using var syncFile = new MemoryStream();
+        await file.CopyToAsync(syncFile);
+
+        using var faceDetector = new FaceDetector(0.95f, 0.5f);
+        using var painter = new Painter()
+        {
+            BoxPen = new Pen(Color.Yellow, 4),
+            Transparency = 0,
+        };
+
+        using var bitmap = new Bitmap(syncFile);
+        var output = faceDetector.Forward(bitmap);
+
+        foreach (var rectangle in output)
+        {
+            var paintData = new PaintData()
+            {
+                Rectangle = rectangle,
+                Title = string.Empty
+            };
+            using var graphics = Graphics.FromImage(bitmap);
+            painter.Draw(graphics, paintData);
+        }
+
+        var outStr = new MemoryStream(); // no using
+        bitmap.Save(outStr, System.Drawing.Imaging.ImageFormat.Jpeg);
+        outStr.Position = 0;
+
+        var dotnetImageStream = new DotNetStreamReference(outStr);        
+        await JS.InvokeVoidAsync("setImage", "imgx", dotnetImageStream);
+    }
+}
