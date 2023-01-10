@@ -3,11 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorFace", "src\BlazorFace\BlazorFace.csproj", "{D4FD17A2-C788-47AF-9E86-FB2C2A7792CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorFace", "src\BlazorFace\BlazorFace.csproj", "{D4FD17A2-C788-47AF-9E86-FB2C2A7792CA}"
 EndProject
-Project("{B2FD6E4D-997B-4993-B8F0-122E1F0868F0}") = "Solution Items", "Solution Items", "{5FE29472-2047-4259-B44F-B8C47AA15C21}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{73254DB0-9E83-4298-8121-32CBF52873D8}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		nuget.config = nuget.config
+		README.md = README.md
+		stylecop.json = stylecop.json
+		version.json = version.json
 	EndProjectSection
 EndProject
 Global
