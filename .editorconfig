@@ -154,6 +154,32 @@ csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
+# Newline settings
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+
+# Blocks are allowed
+csharp_prefer_braces = true:silent
+
+# SA1130: Use lambda syntax
+dotnet_diagnostic.SA1130.severity = silent
+
+# IDE1006: Naming Styles - StyleCop handles these for us
+dotnet_diagnostic.IDE1006.severity = none
+
+dotnet_diagnostic.DOC100.severity = silent
+dotnet_diagnostic.DOC104.severity = warning
+dotnet_diagnostic.DOC105.severity = warning
+dotnet_diagnostic.DOC106.severity = warning
+dotnet_diagnostic.DOC107.severity = warning
+dotnet_diagnostic.DOC108.severity = warning
+dotnet_diagnostic.DOC200.severity = warning
+dotnet_diagnostic.DOC202.severity = warning
+
 # localization is out of scope
 # CA1303: Literale nicht als lokalisierte Parameter uebergeben
 dotnet_diagnostic.CA1303.severity = silent

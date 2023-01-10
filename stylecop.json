@@ -3,7 +3,10 @@
   "settings": {
     "documentationRules": {
       "fileNamingConvention": "metadata",
-      "xmlHeader": false
+      "xmlHeader": false,
+      "documentExposedElements": false,
+      "documentInterfaces": true,
+      "documentInternalElements": false
     },
     "orderingRules": {
       "usingDirectivesPlacement": "outsideNamespace"
