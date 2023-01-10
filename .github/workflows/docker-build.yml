@@ -1,0 +1,19 @@
+name: Docker Image CI
+
+on:
+  push
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+    - uses: dotnet/nbgv@v0.4
+      id: nbgv
+    - name: Build the Docker image
+      run: docker build . --file src/BlazorFace/Dockerfile --tag blazorface:${{ steps.nbgv.outputs.SemVer2 }}

@@ -1,0 +1,46 @@
+name: Regular base image update check
+
+on:
+  workflow_dispatch:
+  #schedule:
+  #  - cron:  '0 1 * * *'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  BASE_IMAGE: mcr.microsoft.com/dotnet/aspnet:7.0
+
+jobs:
+  check_base_image_updated:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      image-needs-updating: ${{ steps.check.outputs.needs-updating }}
+      build-ref: ${{ steps.latestrelease.outputs.releasetag }}
+    steps:
+      - name: Docker Image Update Checker
+        id: check
+        uses: georg-jung/docker-image-update-checker@main
+        with:
+          base-image: ${{ env.BASE_IMAGE }}
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          verbose: true
+      - name: get latest release with tag
+        id: latestrelease
+        run: |
+          echo "releasetag=$(curl --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -s ${{ github.api_url }}/repos/${{ github.repository }}/releases/latest | jq '.tag_name' | sed 's/\"//g')" \
+             >> $GITHUB_OUTPUT
+        if: steps.check.outputs.needs-updating == 'true'
+      - name: echo release tag
+        run: |
+          echo ${{ steps.latestrelease.outputs.releasetag }}
+        if: steps.check.outputs.needs-updating == 'true'
+  call_rebuild:
+    needs: check_base_image_updated
+    if: ${{ needs.check_base_image_updated.outputs.image-needs-updating == 'true' }}
+    uses: ./.github/workflows/docker-build-and-push.yml
+    with:
+      build-ref: ${{ needs.check_base_image_updated.outputs.build-ref }}
