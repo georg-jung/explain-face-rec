@@ -8,7 +8,8 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["BlazorFace.sln", "./"]
-COPY ["src/Directory.Build.props", "src/"]
+COPY ["Directory.Build.props", "./"]
+COPY ["Directory.Packages.props", "./"]
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
 RUN dotnet restore "src/BlazorFace/BlazorFace.csproj"
 COPY . .
