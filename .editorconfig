@@ -90,7 +90,7 @@ dotnet_naming_symbols.static_fields.required_modifiers = static
 
 dotnet_naming_style.static_field_style.capitalization = camel_case
 
-# Instance fields are camelCase
+# Instance fields are _camelCase
 dotnet_naming_rule.instance_fields_should_be_camel_case.severity = suggestion
 dotnet_naming_rule.instance_fields_should_be_camel_case.symbols = instance_fields
 dotnet_naming_rule.instance_fields_should_be_camel_case.style = instance_field_style
@@ -98,6 +98,7 @@ dotnet_naming_rule.instance_fields_should_be_camel_case.style = instance_field_s
 dotnet_naming_symbols.instance_fields.applicable_kinds = field
 
 dotnet_naming_style.instance_field_style.capitalization = camel_case
+dotnet_naming_style.instance_field_style.required_prefix = _
 
 # Locals and parameters are camelCase
 dotnet_naming_rule.locals_should_be_camel_case.severity = suggestion
@@ -180,10 +181,21 @@ dotnet_diagnostic.DOC108.severity = warning
 dotnet_diagnostic.DOC200.severity = warning
 dotnet_diagnostic.DOC202.severity = warning
 
-# localization is out of scope
-# CA1303: Literale nicht als lokalisierte Parameter uebergeben
-dotnet_diagnostic.CA1303.severity = silent
+# ### Individual Changes by Georg Jung ###
+# Setting = none disables the analyzer completely
+# and thus saves compile time, see
+# https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3328#issuecomment-812141985
 
-# this is asp.net core so we don't need to care about ConfigureAwait
-# CA2007: Aufruf von "ConfigureAwait" für erwarteten Task erwägen
-dotnet_diagnostic.CA2007.severity = none
+# SA1101: Prefix local calls with this
+dotnet_diagnostic.SA1101.severity = none
+
+# SA1309: Field names should not begin with underscore
+dotnet_diagnostic.SA1309.severity = none
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+# We do want to have the <GenerateDocumentationFile> setting set to true though.
+# See https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA0001.md
+dotnet_diagnostic.CS1591.severity = none
