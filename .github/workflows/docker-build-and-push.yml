@@ -46,7 +46,8 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=sha
-          type=raw,value=${{ inputs.build-ref }}
+          type=semver,pattern={{version}},value=${{ inputs.build-ref }}
+          type=semver,pattern={{major}}.{{minor}},value=${{ inputs.build-ref }}
           type=raw,value=latest
     - name: Build and push Docker image
       uses: docker/build-push-action@v3
