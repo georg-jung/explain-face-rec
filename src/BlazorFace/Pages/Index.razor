@@ -7,26 +7,62 @@
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
-<p>
-    To get started, please upload an image that contains one or more human faces.
-</p>
+<div class="container">
+    <p>
+        To get started, please upload an image that contains one or more human faces.
+    </p>
 
-<div class="mb-3">
-    <InputFile OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
-    @if (_uploadWasTooLarge)
+    <div class="mb-3">
+        <InputFile OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+        @if (_uploadWasTooLarge)
+        {
+            <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        }
+    </div>
+
+    <h2>1. Face Detection</h2>
+
+    <img id="@ImgDetectionId" class="mw-100" />
+
+    <h2>2. Align First Face</h2>
+
+    @if (_angle.HasValue)
     {
-        <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        <p>
+            Angle is @_angle.Value
+        </p>
     }
+
+    <img id="@ImgFirstFaceId" class="mw-100" />
+
+    <h2>3. Embeddings</h2>
+
+    @if (_embeddings != null)
+    {
+        <code>
+            @string.Join("\n", _embeddings);
+        </code>
+    }    
 </div>
-
-<h2>1. Face Detection</h2>
-
-<img id="img-detection" alt="Your upload with face marks" class="mw-100" />
 
 @code {
     const int MaxUploadSize = 1024 * 1024 * 5; // 5 MB
+    const string ImgDetectionId = "img-detection";
+    const string ImgFirstFaceId = "img-first-face";
 
     private bool _uploadWasTooLarge = false;
+    private float? _angle;
+    private float[]? _embeddings;
+
+    private async Task SetImageStream(Bitmap bitmap, string imgId)
+    {
+        using var outStr = new MemoryStream();
+        bitmap.Save(outStr, System.Drawing.Imaging.ImageFormat.Jpeg);
+        outStr.Position = 0;
+
+        var dotnetImageStream = new DotNetStreamReference(outStr);
+        await JS.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
+    }
 
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
@@ -37,7 +73,8 @@
                 var s = e.File.OpenReadStream(MaxUploadSize);
                 _uploadWasTooLarge = false;
                 return s;
-            } catch (IOException ex)
+            }
+            catch (IOException ex)
               when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
             {
                 _uploadWasTooLarge = true;
@@ -50,33 +87,45 @@
 
         using var syncFile = new MemoryStream();
         await file.CopyToAsync(syncFile);
-
-        using var faceDetector = new FaceDetector(0.95f, 0.5f);
-        using var painter = new Painter()
-        {
-            BoxPen = new Pen(Color.Yellow, 4),
-            Transparency = 0,
-        };
-
         using var bitmap = new Bitmap(syncFile);
-        var output = faceDetector.Forward(bitmap);
 
-        foreach (var rectangle in output)
+        using var faceDetector = new FaceDetector(0.90f, 0.5f);
+        var rectangles = faceDetector.Forward(bitmap);
+
+        using var faceLandmarksExtractor = new FaceLandmarksExtractor();
+        var first = rectangles.FirstOrDefault();
+        var points = faceLandmarksExtractor.Forward(bitmap, first);
+        _angle = points.GetRotationAngle();
+        using var aligned = FaceLandmarksExtractor.Align(bitmap, first, _angle.Value);
+
+        await SetImageStream(aligned, ImgFirstFaceId);
+        StateHasChanged();
+
+        using var painter = new Painter()
+            {
+                BoxPen = new Pen(Color.Yellow, 4),
+                Transparency = 0,
+            };
+        foreach (var rectangle in rectangles)
         {
             var paintData = new PaintData()
-            {
-                Rectangle = rectangle,
-                Title = string.Empty
-            };
+                {
+                    Rectangle = rectangle,
+                    Title = string.Empty
+                };
             using var graphics = Graphics.FromImage(bitmap);
             painter.Draw(graphics, paintData);
         }
 
-        var outStr = new MemoryStream(); // no using
-        bitmap.Save(outStr, System.Drawing.Imaging.ImageFormat.Jpeg);
-        outStr.Position = 0;
+        await SetImageStream(bitmap, ImgDetectionId);
+        StateHasChanged();
 
-        var dotnetImageStream = new DotNetStreamReference(outStr);        
-        await JS.InvokeVoidAsync("setImage", "img-detection", dotnetImageStream);
+        using var embedder = new FaceEmbedder();
+        _embeddings = embedder.Forward(aligned);
+        StateHasChanged();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
     }
 }
