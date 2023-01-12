@@ -1,20 +1,53 @@
 @page "/"
 @using FaceONNX;
 @using System.Drawing;
+@using Humanizer;
 @using UMapx.Visualization;
 @inject IJSRuntime JS
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Face Recognition Pipeline</PageTitle>
 
-<InputFile OnChange="@LoadFiles" />
+<p>
+    To get started, please upload an image that contains one or more human faces.
+</p>
 
-<img id="imgx" />
+<div class="mb-3">
+    <InputFile OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+    @if (_uploadWasTooLarge)
+    {
+        <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+    }
+</div>
+
+<h2>1. Face Detection</h2>
+
+<img id="img-detection" alt="Your upload with face marks" class="mw-100" />
 
 @code {
+    const int MaxUploadSize = 1024 * 1024 * 5; // 5 MB
+
+    private bool _uploadWasTooLarge = false;
+
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
-        const int maxSize = 1024 * 1024 * 5; // 5 MB
-        using var file = e.File.OpenReadStream(maxSize);
+        Stream? TryOpen()
+        {
+            try
+            {
+                var s = e.File.OpenReadStream(MaxUploadSize);
+                _uploadWasTooLarge = false;
+                return s;
+            } catch (IOException ex)
+              when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
+            {
+                _uploadWasTooLarge = true;
+                return null;
+            }
+        }
+
+        using var file = TryOpen();
+        if (file == null) return;
+
         using var syncFile = new MemoryStream();
         await file.CopyToAsync(syncFile);
 
@@ -44,6 +77,6 @@
         outStr.Position = 0;
 
         var dotnetImageStream = new DotNetStreamReference(outStr);        
-        await JS.InvokeVoidAsync("setImage", "imgx", dotnetImageStream);
+        await JS.InvokeVoidAsync("setImage", "img-detection", dotnetImageStream);
     }
 }
