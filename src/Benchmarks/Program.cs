@@ -10,6 +10,7 @@ public class Program
     public static void Main(string[] args)
     {
         // var summary = BenchmarkRunner.Run<ImageSharp>();
-        var summary = BenchmarkRunner.Run<FaceOnnxVsImageSharpAlignment>();
+        // var summary = BenchmarkRunner.Run<FaceOnnxVsImageSharpAlignment>();
+        var summary = BenchmarkRunner.Run<CropFirstVsResizeFirst>();
     }
 }
