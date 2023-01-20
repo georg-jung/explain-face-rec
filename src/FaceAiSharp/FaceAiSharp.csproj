@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -15,7 +15,9 @@
 
   <ItemGroup>
     <PackageReference Include="FaceONNX" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
     <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" />
   </ItemGroup>
 
 </Project>

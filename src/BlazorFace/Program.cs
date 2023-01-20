@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reflection;
+using FaceAiSharp;
+using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -19,6 +21,9 @@ namespace BlazorFace
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddTransient<IFaceDetector, FaceOnnxDetector>();
+            builder.Services.AddTransient<IFaceEmbeddingsGenerator, FaceOnnxEmbeddingsGenerator>();
+            builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
 
             var app = builder.Build();
 

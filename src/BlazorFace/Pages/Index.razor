@@ -1,12 +1,16 @@
 @page "/"
+@using FaceAiSharp.Abstractions;
 @using FaceAiSharp.Extensions;
-@using FaceONNX;
 @using Humanizer;
 @using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using UMapx.Imaging;
 @using UMapx.Visualization;
 @inject IJSRuntime JS
+@inject IFaceDetector det;
+@inject IFaceLandmarksExtractor lmrks;
+@inject IFaceEmbeddingsGenerator embGen;
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
@@ -27,7 +31,15 @@
 
     <img id="@ImgDetectionId" class="mw-100" />
 
-    <h2 class="mt-4">2. Align First Face</h2>
+    <h2 class="mt-4">2. First Face Crop</h2>
+
+    <img id="@ImgFirstFaceId" class="mw-100" />
+
+    <h2 class="mt-4">3. First Face with Landmarks</h2>
+
+    <img id="@ImgFirstFaceWithLandmarksId" class="mw-100" />
+
+    <h2 class="mt-4">4. Aligned First Face</h2>
 
     @if (_angle.HasValue)
     {
@@ -36,9 +48,9 @@
         </p>
     }
 
-    <img id="@ImgFirstFaceId" class="mw-100" />
+    <img id="@ImgAlignedFirstFaceId" class="mw-100" />
 
-    <h2 class="mt-4">3. Embeddings</h2>
+    <h2 class="mt-4">5. Embeddings</h2>
 
     @if (_embeddings != null)
     {
@@ -52,15 +64,18 @@
     const int MaxUploadSize = 1024 * 1024 * 5; // 5 MB
     const string ImgDetectionId = "img-detection";
     const string ImgFirstFaceId = "img-first-face";
+    const string ImgFirstFaceWithLandmarksId = "img-first-face-with-landmarks";
+    const string ImgAlignedFirstFaceId = "img-aligned-first-face";
 
     private bool _uploadWasTooLarge = false;
     private float? _angle;
     private float[]? _embeddings;
 
-    private async Task SetImageStream(System.Drawing.Bitmap bitmap, string imgId)
+    private async Task SetImageStream(Image image, string imgId)
     {
+        // async probably doesnt make a difference, given we're writing to a MemoryStream
         using var outStr = new MemoryStream();
-        bitmap.Save(outStr, System.Drawing.Imaging.ImageFormat.Jpeg);
+        image.SaveAsJpeg(outStr);
         outStr.Position = 0;
 
         var dotnetImageStream = new DotNetStreamReference(outStr);
@@ -88,46 +103,32 @@
         using var file = TryOpen();
         if (file == null) return;
 
-        var img = await Image.LoadAsync<RgbaVector>(file);
-        var bitmap = img.ToFaceOnnxFloatArray();
+        using var img = await Image.LoadAsync(file);
 
-        using var faceDetector = new FaceDetector(0.90f, 0.5f);
-        var rectangles = faceDetector.Forward(bitmap);
+        var detection = det.Detect(img);
+        var rectangles = detection.Select(x => x.Box).ToList();
 
-        using var faceLandmarksExtractor = new FaceLandmarksExtractor();
-        var first = rectangles.FirstOrDefault();
-        var points = faceLandmarksExtractor.Forward(bitmap, first);
-        _angle = points.GetRotationAngle();
-        var aligned = FaceLandmarksExtractor.Align(bitmap, first, _angle.Value);
-        using var alignedBmp = aligned.FromRGB();
-        
-        await SetImageStream(alignedBmp, ImgFirstFaceId);
+        var pen = Brushes.Solid(Color.YellowGreen);
+        using (var imgDetected = img.DrawRectangles(pen, rectangles))
+            await SetImageStream(imgDetected, ImgDetectionId);
         StateHasChanged();
 
-        var drawingBmp = bitmap.FromRGB();
-
-        using var painter = new Painter()
-            {
-                BoxPen = new System.Drawing.Pen(System.Drawing.Color.Yellow, 4),
-                Transparency = 0,
-            };
-        foreach (var rectangle in rectangles)
-        {
-            var paintData = new PaintData()
-                {
-                    Rectangle = rectangle,
-                    Title = string.Empty
-                };
-            using var graphics = System.Drawing.Graphics.FromImage(drawingBmp);
-            painter.Draw(graphics, paintData);
-        }
-
-        await SetImageStream(drawingBmp, ImgDetectionId);
+        var firstFaceRect = rectangles.FirstOrDefault();
+        using var imgFirstFace = img.Extract(firstFaceRect);
+        await SetImageStream(imgFirstFace, ImgFirstFaceId);
         StateHasChanged();
 
-        using var embedder = new FaceEmbedder();
-        _embeddings = embedder.Forward(aligned);
+        var landmarks = lmrks.Detect(imgFirstFace);
+        using (var imgLandmarks = imgFirstFace.DrawPoints(pen, landmarks))
+            await SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
         StateHasChanged();
+
+        _angle = lmrks.GetFaceAlignmentAngle(landmarks);
+        using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
+        await SetImageStream(imgAligned, ImgAlignedFirstFaceId);
+        StateHasChanged();
+
+        _embeddings = embGen.Generate(imgAligned);
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
