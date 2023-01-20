@@ -14,6 +14,23 @@ namespace FaceAiSharp.Extensions
         // Can this be optimized by https://github.com/SixLabors/ImageSharp/discussions/1666 ?
         public static Image Extract(this Image sourceImage, Rectangle sourceArea) => sourceImage.Clone(op => op.Crop(sourceArea));
 
+        public static Image Extract(this Image sourceImage, Rectangle sourceArea, int extractedMaxEdgeSize)
+            => sourceImage.Clone(op =>
+            {
+                var longestDim = Math.Max(sourceArea.Width, sourceArea.Height);
+                var toLargeFactor = Math.Max(1.0, longestDim / (double)extractedMaxEdgeSize);
+                var factor = 1.0 / toLargeFactor; // scale factor
+
+                // cropping before resizing is much faster, see benchmarks
+                op.Crop(sourceArea);
+
+                if (factor < 1)
+                {
+                    var curSize = op.GetCurrentSize();
+                    op.Resize(curSize.Scale(factor));
+                }
+            });
+
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
             => sourceImage.Clone(op =>
             {
