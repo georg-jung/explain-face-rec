@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 
 namespace FaceAiSharp.Extensions;
 
-public static class RectangleExtensions
+public static class GeometryExtensions
 {
     /// <summary>
     /// Gets an area that contains all pixels that could be needed if the given crop-rectangle should be rotated by any angle.
@@ -32,4 +32,16 @@ public static class RectangleExtensions
             Height = h,
         };
     }
+
+    public static Rectangle Scale(this Rectangle rectangle, double factor)
+        => new(
+            (int)(rectangle.X * factor),
+            (int)(rectangle.Y * factor),
+            (int)(rectangle.Width * factor),
+            (int)(rectangle.Height * factor));
+
+    public static Size Scale(this Size size, double factor)
+        => new(
+            (int)(size.Width * factor),
+            (int)(size.Height * factor));
 }
