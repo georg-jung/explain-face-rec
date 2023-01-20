@@ -12,4 +12,8 @@
     <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
+  </ItemGroup>
+
 </Project>
