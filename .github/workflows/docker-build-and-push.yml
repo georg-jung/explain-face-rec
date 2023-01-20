@@ -6,6 +6,7 @@ on:
       build-ref:
         required: true
         type: string
+  workflow_dispatch:
   release:
     types: [published]
 
