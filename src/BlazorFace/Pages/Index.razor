@@ -2,6 +2,7 @@
 @using FaceAiSharp.Abstractions;
 @using FaceAiSharp.Extensions;
 @using Humanizer;
+@using NodaTime;
 @using SixLabors.ImageSharp;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
@@ -11,6 +12,7 @@
 @inject IFaceDetector det;
 @inject IFaceLandmarksExtractor lmrks;
 @inject IFaceEmbeddingsGenerator embGen;
+@inject IClock clock;
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
@@ -26,20 +28,21 @@
             <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
         }
     </div>
+    <p>Loading image took @_uploadMs ms.</p>
 
     <h2 class="mt-4">1. Face Detection</h2>
-
+    <p>Detection took @_detectionMs ms.</p>
     <img id="@ImgDetectionId" class="mw-100" />
 
     <h2 class="mt-4">2. First Face Crop</h2>
-
     <img id="@ImgFirstFaceId" class="mw-100" />
 
     <h2 class="mt-4">3. First Face with Landmarks</h2>
-
+    <p>Finding landmarks took @_landmarksMs ms.</p>
     <img id="@ImgFirstFaceWithLandmarksId" class="mw-100" />
 
     <h2 class="mt-4">4. Aligned First Face</h2>
+    <p>Aligning took @_alignMs ms.</p>
 
     @if (_angle.HasValue)
     {
@@ -52,12 +55,16 @@
 
     <h2 class="mt-4">5. Embeddings</h2>
 
+    <p>
+        Determining embeddings took @_embedMs ms. Total processing time was @_totalMs ms.
+    </p>
+
     @if (_embeddings != null)
     {
         <code>
             @string.Join("\n", _embeddings);
         </code>
-    }    
+    }
 </div>
 
 @code {
@@ -70,6 +77,13 @@
     private bool _uploadWasTooLarge = false;
     private float? _angle;
     private float[]? _embeddings;
+
+    private int? _uploadMs;
+    private int? _detectionMs;
+    private int? _landmarksMs;
+    private int? _alignMs;
+    private int? _embedMs;
+    private int? _totalMs;
 
     private async Task SetImageStream(Image image, string imgId)
     {
@@ -100,12 +114,16 @@
             }
         }
 
+        var start = clock.GetCurrentInstant();
         using var file = TryOpen();
         if (file == null) return;
 
         using var img = await Image.LoadAsync(file);
+        _uploadMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
 
+        var pivot = clock.GetCurrentInstant();
         var detection = det.Detect(img);
+        _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         var rectangles = detection.Select(x => x.Box).ToList();
 
         var brush = Brushes.Solid(Color.Red);
@@ -118,20 +136,28 @@
         await SetImageStream(imgFirstFace, ImgFirstFaceId);
         StateHasChanged();
 
+        pivot = clock.GetCurrentInstant();
         var landmarks = lmrks.Detect(imgFirstFace);
+        _landmarksMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         using (var imgLandmarks = imgFirstFace.DrawPoints(brush, landmarks))
             await SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
         StateHasChanged();
 
+        pivot = clock.GetCurrentInstant();
         _angle = lmrks.GetFaceAlignmentAngle(landmarks);
         using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
+        _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         await SetImageStream(imgAligned, ImgAlignedFirstFaceId);
         StateHasChanged();
 
+        pivot = clock.GetCurrentInstant();
         _embeddings = embGen.Generate(imgAligned);
+        _embedMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
 
         GC.Collect();
         GC.WaitForPendingFinalizers();
         GC.Collect();
+        _totalMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
+        StateHasChanged();
     }
 }

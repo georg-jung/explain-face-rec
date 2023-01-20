@@ -6,6 +6,7 @@ using FaceAiSharp;
 using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using NodaTime;
 
 namespace BlazorFace
 {
@@ -21,6 +22,7 @@ namespace BlazorFace
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddSingleton<IClock>(SystemClock.Instance);
             builder.Services.AddTransient<IFaceDetector, FaceOnnxDetector>();
             builder.Services.AddTransient<IFaceEmbeddingsGenerator, FaceOnnxEmbeddingsGenerator>();
             builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
