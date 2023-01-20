@@ -108,8 +108,8 @@
         var detection = det.Detect(img);
         var rectangles = detection.Select(x => x.Box).ToList();
 
-        var pen = Brushes.Solid(Color.YellowGreen);
-        using (var imgDetected = img.DrawRectangles(pen, rectangles))
+        var brush = Brushes.Solid(Color.Red);
+        using (var imgDetected = img.DrawRectangles(brush, rectangles))
             await SetImageStream(imgDetected, ImgDetectionId);
         StateHasChanged();
 
@@ -119,7 +119,7 @@
         StateHasChanged();
 
         var landmarks = lmrks.Detect(imgFirstFace);
-        using (var imgLandmarks = imgFirstFace.DrawPoints(pen, landmarks))
+        using (var imgLandmarks = imgFirstFace.DrawPoints(brush, landmarks))
             await SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
         StateHasChanged();
 

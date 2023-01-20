@@ -59,14 +59,15 @@ namespace FaceAiSharp.Extensions
         /// <param name="image">The image to draw the rectangles onto.</param>
         /// <param name="brush">The brush to draw the points with.</param>
         /// <param name="toDraw">An enumeration of the rectangles to draw.</param>
-        /// <param name="thickness">The thickness to draw the points in.</param>
         /// <returns>A copy of the given image with the rectangles drawn onto.</returns>
-        public static Image DrawPoints(this Image image, IBrush brush, IEnumerable<Point> toDraw, float thickness = 5.0f)
+        public static Image DrawPoints(this Image image, IBrush brush, IEnumerable<Point> toDraw)
             => image.Clone(op =>
             {
+                var delta = Math.Max(image.Width / 400, 1);
                 foreach (var pt in toDraw)
                 {
-                    op.DrawLines(brush, thickness, pt, pt);
+                    var rect = new Rectangle() { X = pt.X - delta, Y = pt.Y - delta, Height = 2 * delta, Width = 2 * delta };
+                    op.Fill(brush, rect);
                 }
             });
 
