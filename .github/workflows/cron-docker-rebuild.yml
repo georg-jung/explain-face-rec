@@ -39,6 +39,9 @@ jobs:
           echo ${{ steps.latestrelease.outputs.releasetag }}
         if: steps.check.outputs.needs-updating == 'true'
   call_rebuild:
+    permissions:
+      contents: read
+      packages: write
     needs: check_base_image_updated
     if: ${{ needs.check_base_image_updated.outputs.image-needs-updating == 'true' }}
     uses: ./.github/workflows/docker-build-and-push.yml
