@@ -1,0 +1,91 @@
+@page "/Intro"
+<PageTitle>Goals - Understanding Face Recognition</PageTitle>
+
+<div class="container col-xxl-6 col-xl-8">
+    <h3>Intro</h3>
+    <p>
+        Let's begin with a brief overview of what this tutorial can teach you &ndash; and what it can't.
+        The goal is to get you started with the tasks artificial intelligence can solve regarding the human face.
+        We will look at some tangible use-cases and approach the topic from a practical, solution-oriented point of view.
+        While following along, you can choose pictures from our example library or you can always select your own
+        photos to get a personalized feeling what these technologies can achieve in practice.
+    </p>
+    <p>
+        It is also important to acknowledge that understanding <em>what artificial intelligence actually does</em> in
+        a desriptive way is a quite hard problem that is subject of current research. Thus, you shouldn't expect to find
+        answers to questions like
+        <em>Does face recognition measure the distance between your eyes?</em> or
+        <em>Is mouth width or nose length more significant for identifying someone?</em>
+        Rather, we approach solutions to problems like
+        <em>I'm creating a photo gallery app. How to group the photos by people depicted?</em> or
+        <em>I want to learn about face recognition. Where should I even get started?</em>
+    </p>
+
+    <h4>Goals</h4>
+    <ul>
+        <li>Provide a practical, solution-oriented point of view.</li>
+        <li>Experience every step with examples.</li>
+        <li>No prior knowledge of artificial intelligence required.</li>
+        <li>You are able to use what is demonstrated in your own projects in practice after following along.</li>
+        <li>Strengthen your intuition how computers work with faces and what they can and can not actually do with them.</li>
+    </ul>
+
+    <h4>Non-Goals</h4>
+    <ul>
+        <li>
+            Teach you what artificial intelligence achieves what it does in an interpretable way.
+            <small>
+                <a href="#" class="link" aria-label="More details" data-bs-toggle="modal" data-bs-target="#interpretableAiModal"><i class="bi bi-info-circle"></i></a>
+            </small>
+        </li>
+        <li>Give you in-depth knowledge of the maths or science behind the technologies used.</li>
+        <li>Teach you programming in general.</li>
+    </ul>
+</div>
+
+<!-- Interpretable AI Modal -->
+<div class="modal fade" id="interpretableAiModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Interpretability of Artificial Intelligence</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <figure>
+                    <blockquote class="blockquote">
+                        <p class="fs-6">
+                            <em>Interpretability</em>, also often referred to as <em>explainability</em>, in artificial
+                            intelligence (AI) refers to the study of how to understand the decisions of machine learning
+                            systems, and how to design systems whose decisions are easily understood, or
+                            <em>interpretable</em>.
+                        </p>
+                    </blockquote>
+                    <figcaption class="blockquote-footer">
+                        Tim G. J. Rudner and Helen Toner
+                        <cite title="Tim G. J. Rudner and Helen Toner, &quot;Key Concepts in AI Safety: Interpretability in Machine Learning&quot; (Center for Security and Emerging Technology, March 2021). https: //doi.org/10.51593/20190042.">
+                            <a href="https://cset.georgetown.edu/publication/key-concepts-in-ai-safety-interpretability-in-machine-learning/">
+                                cset.georgetown.edu
+                            </a>
+                        </cite>
+                    </figcaption>
+                </figure>
+
+                <p>
+                    We &ndash; or at least some artificial intelligence scientist &ndash; know all the mathematical operations and
+                    input data artificial intelligence methods can use. Nevertheless it is sometimes hard to udnerstand what
+                    these algorithms do in an abstract tangible way. You might be tempted to think a face recognition
+                    algorithm does something like
+                    <em>measure the width of the mouth in relation to the distance between the eyes</em>.
+                    This is however not what computers do today. Explaining in an abstract way <em>what face recognition does</em>
+                    is actually subject of
+                    <a href="https://arxiv.org/abs/1805.00611" title="Towards Interpretable Face Recognition">current research</a>
+                    and beyond the scope of this tutorial.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
