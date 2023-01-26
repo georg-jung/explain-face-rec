@@ -7,6 +7,7 @@ using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using NodaTime;
+using Sentry.AspNetCore;
 
 namespace BlazorFace
 {
@@ -27,6 +28,12 @@ namespace BlazorFace
             builder.Services.AddTransient<IFaceEmbeddingsGenerator, FaceOnnxEmbeddingsGenerator>();
             builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
 
+            // Add the following line:
+            builder.WebHost.UseSentry(o =>
+            {
+                o.TracesSampleRate = 1.0;
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -43,6 +50,8 @@ namespace BlazorFace
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSentryTracing();
 
             app.MapBlazorHub();
             app.MapFallbackToPage("/_Host");

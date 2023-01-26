@@ -13,6 +13,7 @@
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="NodaTime" />
+    <PackageReference Include="Sentry.AspNetCore" />
     <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
 
