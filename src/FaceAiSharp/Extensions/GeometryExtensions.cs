@@ -1,6 +1,7 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using SixLabors.ImageSharp;
 
 namespace FaceAiSharp.Extensions;
@@ -44,4 +45,45 @@ public static class GeometryExtensions
         => new(
             (int)(size.Width * factor),
             (int)(size.Height * factor));
+
+    // Math operations inspired by
+    // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Euclidean.cs
+
+    /// <summary>
+    /// Calculate euclidean distance between to arbitrary length vectors. Not optimized.
+    /// See e.g. https://learn.microsoft.com/en-us/dotnet/api/system.runtime.intrinsics.vector256-1?view=net-7.0
+    /// for possible optimizations. Also, this could use Generic Math if it was .Net 7.
+    /// See https://learn.microsoft.com/en-us/dotnet/standard/generics/math.
+    /// </summary>
+    /// <param name="x">Vector of single precision floating point numbers.</param>
+    /// <param name="y">Vector of single precision floating point numbers. Length needs to match the other vector's length.</param>
+    /// <returns>Euclidean distance.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float EuclideanDistance(this float[] x, float[] y)
+    {
+        if (x.Length != y.Length)
+        {
+            throw new ArgumentException("The Length of the two float[] arrays must match.", nameof(y));
+        }
+
+        var l = x.Length;
+        float sum = 0.0f;
+        for (var i = 0; i < l; i++)
+        {
+            var dist = x[i] - y[i];
+            sum += dist * dist;
+        }
+
+        return (float)Math.Sqrt(sum);
+    }
+
+    /// <summary>
+    /// Gets a similarity measure between two points.
+    /// </summary>
+    /// <param name="x">The first vector to be compared.</param>
+    /// <param name="y">The second vector to be compared.</param>
+    /// <returns>A similarity measure between x and y.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float EuclideanSimilarity(this float[] x, float[] y)
+        => 1.0f / (1.0f + EuclideanDistance(x, y));
 }

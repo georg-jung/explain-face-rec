@@ -53,6 +53,13 @@
             @string.Join("\n", _embeddings2);
         </code>
     }
+
+    <h2 class="mt-4">3. Measures</h2>
+
+    <ul>
+        <li>Euclidean Distance: @_euclideanDist</li>
+        <li>Euclidean Similarity: @_euclideanSimilarity</li>
+    </ul>
 </div>
 
 @code {
@@ -62,6 +69,8 @@
     private bool _upload2WasTooLarge = false;
     private float[]? _embeddings1;
     private float[]? _embeddings2;
+    private float? _euclideanDist;
+    private float? _euclideanSimilarity;
 
     Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
     {
@@ -82,11 +91,23 @@
     private async void LoadFiles1(InputFileChangeEventArgs e)
     {
         (_embeddings1, _upload1WasTooLarge) = await LoadFiles(e);
+        TryCalcMeasures();
     }
 
     private async void LoadFiles2(InputFileChangeEventArgs e)
     {
         (_embeddings2, _upload2WasTooLarge) = await LoadFiles(e);
+        TryCalcMeasures();
+    }
+
+    private void TryCalcMeasures()
+    {
+        if (_embeddings1 == null || _embeddings2 == null) return;
+
+        _euclideanDist = _embeddings1.EuclideanDistance(_embeddings2);
+        _euclideanSimilarity = _embeddings1.EuclideanSimilarity(_embeddings2);
+
+        StateHasChanged();
     }
 
     private async Task<(float[]? Embeddings, bool UploadWasTooLarge)> LoadFiles(InputFileChangeEventArgs e)
