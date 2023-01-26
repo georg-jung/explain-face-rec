@@ -1,0 +1,113 @@
+@page "/ComparisonDemo"
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using Humanizer;
+@using NodaTime;
+@using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using UMapx.Imaging;
+@using UMapx.Visualization;
+@inject IJSRuntime JS
+@inject IFaceDetector det;
+@inject IFaceLandmarksExtractor lmrks;
+@inject IFaceEmbeddingsGenerator embGen;
+@inject IClock clock;
+
+<PageTitle>Face Comparison</PageTitle>
+
+<div class="container">
+    <p>
+        To get started, please upload two images that contain one or more human faces.
+    </p>
+
+    <div class="mb-3">
+        <InputFile OnChange="@LoadFiles1" class="@($"form-control {(_upload1WasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+        @if (_upload1WasTooLarge)
+        {
+            <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        }
+    </div>
+    <div class="mb-3">
+        <InputFile OnChange="@LoadFiles2" class="@($"form-control {(_upload2WasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+        @if (_upload2WasTooLarge)
+        {
+            <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        }
+    </div>
+
+    <h2 class="mt-4">1. Embeddings 1</h2>
+
+    @if (_embeddings1 != null)
+    {
+        <code>
+            @string.Join("\n", _embeddings1);
+        </code>
+    }
+
+    <h2 class="mt-4">2. Embeddings 2</h2>
+
+    @if (_embeddings2 != null)
+    {
+        <code>
+            @string.Join("\n", _embeddings2);
+        </code>
+    }
+</div>
+
+@code {
+    const int MaxUploadSize = 1024 * 1024 * 5; // 5 MB
+
+    private bool _upload1WasTooLarge = false;
+    private bool _upload2WasTooLarge = false;
+    private float[]? _embeddings1;
+    private float[]? _embeddings2;
+
+    Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
+    {
+        try
+        {
+            var s = e.File.OpenReadStream(MaxUploadSize);
+            uploadWasTooLarge = false;
+            return s;
+        }
+        catch (IOException ex)
+          when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
+        {
+            uploadWasTooLarge = true;
+            return null;
+        }
+    }
+
+    private async void LoadFiles1(InputFileChangeEventArgs e)
+    {
+        (_embeddings1, _upload1WasTooLarge) = await LoadFiles(e);
+    }
+
+    private async void LoadFiles2(InputFileChangeEventArgs e)
+    {
+        (_embeddings2, _upload2WasTooLarge) = await LoadFiles(e);
+    }
+
+    private async Task<(float[]? Embeddings, bool UploadWasTooLarge)> LoadFiles(InputFileChangeEventArgs e)
+    {
+        var start = clock.GetCurrentInstant();
+        using var file = TryOpen(e, out var ulTooLarge);
+        if (file == null) return (null, ulTooLarge);
+
+        using var img = await Image.LoadAsync(file);
+
+        var pivot = clock.GetCurrentInstant();
+        var detection = det.Detect(img);
+        var rectangles = detection.Select(x => x.Box).ToList();
+
+        var firstFaceRect = rectangles.FirstOrDefault();
+        using var imgFirstFace = img.Extract(firstFaceRect, 250);
+        var landmarks = lmrks.Detect(imgFirstFace);
+
+        var angle = lmrks.GetFaceAlignmentAngle(landmarks);
+        using var imgAligned = img.CropAligned(firstFaceRect, angle);
+        var embeddings = embGen.Generate(imgAligned);
+        return (embeddings, false);
+    }
+}
