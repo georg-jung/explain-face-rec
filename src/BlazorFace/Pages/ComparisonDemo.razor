@@ -60,6 +60,8 @@
         <li>Euclidean Distance: @_euclideanDist</li>
         <li>Euclidean Similarity: @_euclideanSimilarity</li>
     </ul>
+
+    <button class="btn btn-primary" @onclick="Clear">Clear</button>
 </div>
 
 @code {
@@ -86,6 +88,12 @@
             uploadWasTooLarge = true;
             return null;
         }
+    }
+
+    private void Clear()
+    {
+        _embeddings1 = _embeddings2 = null;
+        _euclideanDist = _euclideanSimilarity = null;
     }
 
     private async void LoadFiles1(InputFileChangeEventArgs e)
