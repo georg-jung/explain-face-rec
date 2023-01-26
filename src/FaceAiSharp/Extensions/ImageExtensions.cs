@@ -49,7 +49,16 @@ namespace FaceAiSharp.Extensions
                 }
 
                 var angleInvariantCropArea = faceArea.ScaleToRotationAngleInvariantCropArea();
-                op.Crop(angleInvariantCropArea);
+
+                var imgSz = op.GetCurrentSize();
+                var imgRect = new Rectangle(0, 0, imgSz.Width, imgSz.Height);
+                var usedCropArea = false;
+                if (imgRect.Contains(angleInvariantCropArea))
+                {
+                    op.Crop(angleInvariantCropArea);
+                    usedCropArea = true;
+                }
+
                 op.Rotate(angle);
 
                 // We have cropped above to an area that is larger than our actual face area.
@@ -59,8 +68,8 @@ namespace FaceAiSharp.Extensions
                 // actual faceArea.
                 var cropAreaAfterRotation = new Rectangle()
                 {
-                    X = faceArea.X - angleInvariantCropArea.X,
-                    Y = faceArea.Y - angleInvariantCropArea.Y,
+                    X = faceArea.X - (usedCropArea ? angleInvariantCropArea.X : 0),
+                    Y = faceArea.Y - (usedCropArea ? angleInvariantCropArea.Y : 0),
                     Height = faceArea.Height,
                     Width = faceArea.Width,
                 };
