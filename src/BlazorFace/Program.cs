@@ -6,6 +6,7 @@ using FaceAiSharp;
 using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.FileProviders;
 using NodaTime;
 using Sentry.AspNetCore;
 
@@ -43,6 +44,18 @@ namespace BlazorFace
 
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
+            }
+
+            if (app.Environment.IsDevelopment())
+            {
+                // this is required because the media folder that is just linked into the wwwroot
+                // will not be copied in debug builds.
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = new PhysicalFileProvider(
+                        Path.Combine(builder.Environment.ContentRootPath, @"..\..\media")),
+                    RequestPath = "/media",
+                });
             }
 
             app.UseHttpsRedirection();

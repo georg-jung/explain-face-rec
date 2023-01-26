@@ -18,6 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\media\**\*.*">
+      <Link>wwwroot\media\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
   </ItemGroup>
 
