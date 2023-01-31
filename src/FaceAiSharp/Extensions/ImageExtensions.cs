@@ -31,6 +31,22 @@ namespace FaceAiSharp.Extensions
                 }
             });
 
+        public static Image ToSquare(this Image sourceImage, int maxEdgeSize)
+            => sourceImage.Clone(op =>
+            {
+                if (sourceImage.Width == sourceImage.Height && sourceImage.Width == maxEdgeSize)
+                {
+                    return;
+                }
+
+                var longestDim = Math.Max(sourceImage.Width, sourceImage.Height);
+                var toLargeFactor = Math.Max(1.0, longestDim / (double)maxEdgeSize);
+                var factor = 1.0 / toLargeFactor; // scale factor
+
+                var curSize = op.GetCurrentSize();
+                op.Resize(curSize.Scale(factor));
+            });
+
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
             => sourceImage.Clone(op =>
             {

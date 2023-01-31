@@ -46,6 +46,31 @@ public static class GeometryExtensions
             (int)(size.Width * factor),
             (int)(size.Height * factor));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float TwoNorm(this float[] vector)
+    {
+        double sum = 0;
+        foreach (var x in vector)
+        {
+            sum += x * x;
+        }
+
+        return (float)Math.Sqrt(sum);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float[] ToUnitLength(this float[] vector)
+    {
+        var len = vector.TwoNorm();
+        var scaled = new float[vector.Length];
+        for (var i = 0; i < vector.Length; i++)
+        {
+            scaled[i] = vector[i] / len;
+        }
+
+        return scaled;
+    }
+
     // Euclidean inspired by
     // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Euclidean.cs
 
