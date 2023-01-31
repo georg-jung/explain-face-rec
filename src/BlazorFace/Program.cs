@@ -26,7 +26,7 @@ namespace BlazorFace
             builder.Services.AddServerSideBlazor();
             builder.Services.AddSingleton<IClock>(SystemClock.Instance);
             builder.Services.AddTransient<IFaceDetector, FaceOnnxDetector>();
-            builder.Services.AddTransient<IFaceEmbeddingsGenerator, FaceOnnxEmbeddingsGenerator>();
+            builder.Services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
             builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
 
             // Add the following line:
