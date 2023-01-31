@@ -38,6 +38,10 @@
 
     <h2 class="mt-4">1. Embeddings 1</h2>
 
+    <p>
+        <img id="img1" class="mw-100" />
+    </p>
+
     @if (_embeddings1 != null)
     {
         <code>
@@ -46,6 +50,10 @@
     }
 
     <h2 class="mt-4">2. Embeddings 2</h2>
+
+    <p>
+        <img id="img2" class="mw-100" />
+    </p>
 
     @if (_embeddings2 != null)
     {
@@ -78,6 +86,17 @@
     private float? _cosineDist;
     private float? _cosineSimilarity;
 
+    private async Task SetImageStream(Image image, string imgId)
+    {
+        // async probably doesnt make a difference, given we're writing to a MemoryStream
+        using var outStr = new MemoryStream();
+        image.SaveAsJpeg(outStr);
+        outStr.Position = 0;
+
+        var dotnetImageStream = new DotNetStreamReference(outStr);
+        await JS.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
+    }
+
     Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
     {
         try
@@ -98,17 +117,18 @@
     {
         _embeddings1 = _embeddings2 = null;
         _euclideanDist = _euclideanSimilarity = null;
+        _cosineDist = _cosineSimilarity = null;
     }
 
     private async void LoadFiles1(InputFileChangeEventArgs e)
     {
-        (_embeddings1, _upload1WasTooLarge) = await LoadFiles(e);
+        (_embeddings1, _upload1WasTooLarge) = await LoadFiles(e, "img1");
         TryCalcMeasures();
     }
 
     private async void LoadFiles2(InputFileChangeEventArgs e)
     {
-        (_embeddings2, _upload2WasTooLarge) = await LoadFiles(e);
+        (_embeddings2, _upload2WasTooLarge) = await LoadFiles(e, "img2");
         TryCalcMeasures();
     }
 
@@ -124,7 +144,7 @@
         StateHasChanged();
     }
 
-    private async Task<(float[]? Embeddings, bool UploadWasTooLarge)> LoadFiles(InputFileChangeEventArgs e)
+    private async Task<(float[]? Embeddings, bool UploadWasTooLarge)> LoadFiles(InputFileChangeEventArgs e, string imgId)
     {
         var start = clock.GetCurrentInstant();
         using var file = TryOpen(e, out var ulTooLarge);
@@ -142,7 +162,9 @@
 
         var angle = lmrks.GetFaceAlignmentAngle(landmarks);
         using var imgAligned = img.CropAligned(firstFaceRect, angle);
+        
         var embeddings = embGen.Generate(imgAligned);
+        await SetImageStream(imgAligned, imgId);
         return (embeddings, false);
     }
 }
