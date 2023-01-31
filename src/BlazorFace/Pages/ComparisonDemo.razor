@@ -57,8 +57,10 @@
     <h2 class="mt-4">3. Measures</h2>
 
     <ul>
-        <li>Euclidean Distance: @_euclideanDist</li>
+        <li>Euclidean Distance:   @_euclideanDist</li>
         <li>Euclidean Similarity: @_euclideanSimilarity</li>
+        <li>Cosine Distance:      @_cosineDist</li>
+        <li>Cosine Similarity:    @_cosineSimilarity</li>
     </ul>
 
     <button class="btn btn-primary" @onclick="Clear">Clear</button>
@@ -73,6 +75,8 @@
     private float[]? _embeddings2;
     private float? _euclideanDist;
     private float? _euclideanSimilarity;
+    private float? _cosineDist;
+    private float? _cosineSimilarity;
 
     Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
     {
@@ -114,6 +118,8 @@
 
         _euclideanDist = _embeddings1.EuclideanDistance(_embeddings2);
         _euclideanSimilarity = _embeddings1.EuclideanSimilarity(_embeddings2);
+        _cosineDist = _embeddings1.CosineDistance(_embeddings2);
+        _cosineSimilarity = _embeddings1.CosineDistance(_embeddings2);
 
         StateHasChanged();
     }

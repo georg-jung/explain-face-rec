@@ -46,7 +46,7 @@ public static class GeometryExtensions
             (int)(size.Width * factor),
             (int)(size.Height * factor));
 
-    // Math operations inspired by
+    // Euclidean inspired by
     // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Euclidean.cs
 
     /// <summary>
@@ -78,7 +78,7 @@ public static class GeometryExtensions
     }
 
     /// <summary>
-    /// Gets a similarity measure between two points.
+    /// Gets a similarity measure between two points based on euclidean distance.
     /// </summary>
     /// <param name="x">The first vector to be compared.</param>
     /// <param name="y">The second vector to be compared.</param>
@@ -86,4 +86,49 @@ public static class GeometryExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float EuclideanSimilarity(this float[] x, float[] y)
         => 1.0f / (1.0f + EuclideanDistance(x, y));
+
+    // Cosine inspired by
+    // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Cosine.cs
+
+    /// <summary>
+    ///   Computes the distance <c>d(x,y)</c> between points
+    ///   <paramref name="x"/> and <paramref name="y"/>.
+    /// </summary>
+    /// <param name="x">The first point, x.</param>
+    /// <param name="y">The second point, y.</param>
+    /// <returns>
+    ///   A single-precision value representing the distance <c>d(x,y)</c>
+    ///   between <paramref name="x"/> and <paramref name="y"/> according
+    ///   to cosine similarity.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float CosineDistance(this float[] x, float[] y)
+    {
+        var sim = CosineSimilarity(x, y);
+        return sim == 0 ? 1 : 1 - sim;
+    }
+
+    /// <summary>
+    /// Gets a similarity measure between two points based on cosine similarity.
+    /// </summary>
+    /// <param name="x">The first vector to be compared.</param>
+    /// <param name="y">The second vector to be compared.</param>
+    /// <returns>A similarity measure between x and y.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float CosineSimilarity(this float[] x, float[] y)
+    {
+        double sum = 0;
+        double p = 0;
+        double q = 0;
+
+        for (var i = 0; i < x.Length; i++)
+        {
+            sum += x[i] * y[i];
+            p += x[i] * x[i];
+            q += y[i] * y[i];
+        }
+
+        double den = Math.Sqrt(p) * Math.Sqrt(q);
+        return (float)((sum == 0) ? 0 : sum / den);
+    }
 }
