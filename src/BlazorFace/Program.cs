@@ -7,8 +7,8 @@ using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using NodaTime;
-using Sentry.AspNetCore;
 
 namespace BlazorFace
 {
@@ -20,6 +20,8 @@ namespace BlazorFace
         {
             Version = GetInformationalVersion();
             var builder = WebApplication.CreateBuilder(args);
+
+            ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(builder);
 
             // Add services to the container.
             builder.Services.AddRazorPages();
@@ -70,6 +72,34 @@ namespace BlazorFace
             app.MapFallbackToPage("/_Host");
 
             app.Run();
+        }
+
+        /// <summary>
+        /// Similar to Microsoft's
+        /// <see cref="OptionsServiceCollectionExtensions.Configure{TOptions}(IServiceCollection, Action{TOptions})"/>
+        /// method but does not only register
+        /// <see cref="IOptions{TOptions}"/>
+        /// in DI but also adds <typeparamref name="TOptions"/> directly as a singleton.
+        /// Useful for configuring services that use the concept of an options type but
+        /// don't depend on IOptions for implementation.
+        /// </summary>
+        private static void ConfigureOptionsIndependent<TOptions>(WebApplicationBuilder builder)
+            where TOptions : class, new()
+        {
+            const string Options = "Options";
+            var name = typeof(TOptions).Name;
+            if (name.EndsWith(Options, StringComparison.OrdinalIgnoreCase))
+            {
+                name = name.Substring(0, name.Length - Options.Length);
+            }
+
+            // see https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-7.0#validateonstart
+            builder.Services.AddOptions<TOptions>()
+                .Bind(builder.Configuration.GetSection(name))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+            builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<TOptions>>().Value);
         }
 
         private static string? GetInformationalVersion() =>

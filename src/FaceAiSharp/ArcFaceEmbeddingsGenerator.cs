@@ -7,8 +7,6 @@ using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using UMapx.Core;
-using UMapx.Imaging;
 
 namespace FaceAiSharp;
 
@@ -16,9 +14,9 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 {
     private readonly InferenceSession _session;
 
-    public ArcFaceEmbeddingsGenerator()
+    public ArcFaceEmbeddingsGenerator(ArcFaceEmbeddingsGeneratorOptions options)
     {
-        _session = new(@"C:\Users\georg\facePics\arcfaceresnet100-8\resnet100\resnet100.onnx");
+        _session = new(options.ModelPath);
     }
 
     public void Dispose() => _session.Dispose();
@@ -53,4 +51,12 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
         return embeddings;
     }
+}
+
+public record ArcFaceEmbeddingsGeneratorOptions
+{
+    /// <summary>
+    /// Gets the path to the onnx file that contains the resnet100 model with 1x3x112x112 input.
+    /// </summary>
+    public string ModelPath { get; init; } = default!;
 }
