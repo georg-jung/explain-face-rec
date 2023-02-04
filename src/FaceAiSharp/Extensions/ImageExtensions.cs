@@ -32,19 +32,18 @@ namespace FaceAiSharp.Extensions
             });
 
         public static Image ToSquare(this Image sourceImage, int maxEdgeSize)
+            => ToSquare(sourceImage, maxEdgeSize, Color.White);
+
+        public static Image ToSquare(this Image sourceImage, int maxEdgeSize, Color padColor)
             => sourceImage.Clone(op =>
             {
-                if (sourceImage.Width == sourceImage.Height && sourceImage.Width == maxEdgeSize)
+                var opts = new ResizeOptions()
                 {
-                    return;
-                }
-
-                var longestDim = Math.Max(sourceImage.Width, sourceImage.Height);
-                var toLargeFactor = Math.Max(1.0, longestDim / (double)maxEdgeSize);
-                var factor = 1.0 / toLargeFactor; // scale factor
-
-                var curSize = op.GetCurrentSize();
-                op.Resize(curSize.Scale(factor));
+                    Mode = ResizeMode.Pad,
+                    PadColor = padColor,
+                    Size = new Size(maxEdgeSize),
+                };
+                op.Resize(opts);
             });
 
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
