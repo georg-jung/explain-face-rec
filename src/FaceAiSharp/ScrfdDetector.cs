@@ -192,6 +192,11 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
             var i = order[0];
             keep.Add(i);
 
+            if (order.size == 1)
+            {
+                break;
+            }
+
             var xx1 = np.maximum(x1[i], x1[order["1:"]]);
             var yy1 = np.maximum(y1[i], y1[order["1:"]]);
             var xx2 = np.minimum(x2[i], x2[order["1:"]]);
