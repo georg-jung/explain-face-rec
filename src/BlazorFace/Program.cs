@@ -22,12 +22,13 @@ namespace BlazorFace
             var builder = WebApplication.CreateBuilder(args);
 
             ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(builder);
+            ConfigureOptionsIndependent<ScrfdDetectorOptions>(builder);
 
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
             builder.Services.AddSingleton<IClock>(SystemClock.Instance);
-            builder.Services.AddTransient<IFaceDetector, FaceOnnxDetector>();
+            builder.Services.AddTransient<IFaceDetector, ScrfdDetector>();
             builder.Services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
             builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
 

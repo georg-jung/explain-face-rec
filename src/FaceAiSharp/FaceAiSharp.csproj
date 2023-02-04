@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="FaceONNX" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="NumSharp" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" />
   </ItemGroup>
