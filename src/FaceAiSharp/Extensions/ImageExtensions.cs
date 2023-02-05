@@ -23,7 +23,9 @@ namespace FaceAiSharp.Extensions
                 var factor = 1.0 / toLargeFactor; // scale factor
 
                 // cropping before resizing is much faster, see benchmarks
-                op.Crop(sourceArea);
+                var cropArea = sourceImage.Bounds();
+                cropArea.Intersect(sourceArea);
+                op.Crop(cropArea);
 
                 if (factor < 1)
                 {
