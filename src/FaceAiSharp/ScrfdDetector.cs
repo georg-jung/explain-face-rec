@@ -9,6 +9,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 using NumSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace FaceAiSharp;
 
@@ -52,7 +53,17 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
     public IReadOnlyCollection<(RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence)> Detect(Image image)
     {
-        var img = image.CloneAs<Rgb24>();
+        var resizeOptions = new ResizeOptions()
+        {
+            Size = new Size((int)Math.Ceiling(image.Width / 32.0) * 32, (int)Math.Ceiling(image.Height / 32.0) * 32),
+            Position = AnchorPositionMode.TopLeft,
+            Mode = ResizeMode.BoxPad,
+            PadColor = Color.White,
+        };
+
+        (var img, var disp) = image.EnsureProperlySized<Rgb24>(resizeOptions, !Options.AutoResizeInputToModelDimensions);
+        using var usingDisp = disp;
+
         var input = CreateImageTensor(img);
 
         var inputMeta = _session.InputMetadata;
@@ -312,4 +323,10 @@ public record ScrfdDetectorOptions
     /// Gets the path to the onnx file that contains the model with dynamic input.
     /// </summary>
     public string ModelPath { get; init; } = default!;
+
+    /// <summary>
+    /// Resize the image to dimensions supported by the model if required. This detector throws an
+    /// exception if this is set to false and an image is passed in unsupported dimensions.
+    /// </summary>
+    public bool AutoResizeInputToModelDimensions { get; init; } = true;
 }

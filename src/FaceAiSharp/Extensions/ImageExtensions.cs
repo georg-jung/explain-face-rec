@@ -5,6 +5,7 @@ using System.Net;
 using FaceONNX;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace FaceAiSharp.Extensions
@@ -149,6 +150,53 @@ namespace FaceAiSharp.Extensions
                     op.Fill(brush, rect);
                 }
             });
+
+        /// <summary>
+        /// Returns an image that matches a defined size and PixelFormat. If the given image already conforms to this specification,
+        /// it is returned directly. If a conversion is required the pixels of the input image will only be copied exactly once.
+        /// If a copy is created, the <see cref="IDisposable"/> value returned equals the <see cref="Image{TPixel}"/> value in the
+        /// same tuple. If the passed-in <see cref="Image"/> is returned directly, the <see cref="IDisposable"/> value returned
+        /// is null. Thus, you should always use the <see cref="IDisposable"/> in a <c>using</c> block or
+        /// <c>using var</c> declaration.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// (var img, var disp) = image.GetProperlySized&lt;Rgb24&gt;(resizeOptions);
+        /// using var usingDisp = disp;
+        /// </code>
+        /// </example>
+        /// <typeparam name="TPixel">The pixel format the returned image should have.</typeparam>
+        /// <param name="img">The image to return in a proper shape.</param>
+        /// <param name="resizeOptions">How to resize the input, if required.</param>
+        /// <param name="throwIfResizeRequired">If an actual Resize operation is required to match the spec, throw.</param>
+        /// <returns>An <see cref="Image{TPixel}"/> instance sticking to the spec.</returns>
+        public static (Image<TPixel> Image, IDisposable? ToDispose) EnsureProperlySized<TPixel>(this Image img, ResizeOptions resizeOptions, bool throwIfResizeRequired)
+            where TPixel : unmanaged, IPixel<TPixel>
+        {
+            static (Image<TPixel> Image, IDisposable? ToDispose) CreateDisposableTuple(Image<TPixel> img) => (img, img);
+
+            void PerformResize(IImageProcessingContext op) => op.Resize(resizeOptions);
+
+            Image<TPixel> CreateProperSizedImageSameFormat(Image<TPixel> img) => img.Clone(PerformResize);
+
+            Image<TPixel> CreateProperSizedImage(Image img)
+            {
+                var ret = img.CloneAs<TPixel>();
+                ret.Mutate(PerformResize);
+                return ret;
+            }
+
+            var (wR, hR) = (resizeOptions.Size.Width, resizeOptions.Size.Height); // r = required
+            var (wA, hA) = (img.Width, img.Height); // a = actual
+            return img switch
+            {
+                Image<TPixel> rgbImg when wA == wR && hA == hR => (rgbImg, null),
+                Image<TPixel> rgbImg when !throwIfResizeRequired => CreateDisposableTuple(CreateProperSizedImageSameFormat(rgbImg)),
+                Image when wA == wR && hA == hR => CreateDisposableTuple(img.CloneAs<TPixel>()),
+                Image when !throwIfResizeRequired => CreateDisposableTuple(CreateProperSizedImage(img)),
+                _ => throw new ArgumentException($"The given image does not have the required dimensions (Required: W={wR}, H={hR}; Actual: W={wA}, H={hA})"),
+            };
+        }
 
         public static float[][,] ToFaceOnnxFloatArray(this Image image)
         {
