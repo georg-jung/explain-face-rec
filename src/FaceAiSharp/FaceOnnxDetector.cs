@@ -20,9 +20,9 @@ public sealed class FaceOnnxDetector : IFaceDetector, IDisposable
 
     public void Dispose() => _faceDetector.Dispose();
 
-    public float GetFaceAlignmentAngle(IReadOnlyCollection<PointF> landmarks) => throw new NotSupportedException();
+    public float GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks) => throw new NotSupportedException();
 
-    public IReadOnlyCollection<(RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence)> Detect(Image image)
+    public IReadOnlyCollection<(RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence)> Detect(Image image)
     {
         _faceDetector.ConfidenceThreshold = ConfidenceThreshold;
         _faceDetector.NmsThreshold = NmsThreshold;
@@ -31,7 +31,7 @@ public sealed class FaceOnnxDetector : IFaceDetector, IDisposable
 
         // FaceONNX does not return any confidence values but just lets us define a threshold before.
         // Landmarks detection is performed in a second step.
-        static (RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence) ToReturnType(System.Drawing.Rectangle r)
+        static (RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence) ToReturnType(System.Drawing.Rectangle r)
             => (new RectangleF(r.X, r.Y, r.Width, r.Height), null, null);
 
         return res.Select(ToReturnType).ToList();

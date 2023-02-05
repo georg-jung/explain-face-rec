@@ -145,7 +145,7 @@
         StateHasChanged();
 
         pivot = clock.GetCurrentInstant();
-        _angle = lmrks.GetFaceAlignmentAngle(landmarks);
+        _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
         using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
         _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         await SetImageStream(imgAligned, ImgAlignedFirstFaceId);

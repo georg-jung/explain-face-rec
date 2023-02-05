@@ -1,6 +1,7 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Runtime.CompilerServices;
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
 using Microsoft.ML.OnnxRuntime;
@@ -18,9 +19,38 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     public ScrfdDetector(ScrfdDetectorOptions options)
     {
         _session = new(options.ModelPath);
+        Options = options;
     }
 
-    public IReadOnlyCollection<(RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence)> Detect(Image image)
+    public ScrfdDetectorOptions Options { get; }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PointF GetLeftEye(IReadOnlyList<PointF> landmarks) => landmarks[0];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PointF GetRightEye(IReadOnlyList<PointF> landmarks) => landmarks[1];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PointF GetNose(IReadOnlyList<PointF> landmarks) => landmarks[2];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PointF GetMouthLeft(IReadOnlyList<PointF> landmarks) => landmarks[3];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static PointF GetMouthRight(IReadOnlyList<PointF> landmarks) => landmarks[4];
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks)
+    {
+        // adapted from https://stackoverflow.com/a/12892493/1200847
+        var le = GetLeftEye(landmarks);
+        var re = GetRightEye(landmarks);
+
+        var diff = re - le;
+        return Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI * -1;
+    }
+
+    public IReadOnlyCollection<(RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence)> Detect(Image image)
     {
         var img = image.CloneAs<Rgb24>();
         var input = CreateImageTensor(img);
@@ -68,7 +98,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
             kpss = kpss[keep];
         }
 
-        static (RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence) ToReturnType(NDArray input)
+        static (RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence) ToReturnType(NDArray input)
         {
             var x1 = input.GetSingle(0);
             var y1 = input.GetSingle(1);
@@ -77,7 +107,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
             return (new RectangleF(x1, y1, x2 - x1, y2 - y1), null, input.GetSingle(4));
         }
 
-        static (RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence) ToReturnTypeWithLandmarks(NDArray input, NDArray kps)
+        static (RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence) ToReturnTypeWithLandmarks(NDArray input, NDArray kps)
         {
             var (box, _, conf) = ToReturnType(input);
             var lmrks = new List<PointF>(5); // don't use ToList because we know we will always have eactly 5.
@@ -95,10 +125,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         }
     }
 
-    public float GetFaceAlignmentAngle(IReadOnlyCollection<PointF> landmarks)
-    {
-        throw new NotImplementedException();
-    }
+    float IFaceDetector.GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks) => (float)GetFaceAlignmentAngle(landmarks);
 
     public void Dispose() => _session.Dispose();
 

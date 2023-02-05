@@ -14,7 +14,7 @@ public interface IFaceDetector
     /// </summary>
     /// <param name="image">Image possibly containing one or more human faces.</param>
     /// <returns>Bounding boxes, facial landmark coordiantes and confidence for faces found in the given image.</returns>
-    IReadOnlyCollection<(RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence)> Detect(Image image);
+    IReadOnlyCollection<(RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence)> Detect(Image image);
 
     /// <summary>
     /// Only applies if this implementation supports landmarks extraction, throws otherwise.
@@ -23,5 +23,5 @@ public interface IFaceDetector
     /// <param name="landmarks">Landmark points as returned by <see cref="Detect(Image)"/>.</param>
     /// <returns>An angle by which the image of the face needs to be rotated to be aligned (both eyes on a horizontal line).</returns>
     /// <exception cref="NotSupportedException">This implementation does not support landmarks extraction.</exception>
-    float GetFaceAlignmentAngle(IReadOnlyCollection<PointF> landmarks);
+    float GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks);
 }
