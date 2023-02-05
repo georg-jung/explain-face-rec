@@ -199,3 +199,7 @@ dotnet_diagnostic.SA1600.severity = none
 # We do want to have the <GenerateDocumentationFile> setting set to true though.
 # See https://github.com/DotNetAnalyzers/StyleCopAnalyzers/blob/master/documentation/SA0001.md
 dotnet_diagnostic.CS1591.severity = none
+
+# SA1623: The documentation text within a C# property's <summary> tag does not match the accessors within the property.
+# Eg. The property's documentation summary text should begin with: 'Gets a value indicating whether'
+dotnet_diagnostic.SA1623.severity = none
