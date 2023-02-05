@@ -51,7 +51,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI * -1;
     }
 
-    public IReadOnlyCollection<(RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence)> Detect(Image image)
+    public IReadOnlyCollection<FaceDetectorResult> Detect(Image image)
     {
         var resizeOptions = new ResizeOptions()
         {
@@ -109,21 +109,21 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
             kpss = kpss[keep];
         }
 
-        static (RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence) ToReturnType(NDArray input)
+        static FaceDetectorResult ToReturnType(NDArray input)
         {
             var x1 = input.GetSingle(0);
             var y1 = input.GetSingle(1);
             var x2 = input.GetSingle(2);
             var y2 = input.GetSingle(3);
-            return (new RectangleF(x1, y1, x2 - x1, y2 - y1), null, input.GetSingle(4));
+            return new(new RectangleF(x1, y1, x2 - x1, y2 - y1), null, input.GetSingle(4));
         }
 
-        static (RectangleF Box, IReadOnlyList<PointF>? Landmarks, float? Confidence) ToReturnTypeWithLandmarks(NDArray input, NDArray kps)
+        static FaceDetectorResult ToReturnTypeWithLandmarks(NDArray input, NDArray kps)
         {
             var (box, _, conf) = ToReturnType(input);
             var lmrks = new List<PointF>(5); // don't use ToList because we know we will always have eactly 5.
             lmrks.AddRange(kps.GetNDArrays(0).Select(x => new PointF(x.GetSingle(0), x.GetSingle(1))));
-            return (box, lmrks, conf);
+            return new(box, lmrks, conf);
         }
 
         if (kpss is not null)
