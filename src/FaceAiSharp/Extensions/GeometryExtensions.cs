@@ -34,13 +34,18 @@ public static class GeometryExtensions
         };
     }
 
-    public static Rectangle Round(this RectangleF value)
+    /// <summary>
+    /// Returns a square that contains the given rectangle in it's middle.
+    /// </summary>
+    /// <param name="rectangle">This rectangle's area should be in the center of the returned square.</param>
+    /// <returns>A square shaped area.</returns>
+    public static Rectangle GetMinimumSupersetSquare(this Rectangle rectangle)
     {
-        value.Deconstruct(out var x, out var y, out var w, out var h);
-
-        // (int)(float + 0.5f) rounds to the nearest int
-        // see https://stackoverflow.com/a/904925/1200847
-        return new((int)(x + 0.5f), (int)(y + 0.5f), (int)(w + 0.5f), (int)(h + 0.5f));
+        var center = Rectangle.Center(rectangle);
+        var longerEdge = Math.Max(rectangle.Width, rectangle.Height);
+        var halfLongerEdge = (longerEdge + 1) / 2; // +1 => Floor
+        var minSuperSquare = new Rectangle(center.X - halfLongerEdge, center.Y - halfLongerEdge, longerEdge, longerEdge);
+        return minSuperSquare;
     }
 
     public static Rectangle Scale(this Rectangle rectangle, double factor)

@@ -65,13 +65,28 @@ namespace FaceAiSharp.Extensions
                 }
 
                 var center = RectangleF.Center(faceArea);
+                var minSuperSquare = faceArea.GetMinimumSupersetSquare();
+
                 var atb = new AffineTransformBuilder();
                 atb.AppendRotationDegrees(angle, center);
+                atb.AppendTranslation(new PointF(-minSuperSquare.X, -minSuperSquare.Y));
                 op.Transform(atb);
 
+                var squareEdge = minSuperSquare.Height;
                 var cropArea = new Rectangle(Point.Empty, op.GetCurrentSize());
-                cropArea.Intersect(faceArea);
+                cropArea.Intersect(new Rectangle(0, 0, squareEdge, squareEdge));
                 op.Crop(cropArea);
+
+                if (cropArea != minSuperSquare)
+                {
+                    op.Resize(new ResizeOptions()
+                    {
+                        Position = AnchorPositionMode.TopLeft,
+                        Mode = ResizeMode.BoxPad,
+                        PadColor = Color.Black,
+                        Size = new Size(squareEdge),
+                    });
+                }
             });
 
         /// <summary>

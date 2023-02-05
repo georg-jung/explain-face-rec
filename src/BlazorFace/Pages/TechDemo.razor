@@ -132,7 +132,7 @@
             await SetImageStream(imgDetected, ImgDetectionId);
         StateHasChanged();
 
-        var firstFaceRect = rectangles.FirstOrDefault().Round();
+        var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
         using var imgFirstFace = img.Extract(firstFaceRect, 250);
         await SetImageStream(imgFirstFace, ImgFirstFaceId);
         StateHasChanged();

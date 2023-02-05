@@ -156,7 +156,7 @@
         var detection = det.Detect(img);
         var rectangles = detection.Select(x => x.Box).ToList();
 
-        var firstFaceRect = rectangles.FirstOrDefault().Round();
+        var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
         using var imgFirstFace = img.Extract(firstFaceRect, 250);
         var landmarks = lmrks.Detect(imgFirstFace);
 
