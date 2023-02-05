@@ -91,6 +91,11 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         }
 
         var scores = np.vstack(scoresLst.ToArray());
+        if (scores.size == 0)
+        {
+            return new List<FaceDetectorResult>(0);
+        }
+
         var scores_ravel = scores.ravel();
         var order = scores_ravel.argsort<float>()["::-1"];
         var bboxes = np.vstack(bboxesLst.ToArray());
