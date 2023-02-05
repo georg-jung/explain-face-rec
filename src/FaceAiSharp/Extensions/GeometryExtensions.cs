@@ -48,6 +48,17 @@ public static class GeometryExtensions
         return minSuperSquare;
     }
 
+    public static float GetScaleFactorToFitInto(this Rectangle rectangle, Size into)
+        => GetScaleFactorToFitInto(rectangle, new Rectangle(Point.Empty, into));
+
+    public static float GetScaleFactorToFitInto(this Rectangle rectangle, Rectangle into)
+    {
+        var xScale = into.Width / (double)rectangle.Width;
+        var yScale = into.Height / (double)rectangle.Height;
+        var min = Math.Min(xScale, yScale);
+        return (float)Math.Min(min, 1); // we wouldn't want to scale up
+    }
+
     public static Rectangle Scale(this Rectangle rectangle, double factor)
         => new(
             (int)(rectangle.X * factor),

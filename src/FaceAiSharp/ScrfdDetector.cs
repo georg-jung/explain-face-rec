@@ -16,11 +16,13 @@ namespace FaceAiSharp;
 public sealed class ScrfdDetector : IFaceDetector, IDisposable
 {
     private readonly InferenceSession _session;
+    private readonly ModelParameters _modelParameters;
 
     public ScrfdDetector(ScrfdDetectorOptions options)
     {
-        _session = new(options.ModelPath);
         Options = options;
+        _session = new(options.ModelPath);
+        _modelParameters = DetermineModelParameters();
     }
 
     public ScrfdDetectorOptions Options { get; }
@@ -55,25 +57,20 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     {
         var resizeOptions = new ResizeOptions()
         {
-            Size = new Size((int)Math.Ceiling(image.Width / 32.0) * 32, (int)Math.Ceiling(image.Height / 32.0) * 32),
+            Size = _modelParameters.InputSize ?? new Size((int)Math.Ceiling(image.Width / 32.0) * 32, (int)Math.Ceiling(image.Height / 32.0) * 32),
             Position = AnchorPositionMode.TopLeft,
             Mode = ResizeMode.BoxPad,
-            PadColor = Color.White,
+            PadColor = Color.Black,
         };
 
         (var img, var disp) = image.EnsureProperlySized<Rgb24>(resizeOptions, !Options.AutoResizeInputToModelDimensions);
         using var usingDisp = disp;
+        var scale = 1 / image.Bounds().GetScaleFactorToFitInto(resizeOptions.Size);
 
         var input = CreateImageTensor(img);
 
-        var inputMeta = _session.InputMetadata;
-        var inputName = inputMeta.Keys.ToArray()[0];
-
-        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(inputName, input) };
+        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(_modelParameters.InputName, input) };
         using var outputs = _session.Run(inputs);
-
-        var thresh = 0.5f;
-        var batched = true;
 
         List<NDArray> scoresLst = new(3);
         List<NDArray> bboxesLst = new(3);
@@ -81,7 +78,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         foreach (var stride in new[] { 8, 16, 32 })
         {
-            var (s, bb, kps) = HandleStride(stride, outputs, img.Size(), thresh, batched);
+            var (s, bb, kps) = HandleStride(stride, outputs, img.Size(), Options.ConfidenceThreshold, _modelParameters.Batching);
             scoresLst.Add(s);
             bboxesLst.Add(bb);
             if (kps is not null)
@@ -103,8 +100,9 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         var preDet = np.hstack(bboxes, scores);
 
         preDet = preDet[order];
-        var keep = np.array(NonMaxSupression(preDet));
+        var keep = np.array(NonMaxSupression(preDet, Options.NonMaxSupressionThreshold));
         var det = preDet[keep];
+        det *= scale;
 
         NDArray? kpss = null;
         if (kpssLst.Count > 0)
@@ -112,6 +110,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
             kpss = np.vstack(kpssLst.ToArray());
             kpss = kpss[order];
             kpss = kpss[keep];
+            kpss *= scale;
         }
 
         static FaceDetectorResult ToReturnType(NDArray input)
@@ -275,10 +274,10 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     /// Filter out duplicate detections (multiple boxes describing roughly the same area) using non max suppression.
     /// </summary>
     /// <param name="dets">All detections with their scores.</param>
+    /// <param name="thresh">Non max suppression threshold.</param>
     /// <returns>Which detections to keep.</returns>
-    private static List<int> NonMaxSupression(NDArray dets)
+    private static List<int> NonMaxSupression(NDArray dets, float thresh)
     {
-        var thresh = 0.4f;
         var x1 = dets[":, 0"];
         var y1 = dets[":, 1"];
         var x2 = dets[":, 2"];
@@ -320,6 +319,21 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         return keep;
     }
+
+    private ModelParameters DetermineModelParameters()
+    {
+        var inputMeta = _session.InputMetadata;
+        var inputName = inputMeta.Keys.First();
+        var input = inputMeta[inputName];
+        var (x, y) = (input.Dimensions[2], input.Dimensions[3]);
+        var inputSize = x == -1 && y == -1 ? (Size?)null : new Size(x, y);
+
+        var firstOutput = _session.OutputMetadata.Values.First();
+        var batched = firstOutput.Dimensions.Length == 3;
+        return new(inputSize, inputName, batched);
+    }
+
+    private readonly record struct ModelParameters(Size? InputSize, string InputName, bool Batching);
 }
 
 public record ScrfdDetectorOptions
@@ -334,4 +348,8 @@ public record ScrfdDetectorOptions
     /// exception if this is set to false and an image is passed in unsupported dimensions.
     /// </summary>
     public bool AutoResizeInputToModelDimensions { get; init; } = true;
+
+    public float NonMaxSupressionThreshold { get; init; } = 0.4f;
+
+    public float ConfidenceThreshold { get; init; } = 0.5f;
 }
