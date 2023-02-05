@@ -1,8 +1,6 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Net;
-using FaceONNX;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -66,32 +64,14 @@ namespace FaceAiSharp.Extensions
                     }
                 }
 
-                var angleInvariantCropArea = faceArea.ScaleToRotationAngleInvariantCropArea();
+                var center = RectangleF.Center(faceArea);
+                var atb = new AffineTransformBuilder();
+                atb.AppendRotationDegrees(angle, center);
+                op.Transform(atb);
 
-                var imgSz = op.GetCurrentSize();
-                var imgRect = new Rectangle(0, 0, imgSz.Width, imgSz.Height);
-                var usedCropArea = false;
-                if (imgRect.Contains(angleInvariantCropArea))
-                {
-                    op.Crop(angleInvariantCropArea);
-                    usedCropArea = true;
-                }
-
-                op.Rotate(angle);
-
-                // We have cropped above to an area that is larger than our actual face area.
-                // It is exactly so large that it fits every possible rotation of the given face
-                // area around any angle, rotated around it's center. Thus, we don't have black/blank
-                // areas after applying the rotation. Now, we do want to crop the rotated image to our
-                // actual faceArea.
-                var cropAreaAfterRotation = new Rectangle()
-                {
-                    X = faceArea.X - (usedCropArea ? angleInvariantCropArea.X : 0),
-                    Y = faceArea.Y - (usedCropArea ? angleInvariantCropArea.Y : 0),
-                    Height = faceArea.Height,
-                    Width = faceArea.Width,
-                };
-                op.Crop(cropAreaAfterRotation);
+                var cropArea = new Rectangle(Point.Empty, op.GetCurrentSize());
+                cropArea.Intersect(faceArea);
+                op.Crop(cropArea);
             });
 
         /// <summary>
