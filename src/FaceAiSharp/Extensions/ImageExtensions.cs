@@ -109,12 +109,12 @@ namespace FaceAiSharp.Extensions
             });
 
         /// <summary>
-        /// Draws multiple rectangles onto a given image, e.g. to demonstrate where faces were detected in a picture.
+        /// Draws multiple points onto a given image, e.g. to demonstrate where facial landmarks were detected in a picture.
         /// </summary>
-        /// <param name="image">The image to draw the rectangles onto.</param>
+        /// <param name="image">The image to draw the points onto.</param>
         /// <param name="brush">The brush to draw the points with.</param>
-        /// <param name="toDraw">An enumeration of the rectangles to draw.</param>
-        /// <returns>A copy of the given image with the rectangles drawn onto.</returns>
+        /// <param name="toDraw">An enumeration of the points to draw.</param>
+        /// <returns>A copy of the given image with the points drawn onto.</returns>
         public static Image DrawPoints(this Image image, IBrush brush, IEnumerable<Point> toDraw)
             => image.Clone(op =>
             {
@@ -122,6 +122,30 @@ namespace FaceAiSharp.Extensions
                 foreach (var pt in toDraw)
                 {
                     var rect = new Rectangle() { X = pt.X - delta, Y = pt.Y - delta, Height = 2 * delta, Width = 2 * delta };
+                    op.Fill(brush, rect);
+                }
+            });
+
+        /// <summary>
+        /// Draws multiple rectangles and points onto a given image, e.g. to demonstrate where faces and their landmarks were detected in a picture.
+        /// </summary>
+        /// <param name="image">The image to draw onto.</param>
+        /// <param name="brush">The brush to draw with.</param>
+        /// <param name="rectsToDraw">An enumeration of the rectangles to draw.</param>
+        /// <param name="pointsToDraw">An enumeration of the points to draw.</param>
+        /// <returns>A copy of the given image with the points drawn onto.</returns>
+        public static Image DrawRectanglesAndPoints(this Image image, IBrush brush, IEnumerable<RectangleF> rectsToDraw, IEnumerable<PointF> pointsToDraw)
+            => image.Clone(op =>
+            {
+                var delta = Math.Max(image.Width / 400, 1);
+                foreach (var rect in rectsToDraw)
+                {
+                    op.Draw(brush, delta, rect);
+                }
+
+                foreach (var pt in pointsToDraw)
+                {
+                    var rect = new RectangleF() { X = pt.X - delta, Y = pt.Y - delta, Height = 2 * delta, Width = 2 * delta };
                     op.Fill(brush, rect);
                 }
             });

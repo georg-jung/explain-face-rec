@@ -125,13 +125,14 @@
         var detection = det.Detect(img);
         _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         var rectangles = detection.Select(x => x.Box).ToList();
+        var landmarks2 = detection.Select(x => x.Landmarks).SelectMany(x => x ?? Enumerable.Empty<PointF>()).ToList();
 
         var brush = Brushes.Solid(Color.Red);
-        using (var imgDetected = img.DrawRectangles(brush, rectangles))
+        using (var imgDetected = img.DrawRectanglesAndPoints(brush, rectangles, landmarks2))
             await SetImageStream(imgDetected, ImgDetectionId);
         StateHasChanged();
 
-        var firstFaceRect = rectangles.FirstOrDefault();
+        var firstFaceRect = rectangles.FirstOrDefault().Round();
         using var imgFirstFace = img.Extract(firstFaceRect, 250);
         await SetImageStream(imgFirstFace, ImgFirstFaceId);
         StateHasChanged();

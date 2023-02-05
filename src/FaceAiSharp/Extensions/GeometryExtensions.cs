@@ -34,6 +34,15 @@ public static class GeometryExtensions
         };
     }
 
+    public static Rectangle Round(this RectangleF value)
+    {
+        value.Deconstruct(out var x, out var y, out var w, out var h);
+
+        // (int)(float + 0.5f) rounds to the nearest int
+        // see https://stackoverflow.com/a/904925/1200847
+        return new((int)(x + 0.5f), (int)(y + 0.5f), (int)(w + 0.5f), (int)(h + 0.5f));
+    }
+
     public static Rectangle Scale(this Rectangle rectangle, double factor)
         => new(
             (int)(rectangle.X * factor),

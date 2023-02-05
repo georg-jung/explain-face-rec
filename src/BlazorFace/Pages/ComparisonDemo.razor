@@ -156,13 +156,13 @@
         var detection = det.Detect(img);
         var rectangles = detection.Select(x => x.Box).ToList();
 
-        var firstFaceRect = rectangles.FirstOrDefault();
+        var firstFaceRect = rectangles.FirstOrDefault().Round();
         using var imgFirstFace = img.Extract(firstFaceRect, 250);
         var landmarks = lmrks.Detect(imgFirstFace);
 
         var angle = lmrks.GetFaceAlignmentAngle(landmarks);
         using var imgAligned = img.CropAligned(firstFaceRect, angle);
-        
+
         var embeddings = embGen.Generate(imgAligned);
         await SetImageStream(imgAligned, imgId);
         return (embeddings, false);

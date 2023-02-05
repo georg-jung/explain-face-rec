@@ -1,7 +1,6 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Threading;
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
 using Microsoft.ML.OnnxRuntime;
@@ -21,31 +20,15 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         _session = new(options.ModelPath);
     }
 
-    public IReadOnlyCollection<(Rectangle Box, float? Confidence)> Detect(Image image)
+    public IReadOnlyCollection<(RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence)> Detect(Image image)
     {
         var img = image.CloneAs<Rgb24>();
-
-        Tensor<float> input = new DenseTensor<float>(new[] { 1, 3, img.Height, img.Width });
-
-        var mean = new[] { 0.5f, 0.5f, 0.5f };
-        img.ProcessPixelRows(accessor =>
-        {
-            for (var y = 0; y < accessor.Height; y++)
-            {
-                Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
-                for (var x = 0; x < accessor.Width; x++)
-                {
-                    input[0, 0, y, x] = (pixelSpan[x].R / 255f) - mean[0];
-                    input[0, 1, y, x] = (pixelSpan[x].G / 255f) - mean[1];
-                    input[0, 2, y, x] = (pixelSpan[x].B / 255f) - mean[2];
-                }
-            }
-        });
+        var input = CreateImageTensor(img);
 
         var inputMeta = _session.InputMetadata;
-        var name = inputMeta.Keys.ToArray()[0];
+        var inputName = inputMeta.Keys.ToArray()[0];
 
-        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(name, input) };
+        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(inputName, input) };
         using var outputs = _session.Run(inputs);
 
         var thresh = 0.5f;
@@ -53,12 +36,17 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         List<NDArray> scoresLst = new(3);
         List<NDArray> bboxesLst = new(3);
+        List<NDArray> kpssLst = new(3);
 
         foreach (var stride in new[] { 8, 16, 32 })
         {
-            var (s, bb) = HandleStride(stride, outputs, img.Size(), thresh, batched);
+            var (s, bb, kps) = HandleStride(stride, outputs, img.Size(), thresh, batched);
             scoresLst.Add(s);
             bboxesLst.Add(bb);
+            if (kps is not null)
+            {
+                kpssLst.Add(kps);
+            }
         }
 
         var scores = np.vstack(scoresLst.ToArray());
@@ -69,22 +57,72 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         var preDet = np.hstack(bboxes, scores);
 
         preDet = preDet[order];
-        var keep = NonMaxSupression(preDet);
-        var det = preDet[np.array(keep)];
+        var keep = np.array(NonMaxSupression(preDet));
+        var det = preDet[keep];
 
-        static (Rectangle Box, float? Confidence) ToReturnType(NDArray input)
+        NDArray? kpss = null;
+        if (kpssLst.Count > 0)
         {
-            int x1 = (int)input.GetSingle(0);
-            int y1 = (int)input.GetSingle(1);
-            int x2 = (int)input.GetSingle(2);
-            int y2 = (int)input.GetSingle(3);
-            return (new Rectangle(x1, y1, x2 - x1, y2 - y1), input.GetSingle(4));
+            kpss = np.vstack(kpssLst.ToArray());
+            kpss = kpss[order];
+            kpss = kpss[keep];
         }
 
-        return det.GetNDArrays(0).Select(ToReturnType).ToArray();
+        static (RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence) ToReturnType(NDArray input)
+        {
+            var x1 = input.GetSingle(0);
+            var y1 = input.GetSingle(1);
+            var x2 = input.GetSingle(2);
+            var y2 = input.GetSingle(3);
+            return (new RectangleF(x1, y1, x2 - x1, y2 - y1), null, input.GetSingle(4));
+        }
+
+        static (RectangleF Box, IReadOnlyCollection<PointF>? Landmarks, float? Confidence) ToReturnTypeWithLandmarks(NDArray input, NDArray kps)
+        {
+            var (box, _, conf) = ToReturnType(input);
+            var lmrks = new List<PointF>(5); // don't use ToList because we know we will always have eactly 5.
+            lmrks.AddRange(kps.GetNDArrays(0).Select(x => new PointF(x.GetSingle(0), x.GetSingle(1))));
+            return (box, lmrks, conf);
+        }
+
+        if (kpss is not null)
+        {
+            return det.GetNDArrays(0).Zip(kpss.GetNDArrays(0)).Select(x => ToReturnTypeWithLandmarks(x.First, x.Second)).ToList();
+        }
+        else
+        {
+            return det.GetNDArrays(0).Select(ToReturnType).ToList();
+        }
+    }
+
+    public float GetFaceAlignmentAngle(IReadOnlyCollection<PointF> landmarks)
+    {
+        throw new NotImplementedException();
     }
 
     public void Dispose() => _session.Dispose();
+
+    private static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
+    {
+        var ret = new DenseTensor<float>(new[] { 1, 3, img.Height, img.Width });
+
+        var mean = new[] { 0.5f, 0.5f, 0.5f };
+        img.ProcessPixelRows(accessor =>
+        {
+            for (var y = 0; y < accessor.Height; y++)
+            {
+                Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
+                for (var x = 0; x < accessor.Width; x++)
+                {
+                    ret[0, 0, y, x] = (pixelSpan[x].R / 255f) - mean[0];
+                    ret[0, 1, y, x] = (pixelSpan[x].G / 255f) - mean[1];
+                    ret[0, 2, y, x] = (pixelSpan[x].B / 255f) - mean[2];
+                }
+            }
+        });
+
+        return ret;
+    }
 
     private static NDArray GenerateAnchorCenters(Size inputSize, int stride, int numAnchors)
     {
@@ -137,7 +175,21 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return np.stack(new[] { x1, y1, x2, y2 }, axis: -1);
     }
 
-    private static (NDArray Scores, NDArray Bboxes) HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
+    private static NDArray Distance2Kps(NDArray points, NDArray distance)
+    {
+        var preds = new NDArray[distance.shape[1]];
+        for (var i = 0; i < distance.shape[1]; i += 2)
+        {
+            var px = points[Slice.All, i % 2] + distance[Slice.All, i];
+            var py = points[Slice.All, (i % 2) + 1] + distance[Slice.All, i + 1];
+            preds[i] = px;
+            preds[i + 1] = py;
+        }
+
+        return np.stack(preds, axis: -1);
+    }
+
+    private static (NDArray Scores, NDArray Bboxes, NDArray? Kpss) HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
     {
         var bbox_preds = outputs.First(x => x.Name == $"bbox_{stride}").ToNDArray<float>();
         var scores = outputs.First(x => x.Name == $"score_{stride}").ToNDArray<float>();
@@ -160,12 +212,20 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         var anchorCenters = GenerateAnchorCenters(inputSize, stride, 2);
 
         // this is >= in python but > here
-        var posInds = IndicesOfElementsLargerThen(scores, thresh);
+        var pos_inds = IndicesOfElementsLargerThen(scores, thresh);
         var bboxes = Distance2Bbox(anchorCenters, bbox_preds);
-        var pos_scores = scores[posInds];
-        var pos_bboxes = bboxes[posInds];
+        var pos_scores = scores[pos_inds];
+        var pos_bboxes = bboxes[pos_inds];
+        NDArray? pos_kpss = null;
 
-        return (pos_scores, pos_bboxes);
+        if (kps_preds is not null)
+        {
+            var kpss = Distance2Kps(anchorCenters, kps_preds);
+            kpss = kpss.reshape(kpss.shape[0], -1, 2);
+            pos_kpss = kpss[pos_inds];
+        }
+
+        return (pos_scores, pos_bboxes, pos_kpss);
     }
 
     /// <summary>
