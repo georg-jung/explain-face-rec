@@ -37,8 +37,6 @@ public static class ImageToTensorExtensions
     /// <returns>A tensor that contains the converted batch of images.</returns>
     public static DenseTensor<float> ImageToTensor(IReadOnlyCollection<Image<Rgb24>> images, float[] mean, float[] stddev, int[] inputDimension)
     {
-        var strides = GetStrides(inputDimension);
-
         // Calculate these outside the loop
         var normR = mean[0] / stddev[0];
         var normG = mean[1] / stddev[1];
@@ -51,11 +49,11 @@ public static class ImageToTensorExtensions
         inputDimension[0] = images.Count;
 
         var input = new DenseTensor<float>(inputDimension);
-
         foreach (var image in images)
         {
             image.ProcessPixelRows(pixelAccessor =>
             {
+                var strides = input.Strides;
                 var inputSpan = input.Buffer.Span;
                 for (var y = 0; y < image.Height; y++)
                 {
@@ -81,37 +79,5 @@ public static class ImageToTensorExtensions
         }
 
         return input;
-    }
-
-    /// <summary>
-    /// Gets the set of strides that can be used to calculate the offset of n-dimensions in a 1-dimensional layout.
-    /// </summary>
-    private static int[] GetStrides(ReadOnlySpan<int> dimensions, bool reverseStride = false)
-    {
-        int[] strides = new int[dimensions.Length];
-        if (dimensions.Length == 0)
-        {
-            return strides;
-        }
-
-        int stride = 1;
-        if (reverseStride)
-        {
-            for (int i = 0; i < strides.Length; i++)
-            {
-                strides[i] = stride;
-                stride *= dimensions[i];
-            }
-        }
-        else
-        {
-            for (int i = strides.Length - 1; i >= 0; i--)
-            {
-                strides[i] = stride;
-                stride *= dimensions[i];
-            }
-        }
-
-        return strides;
     }
 }
