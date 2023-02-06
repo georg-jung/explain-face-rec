@@ -4,6 +4,7 @@
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using NumSharp;
+using NumSharp.Backends.Unmanaged;
 
 namespace FaceAiSharp.Extensions;
 
@@ -11,11 +12,12 @@ public static class TensorExtensions
 {
     public static NDArray ToNDArray<T>(this NamedOnnxValue input)
     {
-        var denseTensor = input as DenseTensor<T> ?? input.AsTensor<T>().ToDenseTensor();
+        var denseTensor = input.Value as DenseTensor<T> ?? input.AsTensor<T>().ToDenseTensor();
         var arr = new NDArray(typeof(T), new Shape(denseTensor.Dimensions.ToArray(), denseTensor.Strides.ToArray()));
 
         // todo: is it possible to avoid copying here?
-        arr.SetData(denseTensor.ToArray());
+        var slice = ArraySlice.FromArray(denseTensor.ToArray());
+        arr.SetData(slice);
         return arr;
     }
 }
