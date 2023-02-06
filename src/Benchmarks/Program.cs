@@ -19,6 +19,6 @@ public class Program
         // var summary = BenchmarkRunner.Run<FaceOnnxVsImageSharpAlignment>();
         // var summary = BenchmarkRunner.Run<CropFirstVsResizeFirst>(args: args);
         // var summary = BenchmarkRunner.Run<Scrfd>(opt, args);
-        var summary = BenchmarkRunner.Run<ImageToTensor>(opt, args);
+        var summary = BenchmarkRunner.Run<ImageToTensor.Benchmarks>(opt, args);
     }
 }

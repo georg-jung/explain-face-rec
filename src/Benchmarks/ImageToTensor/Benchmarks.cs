@@ -3,6 +3,7 @@
 
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
+using Benchmarks.ImageToTensor;
 using FaceAiSharp;
 using FaceAiSharp.Extensions;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,16 +13,16 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace Benchmarks;
+namespace Benchmarks.ImageToTensor;
 
 [MemoryDiagnoser]
-public class ImageToTensor
+public class Benchmarks
 {
     private readonly Image _img = Image.Load(@"C:\Users\georg\facePics\avGroup.jpg");
     private readonly Image<Rgb24> _preprocImg;
     private readonly Image<RgbaVector> _preprocImgRgbaVector;
 
-    public ImageToTensor()
+    public Benchmarks()
     {
         var x = _img.EnsureProperlySized<Rgb24>(
             new ResizeOptions()
@@ -155,6 +156,6 @@ public class ImageToTensor
         var mean = new[] { 0.5f, 0.5f, 0.5f };
         var stddev = new[] { 1f, 1f, 1f };
         var dims = new[] { 1, 3, 640, 640 };
-        return img.ToTensor(mean, stddev, dims);
+        return BySkywalkerisnull.ToTensor(img, mean, stddev, dims);
     }
 }
