@@ -50,9 +50,7 @@
 
     @if (_embeddings1 != null)
     {
-        <code>
-            @string.Join("\n", _embeddings1);
-        </code>
+        <BlazorFace.Components.ExpandableEmbeddings Embeddings="@string.Join("\n", _embeddings1)" />
     }
 
     <h2 class="mt-4">2. Embeddings 2</h2>
@@ -70,9 +68,7 @@
 
     @if (_embeddings2 != null)
     {
-        <code>
-            @string.Join("\n", _embeddings2);
-        </code>
+        <BlazorFace.Components.ExpandableEmbeddings Embeddings="@string.Join("\n", _embeddings2)" />
     }
 
     <h2 class="mt-4">3. Measures</h2>
