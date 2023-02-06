@@ -57,25 +57,15 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         return embeddings;
     }
 
-    private static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
+    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
     {
-        var ret = new DenseTensor<float>(new[] { 1, 3, 112, 112 });
-
-        img.ProcessPixelRows(accessor =>
-        {
-            for (var y = 0; y < accessor.Height; y++)
-            {
-                Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
-                for (var x = 0; x < accessor.Width; x++)
-                {
-                    ret[0, 0, y, x] = pixelSpan[x].R;
-                    ret[0, 1, y, x] = pixelSpan[x].G;
-                    ret[0, 2, y, x] = pixelSpan[x].B;
-                }
-            }
-        });
-
-        return ret;
+        // ArcFace uses the rgb values directly, just the ints converted to float,
+        // no further preprocessing needed. The default ToTensor implementation assumes
+        // we want the RGB[
+        var mean = new[] { 0f, 0f, 0f };
+        var stdDevVal = 1 / 255f;
+        var stdDev = new[] { stdDevVal, stdDevVal, stdDevVal };
+        return img.ToTensor(mean, stdDev);
     }
 }
 
