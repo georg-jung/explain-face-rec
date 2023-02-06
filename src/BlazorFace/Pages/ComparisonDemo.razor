@@ -3,16 +3,14 @@
 @using FaceAiSharp.Abstractions;
 @using FaceAiSharp.Extensions;
 @using Humanizer;
-@using NodaTime;
-@using SixLabors.ImageSharp;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using UMapx.Imaging;
 @using UMapx.Visualization;
 @inject IJSRuntime JS
-@inject IFaceDetector det;
-@inject IFaceEmbeddingsGenerator embGen;
 @inject IClock clock;
+@inject ObjectPool<IFaceDetector> detectorPool;
+@inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool;
 
 <PageTitle>Face Comparison</PageTitle>
 
@@ -156,18 +154,28 @@
 
         using var img = await Image.LoadAsync<Rgb24>(file);
 
-        var detection = det.Detect(img);
-        var firstFace = detection.FirstOrDefault();
-        if (firstFace.Landmarks is null)
+        var det = detectorPool.Get();
+        var embGen = embedderPool.Get();
+        try
         {
-            return (null, false, true);
+            var detection = det.Detect(img);
+            var firstFace = detection.FirstOrDefault();
+            if (firstFace.Landmarks is null)
+            {
+                return (null, false, true);
+            }
+
+            var angle = det.GetFaceAlignmentAngle(firstFace.Landmarks);
+            using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
+
+            var embeddings = embGen.Generate(imgFirstFaceAligned);
+            await JS.SetImageStream(imgFirstFaceAligned, imgId);
+            return (embeddings, false, false);
         }
-
-        var angle = det.GetFaceAlignmentAngle(firstFace.Landmarks);
-        using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
-
-        var embeddings = embGen.Generate(imgFirstFaceAligned);
-        await JS.SetImageStream(imgFirstFaceAligned, imgId);
-        return (embeddings, false, false);
+        finally
+        {
+            detectorPool.Return(det);
+            embedderPool.Return(embGen);
+        }
     }
 }

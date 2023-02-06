@@ -3,17 +3,15 @@
 @using FaceAiSharp.Abstractions;
 @using FaceAiSharp.Extensions;
 @using Humanizer;
-@using NodaTime;
-@using SixLabors.ImageSharp;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using UMapx.Imaging;
 @using UMapx.Visualization;
 @inject IJSRuntime JS
-@inject IFaceDetector det;
-@inject IFaceLandmarksExtractor lmrks;
-@inject IFaceEmbeddingsGenerator embGen;
 @inject IClock clock;
+@inject ObjectPool<IFaceDetector> detectorPool;
+@inject ObjectPool<IFaceLandmarksExtractor> landmarksPool;
+@inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool;
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
@@ -126,58 +124,67 @@
             }
         }
 
-        await Clear();
-        var start = clock.GetCurrentInstant();
-        using var file = TryOpen();
-        if (file == null) return;
-
-        using var img = await Image.LoadAsync(file);
-        _uploadMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
-
-        var pivot = clock.GetCurrentInstant();
-        var detection = det.Detect(img);
-        _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-        if (detection.Count == 0)
+        var det = detectorPool.Get();
+        var lmrks = landmarksPool.Get();
+        var embGen = embedderPool.Get();
+        try
         {
-            _uploadNoFace = true;
+            await Clear();
+            var start = clock.GetCurrentInstant();
+            using var file = TryOpen();
+            if (file == null) return;
+
+            using var img = await Image.LoadAsync(file);
+            _uploadMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
+
+            var pivot = clock.GetCurrentInstant();
+            var detection = det.Detect(img);
+            _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
+            if (detection.Count == 0)
+            {
+                _uploadNoFace = true;
+                StateHasChanged();
+                return;
+            }
+            var rectangles = detection.Select(x => x.Box).ToList();
+            var landmarks2 = detection.Select(x => x.Landmarks).SelectMany(x => x ?? Enumerable.Empty<PointF>()).ToList();
+
+            var brush = Brushes.Solid(Color.Red);
+            using (var imgDetected = img.DrawRectanglesAndPoints(brush, rectangles, landmarks2))
+                await JS.SetImageStream(imgDetected, ImgDetectionId);
             StateHasChanged();
-            return;
+
+            var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
+            using var imgFirstFace = img.Extract(firstFaceRect, 250);
+            await JS.SetImageStream(imgFirstFace, ImgFirstFaceId);
+            StateHasChanged();
+
+            pivot = clock.GetCurrentInstant();
+            var landmarks = lmrks.Detect(imgFirstFace);
+            _landmarksMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
+            using (var imgLandmarks = imgFirstFace.DrawPoints(brush, landmarks))
+                await JS.SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
+            StateHasChanged();
+
+            pivot = clock.GetCurrentInstant();
+            _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
+            using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
+            _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
+            await JS.SetImageStream(imgAligned, ImgAlignedFirstFaceId);
+            StateHasChanged();
+
+            pivot = clock.GetCurrentInstant();
+            _embeddings = embGen.Generate(imgAligned);
+            _embedMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
+
+            _totalMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
+            StateHasChanged();
         }
-        var rectangles = detection.Select(x => x.Box).ToList();
-        var landmarks2 = detection.Select(x => x.Landmarks).SelectMany(x => x ?? Enumerable.Empty<PointF>()).ToList();
-
-        var brush = Brushes.Solid(Color.Red);
-        using (var imgDetected = img.DrawRectanglesAndPoints(brush, rectangles, landmarks2))
-            await JS.SetImageStream(imgDetected, ImgDetectionId);
-        StateHasChanged();
-
-        var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
-        using var imgFirstFace = img.Extract(firstFaceRect, 250);
-        await JS.SetImageStream(imgFirstFace, ImgFirstFaceId);
-        StateHasChanged();
-
-        pivot = clock.GetCurrentInstant();
-        var landmarks = lmrks.Detect(imgFirstFace);
-        _landmarksMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-        using (var imgLandmarks = imgFirstFace.DrawPoints(brush, landmarks))
-            await JS.SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
-        StateHasChanged();
-
-        pivot = clock.GetCurrentInstant();
-        _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
-        using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
-        _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-        await JS.SetImageStream(imgAligned, ImgAlignedFirstFaceId);
-        StateHasChanged();
-
-        pivot = clock.GetCurrentInstant();
-        _embeddings = embGen.Generate(imgAligned);
-        _embedMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-        _totalMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
-        StateHasChanged();
+        finally
+        {
+            detectorPool.Return(det);
+            landmarksPool.Return(lmrks);
+            embedderPool.Return(embGen);
+        }
     }
 }

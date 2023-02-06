@@ -7,6 +7,7 @@ using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using NodaTime;
 
@@ -32,6 +33,11 @@ namespace BlazorFace
             builder.Services.AddTransient<IFaceDetector, ScrfdDetector>();
             builder.Services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
             builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
+
+            builder.Services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            AddInjectionObjectPool<IFaceDetector>(builder.Services);
+            AddInjectionObjectPool<IFaceEmbeddingsGenerator>(builder.Services);
+            AddInjectionObjectPool<IFaceLandmarksExtractor>(builder.Services);
 
             // Add the following line:
             builder.WebHost.UseSentry(o =>
@@ -102,6 +108,17 @@ namespace BlazorFace
                 .ValidateOnStart();
 
             builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<TOptions>>().Value);
+        }
+
+        private static void AddInjectionObjectPool<T>(IServiceCollection serviceCollection)
+            where T : class
+        {
+            serviceCollection.AddSingleton(serviceProvider =>
+            {
+                var provider = serviceProvider.GetRequiredService<ObjectPoolProvider>();
+                var pol = new DIPooledObjectPolicy<T>(serviceProvider);
+                return provider.Create(pol);
+            });
         }
 
         private static string? GetInformationalVersion() =>
