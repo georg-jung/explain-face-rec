@@ -14,6 +14,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\FaceAiSharp.Tests\TestData\**\*.*">
+      <Link>TestData\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
   </ItemGroup>
 

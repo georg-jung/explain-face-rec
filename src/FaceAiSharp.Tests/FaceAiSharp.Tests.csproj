@@ -25,4 +25,10 @@
     <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="TestData\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
