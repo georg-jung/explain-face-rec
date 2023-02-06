@@ -79,7 +79,11 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         var scale = 1 / image.Bounds().GetScaleFactorToFitInto(resizeOptions.Size);
 
         var input = CreateImageTensor(img);
+        return Detect(input, img.Size(), scale);
+    }
 
+    public IReadOnlyCollection<FaceDetectorResult> Detect(DenseTensor<float> input, Size imgSize, float scale)
+    {
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(_modelParameters.InputName, input) };
         using var outputs = _session.Run(inputs);
 
@@ -89,7 +93,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         foreach (var stride in new[] { 8, 16, 32 })
         {
-            var strideRes = HandleStride(stride, outputs, img.Size(), Options.ConfidenceThreshold, _modelParameters.Batching);
+            var strideRes = HandleStride(stride, outputs, imgSize, _modelParameters.Batching);
             if (!strideRes.HasValue)
             {
                 continue;
@@ -161,27 +165,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
     public void Dispose() => _session.Dispose();
 
-    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
-    {
-        var ret = new DenseTensor<float>(new[] { 1, 3, img.Height, img.Width });
-
-        var mean = new[] { 0.5f, 0.5f, 0.5f };
-        img.ProcessPixelRows(accessor =>
-        {
-            for (var y = 0; y < accessor.Height; y++)
-            {
-                Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
-                for (var x = 0; x < accessor.Width; x++)
-                {
-                    ret[0, 0, y, x] = (pixelSpan[x].R / 255f) - mean[0];
-                    ret[0, 1, y, x] = (pixelSpan[x].G / 255f) - mean[1];
-                    ret[0, 2, y, x] = (pixelSpan[x].B / 255f) - mean[2];
-                }
-            }
-        });
-
-        return ret;
-    }
+    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img) => img.ToTensor();
 
     private static NDArray GenerateAnchorCenters(Size inputSize, int stride, int numAnchors)
     {
@@ -298,8 +282,9 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return keep;
     }
 
-    private (NDArray Scores, NDArray Bboxes, NDArray? Kpss)? HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
+    private (NDArray Scores, NDArray Bboxes, NDArray? Kpss)? HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, bool batched)
     {
+        var thresh = Options.ConfidenceThreshold;
         var bbox_preds = outputs.First(x => x.Name == $"bbox_{stride}").ToNDArray<float>();
         var scores = outputs.First(x => x.Name == $"score_{stride}").ToNDArray<float>();
         var kps_preds = outputs.FirstOrDefault(x => x.Name == $"kps_{stride}")?.ToNDArray<float>();
