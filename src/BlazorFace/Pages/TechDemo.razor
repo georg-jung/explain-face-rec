@@ -86,17 +86,6 @@
     private int? _embedMs;
     private int? _totalMs;
 
-    private async Task SetImageStream(Image image, string imgId)
-    {
-        // async probably doesnt make a difference, given we're writing to a MemoryStream
-        using var outStr = new MemoryStream();
-        image.SaveAsJpeg(outStr);
-        outStr.Position = 0;
-
-        var dotnetImageStream = new DotNetStreamReference(outStr);
-        await JS.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
-    }
-
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
         Stream? TryOpen()
@@ -130,26 +119,26 @@
 
         var brush = Brushes.Solid(Color.Red);
         using (var imgDetected = img.DrawRectanglesAndPoints(brush, rectangles, landmarks2))
-            await SetImageStream(imgDetected, ImgDetectionId);
+            await JS.SetImageStream(imgDetected, ImgDetectionId);
         StateHasChanged();
 
         var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
         using var imgFirstFace = img.Extract(firstFaceRect, 250);
-        await SetImageStream(imgFirstFace, ImgFirstFaceId);
+        await JS.SetImageStream(imgFirstFace, ImgFirstFaceId);
         StateHasChanged();
 
         pivot = clock.GetCurrentInstant();
         var landmarks = lmrks.Detect(imgFirstFace);
         _landmarksMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
         using (var imgLandmarks = imgFirstFace.DrawPoints(brush, landmarks))
-            await SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
+            await JS.SetImageStream(imgLandmarks, ImgFirstFaceWithLandmarksId);
         StateHasChanged();
 
         pivot = clock.GetCurrentInstant();
         _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
         using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
         _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-        await SetImageStream(imgAligned, ImgAlignedFirstFaceId);
+        await JS.SetImageStream(imgAligned, ImgAlignedFirstFaceId);
         StateHasChanged();
 
         pivot = clock.GetCurrentInstant();

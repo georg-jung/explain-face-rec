@@ -98,22 +98,6 @@
     private float? _cosineDist;
     private float? _cosineSimilarity;
 
-    private async Task SetImageStream(Image image, string imgId)
-    {
-        // async probably doesnt make a difference, given we're writing to a MemoryStream
-        using var outStr = new MemoryStream();
-        image.SaveAsJpeg(outStr);
-        outStr.Position = 0;
-
-        var dotnetImageStream = new DotNetStreamReference(outStr);
-        await JS.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
-    }
-
-    private async Task ClearImage(string imgId)
-    {
-        await JS.InvokeVoidAsync("clearImage", imgId);
-    }
-
     Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
     {
         try
@@ -135,8 +119,8 @@
         _embeddings1 = _embeddings2 = null;
         _euclideanDist = _euclideanSimilarity = null;
         _cosineDist = _cosineSimilarity = null;
-        await ClearImage("img1");
-        await ClearImage("img2");
+        await JS.ClearImage("img1");
+        await JS.ClearImage("img2");
         StateHasChanged();
     }
 
@@ -183,7 +167,7 @@
         using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
 
         var embeddings = embGen.Generate(imgFirstFaceAligned);
-        await SetImageStream(imgFirstFaceAligned, imgId);
+        await JS.SetImageStream(imgFirstFaceAligned, imgId);
         return (embeddings, false, false);
     }
 }
