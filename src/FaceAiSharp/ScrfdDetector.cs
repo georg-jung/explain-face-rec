@@ -200,7 +200,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     }
 
     /// <summary>
-    /// In real numpy this could be eg. np.where(scores>=thresh) or np.asarray(condition).nonzero().
+    /// In real numpy this could be eg. np.where(scores&gt;=thresh) or np.asarray(condition).nonzero().
     /// </summary>
     /// <param name="input">The indices of this array's elements should be returned.</param>
     /// <param name="threshold">The threshold value. Exclusive.</param>
@@ -213,7 +213,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     }
 
     /// <summary>
-    /// In real numpy this could be eg. np.where(scores<=thresh) or np.asarray(condition).nonzero().
+    /// In real numpy this could be eg. np.where(scores&lt;=thresh) or np.asarray(condition).nonzero().
     /// </summary>
     /// <param name="input">The indices of this array's elements should be returned.</param>
     /// <param name="threshold">The threshold value. Exclusive.</param>
