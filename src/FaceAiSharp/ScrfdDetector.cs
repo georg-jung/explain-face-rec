@@ -78,7 +78,13 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         foreach (var stride in new[] { 8, 16, 32 })
         {
-            var (s, bb, kps) = HandleStride(stride, outputs, img.Size(), Options.ConfidenceThreshold, _modelParameters.Batching);
+            var strideRes = HandleStride(stride, outputs, img.Size(), Options.ConfidenceThreshold, _modelParameters.Batching);
+            if (!strideRes.HasValue)
+            {
+                continue;
+            }
+
+            var (s, bb, kps) = strideRes.Value;
             scoresLst.Add(s);
             bboxesLst.Add(bb);
             if (kps is not null)
@@ -231,7 +237,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return np.stack(preds, axis: -1);
     }
 
-    private static (NDArray Scores, NDArray Bboxes, NDArray? Kpss) HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
+    private static (NDArray Scores, NDArray Bboxes, NDArray? Kpss)? HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
     {
         var bbox_preds = outputs.First(x => x.Name == $"bbox_{stride}").ToNDArray<float>();
         var scores = outputs.First(x => x.Name == $"score_{stride}").ToNDArray<float>();
@@ -255,19 +261,26 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         // this is >= in python but > here
         var pos_inds = IndicesOfElementsLargerThen(scores, thresh);
+        if (pos_inds.size == 0)
+        {
+            return null;
+        }
+
+        anchorCenters = anchorCenters[pos_inds];
+        bbox_preds = bbox_preds[pos_inds];
+        scores = scores[pos_inds];
+
         var bboxes = Distance2Bbox(anchorCenters, bbox_preds);
-        var pos_scores = scores[pos_inds];
-        var pos_bboxes = bboxes[pos_inds];
-        NDArray? pos_kpss = null;
+        NDArray? kpss = null;
 
         if (kps_preds is not null)
         {
-            var kpss = Distance2Kps(anchorCenters, kps_preds);
+            kps_preds = kps_preds[pos_inds];
+            kpss = Distance2Kps(anchorCenters, kps_preds);
             kpss = kpss.reshape(kpss.shape[0], -1, 2);
-            pos_kpss = kpss[pos_inds];
         }
 
-        return (pos_scores, pos_bboxes, pos_kpss);
+        return (scores, bboxes, kpss);
     }
 
     /// <summary>
