@@ -14,6 +14,12 @@ public static class ImageToTensorExtensions
      * see also https://github.com/SixLabors/ImageSharp/discussions/1955
      */
 
+    /// <summary>
+    /// Efficiently converts one image to an input tensor.
+    /// Preprocesses for {r, g, b}: <c>r = (r * / 255) - 0.5</c>.
+    /// </summary>
+    /// <param name="image">The image to preprocess.</param>
+    /// <returns>A tensor containing the preprocessed image.</returns>
     public static DenseTensor<float> ToTensor(this Image<Rgb24> image)
     {
         var mean = new[] { 0.5f, 0.5f, 0.5f };
@@ -22,13 +28,51 @@ public static class ImageToTensorExtensions
         return ImageToTensor(new[] { image }, mean, stddev, dims);
     }
 
+    /// <summary>
+    /// Efficiently converts one image to an input tensor.
+    /// Preprocesses for {r, g, b}: <c>r = (r * (1 / 255 * stddev.r)) - (mean.r / stddev.r)</c>.
+    /// Thus, if you need simple r = r, you could pass stddev = 1/255 and mean = 0. Note that
+    /// while it might seem unnecessary to use this method then, it's memory access
+    /// is optimized and the conversion is almost two orders of magnitude faster than a simple
+    /// approach.
+    /// </summary>
+    /// <param name="image">The image to preprocess.</param>
+    /// <param name="mean">The rgb mean values used for normalization.</param>
+    /// <param name="stddev">The rgb stddev values used for normalization.</param>
+    /// <returns>A tensor containing the preprocessed image.</returns>
+    public static DenseTensor<float> ToTensor(this Image<Rgb24> image, float[] mean, float[] stddev)
+    {
+        var dims = new[] { 1, 3, image.Height, image.Width };
+        return ImageToTensor(new[] { image }, mean, stddev, dims);
+    }
+
+    /// <summary>
+    /// Efficiently converts one image to an input tensor.
+    /// Preprocesses for {r, g, b}: <c>r = (r * (1 / 255 * stddev.r)) - (mean.r / stddev.r)</c>.
+    /// Thus, if you need simple r = r, you could pass stddev = 1/255 and mean = 0. Note that
+    /// while it might seem unnecessary to use this method then, it's memory access
+    /// is optimized and the conversion is almost two orders of magnitude faster than a simple
+    /// approach.
+    /// </summary>
+    /// <param name="image">The image to preprocess.</param>
+    /// <param name="mean">The rgb mean values used for normalization.</param>
+    /// <param name="stddev">The rgb stddev values used for normalization.</param>
+    /// <param name="inputDimension">
+    ///     The dimensions the created tensor should have. Might throw exceptions if
+    ///     memory access fails due to invalid dimensions. The first dimension's value
+    ///     will be set to 1 no matter what you pass in, as this method processes
+    ///     exactly one picture.
+    /// </param>
+    /// <returns>A tensor containing the preprocessed image.</returns>
     public static DenseTensor<float> ToTensor(this Image<Rgb24> image, float[] mean, float[] stddev, int[] inputDimension)
     {
         return ImageToTensor(new[] { image }, mean, stddev, inputDimension);
     }
 
     /// <summary>
-    /// Efficiently converts images to a input tensor for batch processing.
+    /// Efficiently converts images to an input tensor for batch processing.
+    /// Preprocesses for {r, g, b}: <c>r = (r * (1 / 255 * stddev.r)) - (mean.r / stddev.r)</c>.
+    /// Thus, if you need simple r = r, you could pass stddev = 1/255 and mean = 0.
     /// </summary>
     /// <param name="images">The images to convert.</param>
     /// <param name="mean">The rgb mean values used for normalization.</param>
