@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace BlazorFace.Extensions;
 
@@ -37,6 +38,25 @@ internal static class BlazorMarkupExtensions
           when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
         {
             uploadWasTooLarge = true;
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Tries to open the given <paramref name="stream"/> as image using ImageSharp.
+    /// Catches any exceptions that are thrown while opening. Returns null if an
+    /// exception was thrown.
+    /// </summary>
+    /// <param name="stream">The stream to read the image data from.</param>
+    /// <returns>An image if the stream could be opened as image, null otherwise.</returns>
+    public static async Task<Image<Rgb24>?> TryOpenImage(this Stream? stream)
+    {
+        try
+        {
+            return await Image.LoadAsync<Rgb24>(stream);
+        }
+        catch
+        {
             return null;
         }
     }
