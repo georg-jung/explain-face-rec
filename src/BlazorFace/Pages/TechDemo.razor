@@ -21,10 +21,14 @@
     </p>
 
     <div class="mb-3">
-        <InputFile OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+        <InputFile OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge || _uploadNoImage ? "is-invalid" : "")}")" style="max-width: 32rem;" />
         @if (_uploadWasTooLarge)
         {
             <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        }
+        @if (_uploadNoImage)
+        {
+            <div class="invalid-feedback">The uploaded file could not be read as image.</div>
         }
     </div>
     <p>Loading image took @_uploadMs ms.</p>
@@ -79,6 +83,7 @@
 
     private bool _uploadWasTooLarge = false;
     private bool _uploadNoFace = false;
+    private bool _uploadNoImage = false;
     private float? _angle;
     private float[]? _embeddings;
 
@@ -97,7 +102,7 @@
             _alignMs =
             _embedMs =
             _totalMs = null;
-        _uploadNoFace = _uploadWasTooLarge = false;
+        _uploadNoFace = _uploadWasTooLarge = _uploadNoImage = false;
         _angle = null;
         _embeddings = null;
         await JS.ClearImage(ImgDetectionId);
@@ -108,19 +113,25 @@
 
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
+        await Clear();
+        var start = clock.GetCurrentInstant();
+        using var file = e.TryOpen(MaxUploadSize, out _uploadWasTooLarge);
+        if (file == null) return;
+
+        using var img = await file.TryOpenImage();
+        _uploadMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
+        if (img == null)
+        {
+            _uploadNoImage = true;
+            StateHasChanged();
+            return;
+        }
+
         var det = detectorPool.Get();
         var lmrks = landmarksPool.Get();
         var embGen = embedderPool.Get();
         try
         {
-            await Clear();
-            var start = clock.GetCurrentInstant();
-            using var file = e.TryOpen(MaxUploadSize, out _uploadWasTooLarge);
-            if (file == null) return;
-
-            using var img = await Image.LoadAsync(file);
-            _uploadMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
-
             var pivot = clock.GetCurrentInstant();
             var detection = det.Detect(img);
             _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
