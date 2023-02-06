@@ -10,7 +10,6 @@
 @using UMapx.Visualization;
 @inject IJSRuntime JS
 @inject IFaceDetector det;
-@inject IFaceLandmarksExtractor lmrks;
 @inject IFaceEmbeddingsGenerator embGen;
 @inject IClock clock;
 
@@ -38,6 +37,13 @@
 
     <h2 class="mt-4">1. Embeddings 1</h2>
 
+    @if (_upload1NoFace)
+    {
+        <div class="alert alert-warning" role="alert">
+            No face could be found in the image you uploaded.
+        </div>
+    }
+
     <p>
         <img id="img1" class="mw-100" />
     </p>
@@ -50,6 +56,13 @@
     }
 
     <h2 class="mt-4">2. Embeddings 2</h2>
+
+    @if (_upload2NoFace)
+    {
+        <div class="alert alert-warning" role="alert">
+            No face could be found in the image you uploaded.
+        </div>
+    }
 
     <p>
         <img id="img2" class="mw-100" />
@@ -79,6 +92,8 @@
 
     private bool _upload1WasTooLarge = false;
     private bool _upload2WasTooLarge = false;
+    private bool _upload1NoFace = false;
+    private bool _upload2NoFace = false;
     private float[]? _embeddings1;
     private float[]? _embeddings2;
     private float? _euclideanDist;
@@ -118,23 +133,28 @@
         }
     }
 
-    private void Clear()
+    private async Task Clear()
     {
         _embeddings1 = _embeddings2 = null;
         _euclideanDist = _euclideanSimilarity = null;
         _cosineDist = _cosineSimilarity = null;
+        await ClearImage("img1");
+        await ClearImage("img2");
+        StateHasChanged();
     }
 
     private async void LoadFiles1(InputFileChangeEventArgs e)
     {
-        (_embeddings1, _upload1WasTooLarge) = await LoadFiles(e, "img1");
+        (_embeddings1, _upload1WasTooLarge, _upload1NoFace) = await LoadFiles(e, "img1");
         TryCalcMeasures();
+        StateHasChanged();
     }
 
     private async void LoadFiles2(InputFileChangeEventArgs e)
     {
-        (_embeddings2, _upload2WasTooLarge) = await LoadFiles(e, "img2");
+        (_embeddings2, _upload2WasTooLarge, _upload2NoFace) = await LoadFiles(e, "img2");
         TryCalcMeasures();
+        StateHasChanged();
     }
 
     private void TryCalcMeasures()
@@ -145,31 +165,28 @@
         _euclideanSimilarity = _embeddings1.EuclideanSimilarity(_embeddings2);
         _cosineDist = _embeddings1.CosineDistance(_embeddings2);
         _cosineSimilarity = _embeddings1.CosineSimilarity(_embeddings2);
-
-        StateHasChanged();
     }
 
-    private async Task<(float[]? Embeddings, bool UploadWasTooLarge)> LoadFiles(InputFileChangeEventArgs e, string imgId)
+    private async Task<(float[]? Embeddings, bool UploadWasTooLarge, bool NoFaceFound)> LoadFiles(InputFileChangeEventArgs e, string imgId)
     {
         var start = clock.GetCurrentInstant();
         using var file = TryOpen(e, out var ulTooLarge);
-        if (file == null) return (null, ulTooLarge);
+        if (file == null) return (null, ulTooLarge, false);
 
-        using var img = await Image.LoadAsync(file);
+        using var img = await Image.LoadAsync<Rgb24>(file);
 
-        var pivot = clock.GetCurrentInstant();
         var detection = det.Detect(img);
-        var rectangles = detection.Select(x => x.Box).ToList();
+        var firstFace = detection.FirstOrDefault();
+        if (firstFace.Landmarks is null)
+        {
+            return (null, false, true);
+        }
 
-        var firstFaceRect = Rectangle.Round(rectangles.FirstOrDefault());
-        using var imgFirstFace = img.Extract(firstFaceRect, 250);
-        var landmarks = lmrks.Detect(imgFirstFace);
+        var angle = det.GetFaceAlignmentAngle(firstFace.Landmarks);
+        using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
 
-        var angle = lmrks.GetFaceAlignmentAngle(landmarks);
-        using var imgAligned = img.CropAligned(firstFaceRect, angle);
-
-        var embeddings = embGen.Generate(imgAligned);
-        await SetImageStream(imgAligned, imgId);
-        return (embeddings, false);
+        var embeddings = embGen.Generate(imgFirstFaceAligned);
+        await SetImageStream(imgFirstFaceAligned, imgId);
+        return (embeddings, false, false);
     }
 }
