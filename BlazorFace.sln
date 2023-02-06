@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp", "src\FaceAiSh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "src\Benchmarks\Benchmarks.csproj", "{8E87B288-8014-4781-A460-9C50AD189E30}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceAiSharp.Tests", "src\FaceAiSharp.Tests\FaceAiSharp.Tests.csproj", "{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{8E87B288-8014-4781-A460-9C50AD189E30}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E87B288-8014-4781-A460-9C50AD189E30}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E87B288-8014-4781-A460-9C50AD189E30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
