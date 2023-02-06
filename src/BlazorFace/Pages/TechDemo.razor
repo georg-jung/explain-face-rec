@@ -17,7 +17,7 @@
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
-<div class="container">
+<div class="container mb-4">
     <p>
         To get started, please upload an image that contains one or more human faces.
     </p>
@@ -33,6 +33,12 @@
 
     <h2 class="mt-4">1. Face Detection</h2>
     <p>Detection took @_detectionMs ms.</p>
+    @if (_uploadNoFace)
+    {
+        <div class="alert alert-warning" role="alert">
+            No face could be found in the image you uploaded.
+        </div>
+    }
     <img id="@ImgDetectionId" class="mw-100" />
 
     <h2 class="mt-4">2. First Face Crop</h2>
@@ -62,9 +68,7 @@
 
     @if (_embeddings != null)
     {
-        <code>
-            @string.Join("\n", _embeddings);
-        </code>
+        <BlazorFace.Components.ExpandableEmbeddings Embeddings="@string.Join("\n", _embeddings)" />
     }
 </div>
 
@@ -76,6 +80,7 @@
     const string ImgAlignedFirstFaceId = "img-aligned-first-face";
 
     private bool _uploadWasTooLarge = false;
+    private bool _uploadNoFace = false;
     private float? _angle;
     private float[]? _embeddings;
 
@@ -85,6 +90,23 @@
     private int? _alignMs;
     private int? _embedMs;
     private int? _totalMs;
+
+    private async Task Clear()
+    {
+        _uploadMs =
+            _detectionMs =
+            _landmarksMs =
+            _alignMs =
+            _embedMs =
+            _totalMs = null;
+        _uploadNoFace = _uploadWasTooLarge = false;
+        _angle = null;
+        _embeddings = null;
+        await JS.ClearImage(ImgDetectionId);
+        await JS.ClearImage(ImgFirstFaceId);
+        await JS.ClearImage(ImgFirstFaceWithLandmarksId);
+        await JS.ClearImage(ImgAlignedFirstFaceId);
+    }
 
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
@@ -104,6 +126,7 @@
             }
         }
 
+        await Clear();
         var start = clock.GetCurrentInstant();
         using var file = TryOpen();
         if (file == null) return;
@@ -114,6 +137,12 @@
         var pivot = clock.GetCurrentInstant();
         var detection = det.Detect(img);
         _detectionMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
+        if (detection.Count == 0)
+        {
+            _uploadNoFace = true;
+            StateHasChanged();
+            return;
+        }
         var rectangles = detection.Select(x => x.Box).ToList();
         var landmarks2 = detection.Select(x => x.Landmarks).SelectMany(x => x ?? Enumerable.Empty<PointF>()).ToList();
 
