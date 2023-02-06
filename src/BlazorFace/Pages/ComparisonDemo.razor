@@ -97,6 +97,11 @@
         await JS.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
     }
 
+    private async Task ClearImage(string imgId)
+    {
+        await JS.InvokeVoidAsync("clearImage", imgId);
+    }
+
     Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
     {
         try
