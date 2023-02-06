@@ -39,6 +39,7 @@ public class Benchmarks
         _preprocImgRgbaVector = x2;
     }
 
+    /*
     [Benchmark(Baseline = true)]
     public DenseTensor<float> Naive() => Naive(_preprocImg);
 
@@ -51,9 +52,16 @@ public class Benchmarks
     // don't run this every time, it is really close to ProcessPixelRowsAsVector4
     // [Benchmark]
     public DenseTensor<float> ProcessPixelRowsAsVector4RgbaVector() => ProcessPixelRowsAsVector4RgbaVector(_preprocImgRgbaVector);
+    */
 
     [Benchmark]
     public DenseTensor<float> OptimizedBySkywalkerisnull() => OptimizedBySkywalkerisnull(_preprocImg);
+
+    [Benchmark]
+    public DenseTensor<float> OptimizedBySkywalkerisnullV2() => OptimizedBySkywalkerisnullV2(_preprocImg);
+
+    [Benchmark]
+    public DenseTensor<float> Production() => _preprocImg.ToTensor();
 
     private static DenseTensor<float> Naive(Image<Rgb24> img)
     {
@@ -157,5 +165,13 @@ public class Benchmarks
         var stddev = new[] { 1f, 1f, 1f };
         var dims = new[] { 1, 3, 640, 640 };
         return BySkywalkerisnull.ToTensor(img, mean, stddev, dims);
+    }
+
+    private static DenseTensor<float> OptimizedBySkywalkerisnullV2(Image<Rgb24> img)
+    {
+        var mean = new[] { 0.5f, 0.5f, 0.5f };
+        var stddev = new[] { 1f, 1f, 1f };
+        var dims = new[] { 1, 3, 640, 640 };
+        return BySkywalkerisnullV2.ToTensor(img, mean, stddev, dims);
     }
 }
