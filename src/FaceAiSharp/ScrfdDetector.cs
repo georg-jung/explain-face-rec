@@ -161,7 +161,7 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
     public void Dispose() => _session.Dispose();
 
-    private static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
+    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
     {
         var ret = new DenseTensor<float>(new[] { 1, 3, img.Height, img.Width });
 
