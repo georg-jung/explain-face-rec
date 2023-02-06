@@ -20,11 +20,19 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     private readonly ModelParameters _modelParameters;
     private readonly IMemoryCache _cache;
 
-    public ScrfdDetector(ScrfdDetectorOptions options, IMemoryCache cache)
+    public ScrfdDetector(ScrfdDetectorOptions options, IMemoryCache cache, SessionOptions? sessionOptions = null)
     {
         Options = options;
         _cache = cache;
-        _session = new(options.ModelPath);
+        if (sessionOptions is null)
+        {
+            _session = new(options.ModelPath);
+        }
+        else
+        {
+            _session = new(options.ModelPath, sessionOptions);
+        }
+
         _modelParameters = DetermineModelParameters();
     }
 

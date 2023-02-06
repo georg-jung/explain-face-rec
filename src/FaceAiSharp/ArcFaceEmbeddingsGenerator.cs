@@ -22,10 +22,17 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     private readonly InferenceSession _session;
 
-    public ArcFaceEmbeddingsGenerator(ArcFaceEmbeddingsGeneratorOptions options)
+    public ArcFaceEmbeddingsGenerator(ArcFaceEmbeddingsGeneratorOptions options, SessionOptions? sessionOptions = null)
     {
-        _session = new(options.ModelPath);
         Options = options;
+        if (sessionOptions is null)
+        {
+            _session = new(options.ModelPath);
+        }
+        else
+        {
+            _session = new(options.ModelPath, sessionOptions);
+        }
     }
 
     public ArcFaceEmbeddingsGeneratorOptions Options { get; }
@@ -40,7 +47,7 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         var input = CreateImageTensor(img);
 
         var inputMeta = _session.InputMetadata;
-        var name = inputMeta.Keys.ToArray()[0];
+        var name = inputMeta.Keys.First();
 
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(name, input) };
         using var outputs = _session.Run(inputs);
