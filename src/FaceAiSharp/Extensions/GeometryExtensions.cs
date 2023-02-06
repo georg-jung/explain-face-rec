@@ -61,15 +61,15 @@ public static class GeometryExtensions
 
     public static Rectangle Scale(this Rectangle rectangle, double factor)
         => new(
-            (int)(rectangle.X * factor),
-            (int)(rectangle.Y * factor),
-            (int)(rectangle.Width * factor),
-            (int)(rectangle.Height * factor));
+            (int)Math.Round(rectangle.X * factor),
+            (int)Math.Round(rectangle.Y * factor),
+            (int)Math.Round(rectangle.Width * factor),
+            (int)Math.Round(rectangle.Height * factor));
 
     public static Size Scale(this Size size, double factor)
         => new(
-            (int)(size.Width * factor),
-            (int)(size.Height * factor));
+            (int)Math.Round(size.Width * factor),
+            (int)Math.Round(size.Height * factor));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float TwoNorm(this float[] vector)

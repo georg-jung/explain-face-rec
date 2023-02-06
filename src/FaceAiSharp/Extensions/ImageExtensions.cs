@@ -50,8 +50,35 @@ namespace FaceAiSharp.Extensions
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
             => sourceImage.Clone(op =>
             {
+                var center = RectangleF.Center(faceArea);
+                var minSuperSquare = faceArea.GetMinimumSupersetSquare();
+
+                var angleInv = minSuperSquare.ScaleToRotationAngleInvariantCropArea();
+                if (sourceImage.Bounds().Contains(angleInv))
+                {
+                    // If the faceArea we are interested in is at least somewhat smaller than the overall image
+                    // we can reduce the processing time of CropAligned by multiple orders of magnitude(!) if we
+                    // crop here first.
+                    op.Crop(angleInv);
+                    var newBase = new Point(angleInv.X, angleInv.Y);
+                    var offset = -newBase;
+                    center.Offset(offset);
+                    minSuperSquare.Offset(offset);
+                    faceArea.Offset(offset);
+                }
+
+                /* We have cropped off any areas of the image that are completely out of scoped here.
+                   E.g. if the image is a photo of a group and we have a rough cut of just the one face
+                   are interested in and removed the other people. */
+
                 if (alignedMaxEdgeSize.HasValue)
                 {
+                    /* We rotate the image below. If we are not interested in a full resolution
+                     * version of the area for further processing, we can reduce the processing time
+                     * of CropAligned by a large amount if we resize before rotating. Thus,
+                     * we scale here by a factor that leaves the final faceArea with exactly the
+                     * edge size we want to return later. */
+
                     var longestDim = Math.Max(faceArea.Width, faceArea.Height);
                     var toLargeFactor = Math.Max(1.0, longestDim / (double)alignedMaxEdgeSize);
                     var factor = 1.0 / toLargeFactor; // scale factor
@@ -60,12 +87,12 @@ namespace FaceAiSharp.Extensions
                     {
                         var curSize = op.GetCurrentSize();
                         op.Resize(curSize.Scale(factor));
+
+                        minSuperSquare = minSuperSquare.Scale(factor);
                         faceArea = faceArea.Scale(factor);
+                        center = RectangleF.Center(faceArea);
                     }
                 }
-
-                var center = RectangleF.Center(faceArea);
-                var minSuperSquare = faceArea.GetMinimumSupersetSquare();
 
                 var atb = new AffineTransformBuilder();
                 atb.AppendRotationDegrees(angle, center);
