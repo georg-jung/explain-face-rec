@@ -4,6 +4,7 @@
 using System.Runtime.CompilerServices;
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using NumSharp;
@@ -17,10 +18,12 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 {
     private readonly InferenceSession _session;
     private readonly ModelParameters _modelParameters;
+    private readonly IMemoryCache _cache;
 
-    public ScrfdDetector(ScrfdDetectorOptions options)
+    public ScrfdDetector(ScrfdDetectorOptions options, IMemoryCache cache)
     {
         Options = options;
+        _cache = cache;
         _session = new(options.ModelPath);
         _modelParameters = DetermineModelParameters();
     }
@@ -237,52 +240,6 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return np.stack(preds, axis: -1);
     }
 
-    private static (NDArray Scores, NDArray Bboxes, NDArray? Kpss)? HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
-    {
-        var bbox_preds = outputs.First(x => x.Name == $"bbox_{stride}").ToNDArray<float>();
-        var scores = outputs.First(x => x.Name == $"score_{stride}").ToNDArray<float>();
-        var kps_preds = outputs.FirstOrDefault(x => x.Name == $"kps_{stride}")?.ToNDArray<float>();
-
-        if (batched)
-        {
-            bbox_preds = bbox_preds[0];
-            scores = scores[0];
-            kps_preds = kps_preds?[0];
-        }
-
-        bbox_preds *= stride;
-        kps_preds = kps_preds is not null ? kps_preds * stride : null;
-
-        var height = inputSize.Height / stride;
-        var width = inputSize.Width / stride;
-        var k = height * width;
-
-        var anchorCenters = GenerateAnchorCenters(inputSize, stride, 2);
-
-        // this is >= in python but > here
-        var pos_inds = IndicesOfElementsLargerThen(scores, thresh);
-        if (pos_inds.size == 0)
-        {
-            return null;
-        }
-
-        anchorCenters = anchorCenters[pos_inds];
-        bbox_preds = bbox_preds[pos_inds];
-        scores = scores[pos_inds];
-
-        var bboxes = Distance2Bbox(anchorCenters, bbox_preds);
-        NDArray? kpss = null;
-
-        if (kps_preds is not null)
-        {
-            kps_preds = kps_preds[pos_inds];
-            kpss = Distance2Kps(anchorCenters, kps_preds);
-            kpss = kpss.reshape(kpss.shape[0], -1, 2);
-        }
-
-        return (scores, bboxes, kpss);
-    }
-
     /// <summary>
     /// Filter out duplicate detections (multiple boxes describing roughly the same area) using non max suppression.
     /// </summary>
@@ -332,6 +289,59 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
         return keep;
     }
+
+    private (NDArray Scores, NDArray Bboxes, NDArray? Kpss)? HandleStride(int stride, IReadOnlyCollection<NamedOnnxValue> outputs, Size inputSize, float thresh, bool batched)
+    {
+        var bbox_preds = outputs.First(x => x.Name == $"bbox_{stride}").ToNDArray<float>();
+        var scores = outputs.First(x => x.Name == $"score_{stride}").ToNDArray<float>();
+        var kps_preds = outputs.FirstOrDefault(x => x.Name == $"kps_{stride}")?.ToNDArray<float>();
+
+        if (batched)
+        {
+            bbox_preds = bbox_preds[0];
+            scores = scores[0];
+            kps_preds = kps_preds?[0];
+        }
+
+        bbox_preds *= stride;
+        kps_preds = kps_preds is not null ? kps_preds * stride : null;
+
+        var height = inputSize.Height / stride;
+        var width = inputSize.Width / stride;
+        var k = height * width;
+
+        var anchorCenters = GetAnchorCenters(inputSize, stride, 2);
+
+        // this is >= in python but > here
+        var pos_inds = IndicesOfElementsLargerThen(scores, thresh);
+        if (pos_inds.size == 0)
+        {
+            return null;
+        }
+
+        anchorCenters = anchorCenters[pos_inds];
+        bbox_preds = bbox_preds[pos_inds];
+        scores = scores[pos_inds];
+
+        var bboxes = Distance2Bbox(anchorCenters, bbox_preds);
+        NDArray? kpss = null;
+
+        if (kps_preds is not null)
+        {
+            kps_preds = kps_preds[pos_inds];
+            kpss = Distance2Kps(anchorCenters, kps_preds);
+            kpss = kpss.reshape(kpss.shape[0], -1, 2);
+        }
+
+        return (scores, bboxes, kpss);
+    }
+
+    private NDArray GetAnchorCenters(Size inputSize, int stride, int numAnchors)
+    => _cache.GetOrCreate((inputSize, stride, numAnchors), cacheEntry =>
+    {
+        cacheEntry.SetSlidingExpiration(TimeSpan.FromMinutes(20));
+        return GenerateAnchorCenters(inputSize, stride, numAnchors);
+    })!;
 
     private ModelParameters DetermineModelParameters()
     {

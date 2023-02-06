@@ -27,6 +27,7 @@ namespace BlazorFace
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+            builder.Services.AddMemoryCache();
             builder.Services.AddSingleton<IClock>(SystemClock.Instance);
             builder.Services.AddTransient<IFaceDetector, ScrfdDetector>();
             builder.Services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
