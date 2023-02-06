@@ -96,22 +96,6 @@
     private float? _cosineDist;
     private float? _cosineSimilarity;
 
-    Stream? TryOpen(InputFileChangeEventArgs e, out bool uploadWasTooLarge)
-    {
-        try
-        {
-            var s = e.File.OpenReadStream(MaxUploadSize);
-            uploadWasTooLarge = false;
-            return s;
-        }
-        catch (IOException ex)
-          when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
-        {
-            uploadWasTooLarge = true;
-            return null;
-        }
-    }
-
     private async Task Clear()
     {
         _embeddings1 = _embeddings2 = null;
@@ -149,7 +133,7 @@
     private async Task<(float[]? Embeddings, bool UploadWasTooLarge, bool NoFaceFound)> LoadFiles(InputFileChangeEventArgs e, string imgId)
     {
         var start = clock.GetCurrentInstant();
-        using var file = TryOpen(e, out var ulTooLarge);
+        using var file = e.TryOpen(MaxUploadSize, out var ulTooLarge);
         if (file == null) return (null, ulTooLarge, false);
 
         using var img = await Image.LoadAsync<Rgb24>(file);
