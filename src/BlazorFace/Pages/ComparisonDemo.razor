@@ -156,10 +156,10 @@
             }
 
             var angle = det.GetFaceAlignmentAngle(firstFace.Landmarks);
-            using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
+            img.CropAlignedDestructive(Rectangle.Round(firstFace.Box), angle);
 
-            var embeddings = embGen.Generate(imgFirstFaceAligned);
-            await JS.SetImageStream(imgFirstFaceAligned, imgId);
+            var embeddings = embGen.Generate(img);
+            await JS.SetImageStream(img, imgId);
             return new(embeddings);
         }
         finally

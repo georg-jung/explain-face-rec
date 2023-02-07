@@ -49,73 +49,80 @@ namespace FaceAiSharp.Extensions
             });
 
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
-            => sourceImage.Clone(op =>
+            => sourceImage.Clone(op => op.CropAligned(faceArea, angle, alignedMaxEdgeSize));
+
+        public static void CropAlignedDestructive<TPixel>(this Image<TPixel> sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
+            where TPixel : unmanaged, IPixel<TPixel>
+            => sourceImage.Mutate(op => op.CropAligned(faceArea, angle, alignedMaxEdgeSize));
+
+        public static void CropAligned(this IImageProcessingContext ctx, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
+        {
+            var center = RectangleF.Center(faceArea);
+            var minSuperSquare = faceArea.GetMinimumSupersetSquare();
+
+            var angleInv = minSuperSquare.ScaleToRotationAngleInvariantCropArea();
+            var bounds = new Rectangle(Point.Empty, ctx.GetCurrentSize());
+            if (bounds.Contains(angleInv))
             {
-                var center = RectangleF.Center(faceArea);
-                var minSuperSquare = faceArea.GetMinimumSupersetSquare();
+                // If the faceArea we are interested in is at least somewhat smaller than the overall image
+                // we can reduce the processing time of CropAligned by multiple orders of magnitude(!) if we
+                // crop here first.
+                ctx.Crop(angleInv);
+                var newBase = new Point(angleInv.X, angleInv.Y);
+                var offset = -newBase;
+                center.Offset(offset);
+                minSuperSquare.Offset(offset);
+                faceArea.Offset(offset);
+            }
 
-                var angleInv = minSuperSquare.ScaleToRotationAngleInvariantCropArea();
-                if (sourceImage.Bounds().Contains(angleInv))
+            /* We have cropped off any areas of the image that are completely out of scoped here.
+               E.g. if the image is a photo of a group and we have a rough cut of just the one face
+               are interested in and removed the other people. */
+
+            if (alignedMaxEdgeSize.HasValue)
+            {
+                /* We rotate the image below. If we are not interested in a full resolution
+                 * version of the area for further processing, we can reduce the processing time
+                 * of CropAligned by a large amount if we resize before rotating. Thus,
+                 * we scale here by a factor that leaves the final faceArea with exactly the
+                 * edge size we want to return later. */
+
+                var longestDim = Math.Max(faceArea.Width, faceArea.Height);
+                var toLargeFactor = Math.Max(1.0, longestDim / (double)alignedMaxEdgeSize);
+                var factor = 1.0 / toLargeFactor; // scale factor
+
+                if (factor < 1)
                 {
-                    // If the faceArea we are interested in is at least somewhat smaller than the overall image
-                    // we can reduce the processing time of CropAligned by multiple orders of magnitude(!) if we
-                    // crop here first.
-                    op.Crop(angleInv);
-                    var newBase = new Point(angleInv.X, angleInv.Y);
-                    var offset = -newBase;
-                    center.Offset(offset);
-                    minSuperSquare.Offset(offset);
-                    faceArea.Offset(offset);
+                    var curSize = ctx.GetCurrentSize();
+                    ctx.Resize(curSize.Scale(factor));
+
+                    minSuperSquare = minSuperSquare.Scale(factor);
+                    faceArea = faceArea.Scale(factor);
+                    center = RectangleF.Center(faceArea);
                 }
+            }
 
-                /* We have cropped off any areas of the image that are completely out of scoped here.
-                   E.g. if the image is a photo of a group and we have a rough cut of just the one face
-                   are interested in and removed the other people. */
+            var atb = new AffineTransformBuilder();
+            atb.AppendRotationDegrees(angle, center);
+            atb.AppendTranslation(new PointF(-minSuperSquare.X, -minSuperSquare.Y));
+            ctx.Transform(atb);
 
-                if (alignedMaxEdgeSize.HasValue)
+            var squareEdge = minSuperSquare.Height;
+            var cropArea = new Rectangle(Point.Empty, ctx.GetCurrentSize());
+            cropArea.Intersect(new Rectangle(0, 0, squareEdge, squareEdge));
+            ctx.Crop(cropArea);
+
+            if (cropArea != minSuperSquare)
+            {
+                ctx.Resize(new ResizeOptions()
                 {
-                    /* We rotate the image below. If we are not interested in a full resolution
-                     * version of the area for further processing, we can reduce the processing time
-                     * of CropAligned by a large amount if we resize before rotating. Thus,
-                     * we scale here by a factor that leaves the final faceArea with exactly the
-                     * edge size we want to return later. */
-
-                    var longestDim = Math.Max(faceArea.Width, faceArea.Height);
-                    var toLargeFactor = Math.Max(1.0, longestDim / (double)alignedMaxEdgeSize);
-                    var factor = 1.0 / toLargeFactor; // scale factor
-
-                    if (factor < 1)
-                    {
-                        var curSize = op.GetCurrentSize();
-                        op.Resize(curSize.Scale(factor));
-
-                        minSuperSquare = minSuperSquare.Scale(factor);
-                        faceArea = faceArea.Scale(factor);
-                        center = RectangleF.Center(faceArea);
-                    }
-                }
-
-                var atb = new AffineTransformBuilder();
-                atb.AppendRotationDegrees(angle, center);
-                atb.AppendTranslation(new PointF(-minSuperSquare.X, -minSuperSquare.Y));
-                op.Transform(atb);
-
-                var squareEdge = minSuperSquare.Height;
-                var cropArea = new Rectangle(Point.Empty, op.GetCurrentSize());
-                cropArea.Intersect(new Rectangle(0, 0, squareEdge, squareEdge));
-                op.Crop(cropArea);
-
-                if (cropArea != minSuperSquare)
-                {
-                    op.Resize(new ResizeOptions()
-                    {
-                        Position = AnchorPositionMode.TopLeft,
-                        Mode = ResizeMode.BoxPad,
-                        PadColor = Color.Black,
-                        Size = new Size(squareEdge),
-                    });
-                }
-            });
+                    Position = AnchorPositionMode.TopLeft,
+                    Mode = ResizeMode.BoxPad,
+                    PadColor = Color.Black,
+                    Size = new Size(squareEdge),
+                });
+            }
+        }
 
         /// <summary>
         /// Draws multiple rectangles onto a given image, e.g. to demonstrate where faces were detected in a picture.

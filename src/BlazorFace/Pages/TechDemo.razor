@@ -163,13 +163,13 @@
 
             pivot = clock.GetCurrentInstant();
             _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
-            using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
+            img.CropAlignedDestructive(firstFaceRect, _angle.Value);
             _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
-            await JS.SetImageStream(imgAligned, ImgAlignedFirstFaceId);
+            await JS.SetImageStream(img, ImgAlignedFirstFaceId);
             StateHasChanged();
 
             pivot = clock.GetCurrentInstant();
-            _embeddings = embGen.Generate(imgAligned);
+            _embeddings = embGen.Generate(img);
             _embedMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
 
             _totalMs = (int)(clock.GetCurrentInstant() - start).TotalMilliseconds;
