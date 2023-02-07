@@ -164,6 +164,8 @@
             pivot = clock.GetCurrentInstant();
             _angle = det.GetFaceAlignmentAngle(landmarks2); // lmrks.GetFaceAlignmentAngle(landmarks);
             using var imgAligned = img.CropAligned(firstFaceRect, _angle.Value);
+            var det2 = det.Detect(imgAligned);
+            FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(imgAligned, det2.First().Landmarks);
             _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
             await JS.SetImageStream(imgAligned, ImgAlignedFirstFaceId);
             StateHasChanged();

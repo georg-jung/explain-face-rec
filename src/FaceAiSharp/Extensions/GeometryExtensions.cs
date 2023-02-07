@@ -1,6 +1,8 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using SixLabors.ImageSharp;
 
@@ -180,5 +182,41 @@ public static class GeometryExtensions
 
         double den = Math.Sqrt(p) * Math.Sqrt(q);
         return (float)((sum == 0) ? 0 : sum / den);
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.NamingRules", "SA1312:Variable names should begin with lower-case letter", Justification = "Math")]
+    public static Matrix3x2 EstimateSimilarityMatrix(this IReadOnlyList<(PointF A, PointF B)> points)
+    {
+        // adapted from https://stackoverflow.com/a/65739116/1200847
+        var rows = points.Count * 2;
+        const int cols = 6;
+
+        var A = new MathNet.Numerics.LinearAlgebra.Single.DenseMatrix(rows, cols);
+        var b = new MathNet.Numerics.LinearAlgebra.Single.DenseMatrix(rows, 1);
+
+        for (var p = 0; p < points.Count; p++)
+        {
+            var row = p * 2;
+            A[row, 0] = points[p].A.X;
+            A[row, 1] = points[p].A.Y;
+            A[row, 2] = 1;
+            b[row, 0] = points[p].B.X;
+            row++;
+            A[row, 3] = points[p].A.X;
+            A[row, 4] = points[p].A.Y;
+            A[row, 5] = 1;
+            b[row, 0] = points[p].B.Y;
+        }
+
+        var x = A.Solve(b);
+        var affine = new Matrix3x2(
+            (float)x[0, 0],
+            (float)x[3, 0],
+            (float)x[1, 0],
+            (float)x[4, 0],
+            (float)x[2, 0],
+            (float)x[5, 0]);
+
+        return affine;
     }
 }

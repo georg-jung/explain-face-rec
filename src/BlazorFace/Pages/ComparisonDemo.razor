@@ -158,6 +158,9 @@
             var angle = det.GetFaceAlignmentAngle(firstFace.Landmarks);
             using var imgFirstFaceAligned = img.CropAligned(Rectangle.Round(firstFace.Box), angle);
 
+            var det2 = det.Detect(imgFirstFaceAligned);
+            FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(imgFirstFaceAligned, det2.First().Landmarks);
+
             var embeddings = embGen.Generate(imgFirstFaceAligned);
             await JS.SetImageStream(imgFirstFaceAligned, imgId);
             return new(embeddings);
