@@ -1,6 +1,7 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics;
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
 using Microsoft.ML.OnnxRuntime;
@@ -39,25 +40,36 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     public void Dispose() => _session.Dispose();
 
-    public float[] Generate(Image image)
+    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
     {
-        (var img, var disp) = image.EnsureProperlySized<Rgb24>(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
-        using var usingDisp = disp;
+        foreach (var img in alignedImages)
+        {
+            img.EnsureProperlySizedDestructive(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
+        }
 
-        var input = CreateImageTensor(img);
+        var input = CreateImageTensor(alignedImages);
 
         var inputMeta = _session.InputMetadata;
         var name = inputMeta.Keys.First();
 
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(name, input) };
         using var outputs = _session.Run(inputs);
-        var dataOutput = outputs.First().AsEnumerable<float>().ToArray();
-        var embeddings = dataOutput.ToUnitLength();
+        var firstOut = outputs.First();
+        var tens = firstOut.Value as DenseTensor<float> ?? firstOut.AsTensor<float>().ToDenseTensor();
+        Debug.Assert(tens.Length % 512 == 0, "Output tensor length is invalid.");
 
-        return embeddings;
+        var embSpan = tens.Buffer.Span;
+        var emb = new List<float[]>(alignedImages.Count);
+        for (var i = 0; i < alignedImages.Count; i++)
+        {
+            var span = embSpan.Slice(i * 512, 512);
+            emb.Add(GeometryExtensions.ToUnitLength(span));
+        }
+
+        return emb;
     }
 
-    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
+    internal static DenseTensor<float> CreateImageTensor(IReadOnlyCollection<Image<Rgb24>> imgs)
     {
         // ArcFace uses the rgb values directly, just the ints converted to float,
         // no further preprocessing needed. The default ToTensor implementation assumes
@@ -65,7 +77,8 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         var mean = new[] { 0f, 0f, 0f };
         var stdDevVal = 1 / 255f;
         var stdDev = new[] { stdDevVal, stdDevVal, stdDevVal };
-        return img.ToTensor(mean, stdDev);
+        var inputDim = new[] { imgs.Count, 3, 112, 112 };
+        return ImageToTensorExtensions.ImageToTensor(imgs, mean, stdDev, inputDim);
     }
 }
 

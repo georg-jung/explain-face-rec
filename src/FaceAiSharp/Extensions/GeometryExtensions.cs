@@ -72,7 +72,7 @@ public static class GeometryExtensions
             (int)Math.Round(size.Height * factor));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float TwoNorm(this float[] vector)
+    public static float TwoNorm(this ReadOnlySpan<float> vector)
     {
         double sum = 0;
         foreach (var x in vector)
@@ -84,7 +84,7 @@ public static class GeometryExtensions
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float[] ToUnitLength(this float[] vector)
+    public static float[] ToUnitLength(this ReadOnlySpan<float> vector)
     {
         var len = vector.TwoNorm();
         var scaled = new float[vector.Length];

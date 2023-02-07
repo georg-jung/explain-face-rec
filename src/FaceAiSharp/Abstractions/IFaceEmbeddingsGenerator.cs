@@ -2,13 +2,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace FaceAiSharp.Abstractions;
 
 public interface IFaceEmbeddingsGenerator
 {
-    /// <summary>Generate a vector that is geometrically closer to other vectors returned by this function if the given images belong to the same person.</summary>
-    /// <param name="image">An aligned, cropped image of a face.</param>
-    /// <returns>An embedding vector that corresponds to the given face.</returns>
-    float[] Generate(Image image);
+    /// <summary>Generate a vectors that are geometrically closer to other vectors returned by this function if the given images belong to the same person.</summary>
+    /// <param name="alignedImages">One or more aligned, cropped images of faces.</param>
+    /// <returns>Embedding vectors that correspond to the given faces.</returns>
+    IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages);
+
+    public float[] Generate(Image<Rgb24> image) => Generate(new[] { image }).First();
 }

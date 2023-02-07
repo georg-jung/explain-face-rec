@@ -93,15 +93,17 @@ public static class ImageToTensorExtensions
         inputDimension[0] = images.Count;
 
         var input = new DenseTensor<float>(inputDimension);
+        var imgCnt = 0;
         foreach (var image in images)
         {
+            var imgStrides = input.Strides[0] * imgCnt;
             image.ProcessPixelRows(pixelAccessor =>
             {
                 var strides = input.Strides;
                 var inputSpan = input.Buffer.Span;
                 for (var y = 0; y < image.Height; y++)
                 {
-                    var index = y * strides[2];
+                    var index = imgStrides + (y * strides[2]);
                     var rowSpan = pixelAccessor.GetRowSpan(y);
 
                     // Faster indexing into the span
@@ -120,6 +122,7 @@ public static class ImageToTensorExtensions
                     }
                 }
             });
+            imgCnt++;
         }
 
         return input;

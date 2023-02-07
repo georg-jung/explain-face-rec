@@ -1,6 +1,7 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using CommunityToolkit.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
@@ -220,6 +221,26 @@ namespace FaceAiSharp.Extensions
                 Image when !throwIfResizeRequired => CreateDisposableTuple(CreateProperSizedImage(img)),
                 _ => throw new ArgumentException($"The given image does not have the required dimensions (Required: W={wR}, H={hR}; Actual: W={wA}, H={hA})"),
             };
+        }
+
+        public static void EnsureProperlySizedDestructive(this Image<Rgb24> img, ResizeOptions resizeOptions, bool throwIfResizeRequired)
+        {
+            void PerformResize(IImageProcessingContext op) => op.Resize(resizeOptions);
+
+            var req = (resizeOptions.Size.Width, resizeOptions.Size.Height);
+            var act = (img.Width, img.Height);
+
+            if (req == act)
+            {
+                return;
+            }
+
+            if (throwIfResizeRequired)
+            {
+                Guard.IsEqualTo(req, act);
+            }
+
+            img.Mutate(PerformResize);
         }
 
         public static float[][,] ToFaceOnnxFloatArray(this Image image)

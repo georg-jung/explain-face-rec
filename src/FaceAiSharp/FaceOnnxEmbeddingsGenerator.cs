@@ -4,6 +4,7 @@
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace FaceAiSharp;
 
@@ -13,7 +14,15 @@ public sealed class FaceOnnxEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDis
 
     public void Dispose() => _fonnx.Dispose();
 
-    public float[] Generate(Image image)
+    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
+    {
+        foreach (var image in alignedImages)
+        {
+            yield return Generate(image);
+        }
+    }
+
+    public float[] Generate(Image<Rgb24> image)
     {
         var img = image.ToFaceOnnxFloatArray();
         var res = _fonnx.Forward(img);
