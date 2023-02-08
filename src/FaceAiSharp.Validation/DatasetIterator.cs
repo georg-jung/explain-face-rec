@@ -46,5 +46,3 @@ internal class DatasetIterator
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "I like it here")]
 internal readonly record struct DatasetImage(string Identity, string FilePath);
-
-internal readonly record struct EmbedderResult(string Identity, string FilePath, float[] Embeddings);

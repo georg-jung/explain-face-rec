@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Validation calc-dist": {
+      "commandName": "Project",
+      "commandLineArgs": "calc-distances"
+    }
+  }
+}

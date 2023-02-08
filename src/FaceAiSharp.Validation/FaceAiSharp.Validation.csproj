@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="LiteDB" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="System.CommandLine" />

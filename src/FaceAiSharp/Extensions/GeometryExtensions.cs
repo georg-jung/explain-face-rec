@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Runtime.CompilerServices;
+using SimpleSimd;
 using SixLabors.ImageSharp;
 
 namespace FaceAiSharp.Extensions;
@@ -180,5 +181,14 @@ public static class GeometryExtensions
 
         double den = Math.Sqrt(p) * Math.Sqrt(q);
         return (float)((sum == 0) ? 0 : sum / den);
+    }
+
+    /// <summary>Returns the dot product of two vectors.</summary>
+    /// <param name="x">The first vector.</param>
+    /// <param name="y">The second vector.</param>
+    /// <returns>The dot product.</returns>
+    public static float Dot(this float[] x, float[] y)
+    {
+        return SimdOps<float>.Dot(x, y);
     }
 }

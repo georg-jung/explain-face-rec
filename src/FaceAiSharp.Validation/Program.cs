@@ -28,7 +28,13 @@ var scrfdModel = new Option<FileInfo>(
     name: "--scrfd-model",
     getDefaultValue: () => new FileInfo(@"C:\Users\georg\OneDrive\Dokumente\ScrfdOnnx\scrfd_2.5g_bnkps.onnx"));
 
-var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel };
+var threshold = new Option<float>(
+    name: "--threshold",
+    getDefaultValue: () => 0.38f);
+
+var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName };
+
+var calcDistances = new Command("calc-distances") { dbEmbeddingCollectionName, threshold };
 
 #pragma warning disable SA1116 // Split parameters should start on line after declaration
 #pragma warning disable SA1117 // Parameters should be on same line or separate lines
@@ -39,5 +45,12 @@ generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel, dbEm
     await cmd.Invoke();
 }, dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
 rc.AddCommand(generateEmbeddings);
+
+calcDistances.SetHandler((db, dbEmbeddingCollectionName, threshold) =>
+{
+    var calc = new CalculateDistances(db, dbEmbeddingCollectionName, threshold);
+    calc.Invoke();
+}, db, dbEmbeddingCollectionName, threshold);
+rc.AddCommand(calcDistances);
 
 return await rc.InvokeAsync(args);
