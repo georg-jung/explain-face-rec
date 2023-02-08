@@ -84,7 +84,6 @@ internal static class BySkywalkerisnull
                             spanG[x] = (rowSpan[x].G * stdNormG) - normG;
                             spanB[x] = (rowSpan[x].B * stdNormB) - normB;
                         }
-
                     }
                 });
 
@@ -127,7 +126,6 @@ internal static class BySkywalkerisnull
 
         return strides;
     }
-
 
     /// <summary>
     /// Calculates the 1-d index for n-d indices in layout specified by strides.
