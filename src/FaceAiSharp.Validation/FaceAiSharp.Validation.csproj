@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="LiteDB" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Interactive" />
     <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
