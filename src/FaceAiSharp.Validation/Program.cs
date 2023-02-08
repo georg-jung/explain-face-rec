@@ -12,6 +12,10 @@ var db = new Option<FileInfo>(
     getDefaultValue: () => new FileInfo("faceaisharp-validation.litedb"));
 rc.AddGlobalOption(db);
 
+var dbEmbeddingCollectionName = new Option<string>(
+    name: "---db-embedding-collection-name",
+    getDefaultValue: () => "ArcfaceEmbeddings");
+
 var dataset = new Option<DirectoryInfo>(
     name: "--dataset",
     getDefaultValue: () => new DirectoryInfo(@"C:\Users\georg\Downloads\lfw\lfw"));
@@ -29,11 +33,11 @@ var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceMo
 #pragma warning disable SA1116 // Split parameters should start on line after declaration
 #pragma warning disable SA1117 // Parameters should be on same line or separate lines
 
-generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel) =>
+generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName) =>
 {
-    var cmd = new GenerateEmbeddings(dataset, db, arcfaceModel, scrfdModel);
+    using var cmd = new GenerateEmbeddings(dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
     await cmd.Invoke();
-}, dataset, db, arcfaceModel, scrfdModel);
+}, dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
 rc.AddCommand(generateEmbeddings);
 
 return await rc.InvokeAsync(args);

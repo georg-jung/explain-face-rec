@@ -24,8 +24,9 @@ internal sealed class GenerateEmbeddings : IDisposable
     private readonly IMemoryCache _cache;
     private readonly DirectoryInfo _dataset;
     private readonly FileInfo _db;
+    private readonly string _dbEmbeddingCollectionName;
 
-    public GenerateEmbeddings(DirectoryInfo dataset, FileInfo db, FileInfo arcFaceModel, FileInfo scrfdModel)
+    public GenerateEmbeddings(DirectoryInfo dataset, FileInfo db, FileInfo arcFaceModel, FileInfo scrfdModel, string dbEmbeddingCollectionName)
     {
         _embedderSessOpts = new SessionOptions
         {
@@ -53,12 +54,13 @@ internal sealed class GenerateEmbeddings : IDisposable
 
         _dataset = dataset;
         _db = db;
+        _dbEmbeddingCollectionName = dbEmbeddingCollectionName;
     }
 
     public async Task Invoke()
     {
         using var db = new LiteDatabase(_db.FullName);
-        var dbEmb = db.GetCollection<EmbedderResult>();
+        var dbEmb = db.GetCollection<EmbedderResult>(_dbEmbeddingCollectionName);
         dbEmb.EnsureIndex(x => x.FilePath);
 
         var setFolder = _dataset.FullName;
