@@ -103,14 +103,25 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
          * 112x112 crop area using the matrix' inverse and take the minimum surrounding rectangle
          * of that projection. We crop the image using that rectangle and proceed. */
         var area = cutRect.SupersetAreaOfTransform(mi);
+
+        /* The matrix m includes scaling. If we scale the image using an affine transform,
+         * we loose quality because we don't use any specialized resizing methods. Thus, we extract
+         * the x and y scale factors from the matrix, scale using Resize first and remove the scaling
+         * from m by multiplying it with an inverted scale matrix. */
+        var (hScale, vScale) = (m.GetHScaleFactor(), m.GetVScaleFactor());
+        var mScale = Matrix3x2.CreateScale(1 / hScale, 1 / vScale);
         face.Mutate(op =>
         {
             SafeCrop(op, area);
 
             var afb = new AffineTransformBuilder();
+            var sz = op.GetCurrentSize();
+            var scale = new SizeF(sz.Width * hScale, sz.Height * vScale);
+            op.Resize(Size.Round(scale));
+            m = Matrix3x2.Multiply(mScale, m);
 
             // the Crop does the inverse translation so we need to undo it
-            afb.AppendTranslation(new PointF(area.X, area.Y));
+            afb.AppendTranslation(new PointF(area.X * hScale, area.Y * vScale));
             afb.AppendMatrix(m);
             op.Transform(afb);
 

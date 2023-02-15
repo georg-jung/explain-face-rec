@@ -251,4 +251,9 @@ public static class GeometryExtensions
         var h2 = ys.Max() - y2;
         return new Rectangle((int)x2, (int)y2, (int)w2, (int)h2);
     }
+
+    // Inspired by https://stackoverflow.com/a/2692295/1200847
+    public static float GetHScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M11 * m.M11) + (m.M21 * m.M21));
+
+    public static float GetVScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M12 * m.M12) + (m.M22 * m.M22));
 }
