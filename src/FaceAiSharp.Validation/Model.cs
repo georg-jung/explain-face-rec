@@ -22,6 +22,19 @@ internal record Embedding
     public float[] Embeddings { get; set; } = null!;
 }
 
+internal record DefinedPair
+{
+    public string Identity1 { get; set; } = null!;
+
+    public int ImageNumber1 { get; set; }
+
+    public string? Identity2 { get; set; }
+
+    public int ImageNumber2 { get; set; }
+
+    public bool SameIdentity { get; set; }
+}
+
 internal record EmbeddingDistance()
 {
     public ObjectId EmbeddingDistanceId { get; set; } = null!;

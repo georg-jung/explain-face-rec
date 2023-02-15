@@ -20,6 +20,10 @@ var dataset = new Option<DirectoryInfo>(
     name: "--dataset",
     getDefaultValue: () => new DirectoryInfo(@"C:\Users\georg\Downloads\lfw\lfw"));
 
+var pairsFile = new Option<FileInfo>(
+    name: "--pairs-file",
+    getDefaultValue: () => new FileInfo(@"C:\Users\georg\Downloads\lfw\pairs.txt"));
+
 var arcfaceModel = new Option<FileInfo>(
     name: "--arcface-model",
     getDefaultValue: () => new FileInfo(@"C:\Users\georg\facePics\arcfaceresnet100-8\resnet100\resnet100.onnx"));
@@ -30,11 +34,13 @@ var scrfdModel = new Option<FileInfo>(
 
 var threshold = new Option<float>(
     name: "--threshold",
-    getDefaultValue: () => 0.42f);
+    getDefaultValue: () => 0.28f);
 
 var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName };
 
-var calcDistances = new Command("calc-distances") { dbEmbeddingCollectionName, threshold };
+var calcAllDistances = new Command("calc-all-distances") { dbEmbeddingCollectionName, threshold };
+
+var calcPairsDistances = new Command("calc-pairs-distances") { dbEmbeddingCollectionName, threshold, pairsFile };
 
 #pragma warning disable SA1116 // Split parameters should start on line after declaration
 #pragma warning disable SA1117 // Parameters should be on same line or separate lines
@@ -46,11 +52,18 @@ generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel, dbEm
 }, dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
 rc.AddCommand(generateEmbeddings);
 
-calcDistances.SetHandler((db, dbEmbeddingCollectionName, threshold) =>
+calcAllDistances.SetHandler((db, dbEmbeddingCollectionName, threshold) =>
 {
-    var calc = new CalculateDistances(db, dbEmbeddingCollectionName, threshold);
+    var calc = new CalculateAllDistances(db, dbEmbeddingCollectionName, threshold);
     calc.Invoke();
 }, db, dbEmbeddingCollectionName, threshold);
-rc.AddCommand(calcDistances);
+rc.AddCommand(calcAllDistances);
+
+calcPairsDistances.SetHandler((db, dbEmbeddingCollectionName, threshold, pairsFile) =>
+{
+    var calc = new CalculatePairsDistances(db, dbEmbeddingCollectionName, threshold, pairsFile);
+    calc.Invoke();
+}, db, dbEmbeddingCollectionName, threshold, pairsFile);
+rc.AddCommand(calcPairsDistances);
 
 return await rc.InvokeAsync(args);

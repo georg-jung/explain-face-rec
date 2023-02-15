@@ -8,13 +8,13 @@ using LiteDB;
 
 namespace FaceAiSharp.Validation;
 
-internal class CalculateDistances
+internal class CalculateAllDistances
 {
     private readonly FileInfo _db;
     private readonly string _dbEmbeddingCollectionName;
     private readonly float _threshold;
 
-    public CalculateDistances(FileInfo db, string dbEmbeddingCollectionName, float threshold)
+    public CalculateAllDistances(FileInfo db, string dbEmbeddingCollectionName, float threshold)
     {
         _db = db;
         _dbEmbeddingCollectionName = dbEmbeddingCollectionName;

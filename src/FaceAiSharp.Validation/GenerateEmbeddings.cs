@@ -65,7 +65,7 @@ internal sealed class GenerateEmbeddings : IDisposable
 
         var setFolder = _dataset.FullName;
 
-        var setEnum = DatasetIterator.EnumerateFolderPerIdentity(setFolder).Where(x => !dbEmb.Exists(db => db.FilePath == x.FilePath));
+        var setEnum = Dataset.EnumerateFolderPerIdentity(setFolder).Where(x => !dbEmb.Exists(db => db.FilePath == x.FilePath));
         /* var embeddings = DatasetIterator.EnumerateEmbedderResults(emb, Preprocess, setEnum); */
 
         var ch = Channel.CreateBounded<ChannelData>(10);
