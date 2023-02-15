@@ -80,11 +80,37 @@
 
     <h2 class="mt-4">3. Measures</h2>
 
+    @if (_dotProd >= 0.42)
+    {
+        <div class="alert alert-success" role="alert">
+            Both pictures show the same person.
+        </div>
+    }
+    else if (_dotProd > 0.28 && _dotProd < 0.42)
+    {
+        <div class="alert alert-warning" role="alert">
+            Hard to tell if the pictures show the same person.
+        </div>
+    }
+    else if (_dotProd <= 0.28)
+    {
+        <div class="alert alert-danger" role="alert">
+            These are two different people.
+        </div>
+    }
+
     <ul>
         <li>Euclidean Distance:   @_euclideanDist</li>
         <li>Euclidean Similarity: @_euclideanSimilarity</li>
         <li>Cosine Distance:      @_cosineDist</li>
         <li>Cosine Similarity:    @_cosineSimilarity</li>
+        <li>
+            Dot Product:          @_dotProd
+            <ul>
+                <li>If the dot product's value is larger than a defined threshold, the faces are considered to belong to the same person.</li>
+                <li>Depending on the kind of statistical error you prefer, reasonable threshold values might be anywhere between 0.25 and 0.5.</li>
+            </ul>
+        </li>
     </ul>
 
     <button class="btn btn-primary" @onclick="Clear">Clear</button>
@@ -99,12 +125,14 @@
     private float? _euclideanSimilarity;
     private float? _cosineDist;
     private float? _cosineSimilarity;
+    private float? _dotProd;
 
     private async Task Clear()
     {
         _upload1result = _upload2result = default;
         _euclideanDist = _euclideanSimilarity = null;
         _cosineDist = _cosineSimilarity = null;
+        _dotProd = null;
         await JS.ClearImage("img1");
         await JS.ClearImage("img2");
         StateHasChanged();
@@ -133,6 +161,7 @@
         _euclideanSimilarity = e1.EuclideanSimilarity(e2);
         _cosineDist = e1.CosineDistance(e2);
         _cosineSimilarity = e1.CosineSimilarity(e2);
+        _dotProd = e1.Dot(e2);
     }
 
     private async Task<UploadResult> LoadFiles(InputFileChangeEventArgs e, string imgId)
