@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics;
+using System.Numerics;
+using CommunityToolkit.Diagnostics;
 using FaceAiSharp.Abstractions;
 using FaceAiSharp.Extensions;
 using Microsoft.ML.OnnxRuntime;
@@ -14,6 +16,16 @@ namespace FaceAiSharp;
 
 public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisposable
 {
+    // points from https://github.com/deepinsight/insightface/blob/c7bf2048e8947a6398b4b8bda6d1958138fdc9b5/python-package/insightface/utils/face_align.py
+    private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositions = new List<PointF>()
+    {
+        new PointF(38.2946f, 51.6963f),
+        new PointF(73.5318f, 51.5014f),
+        new PointF(56.0252f, 71.7366f),
+        new PointF(41.5493f, 92.3655f),
+        new PointF(70.7299f, 92.2041f),
+    }.AsReadOnly();
+
     private static readonly ResizeOptions _resizeOptions = new()
     {
         Mode = ResizeMode.Pad,
@@ -69,6 +81,43 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         return emb;
     }
 
+    /// <summary>
+    /// Transform and crop the given image in the way ArcFace was trained.
+    /// </summary>
+    /// <param name="face">Image containing the face. The given image will be mutated.</param>
+    /// <param name="landmarks">5 facial landmark points.</param>
+    public static void AlignUsingFacialLandmarks(Image face, IReadOnlyList<PointF> landmarks)
+    {
+        var cutRect = new Rectangle(0, 0, 112, 112);
+        var m = EstimateAffineAlignmentMatrix(landmarks);
+        var success = Matrix3x2.Invert(m, out var mi);
+        if (!success)
+        {
+            throw new InvalidOperationException("Could not invert matrix.");
+        }
+
+        /* The matrix m transforms the given image in a way that the given landmark points will
+         * be projected inside the 112x112 rectangle that is used as input for ArcFace. If the input
+         * image is much larger than the face area we are interested in, applying this transform to 
+         * the complete image would waste cpu time. Thus we first invert the matrix, project our
+         * 112x112 crop area using the matrix' inverse and take the minimum surrounding rectangle
+         * of that projection. We crop the image using that rectangle and proceed. */
+        var area = cutRect.SupersetAreaOfTransform(mi);
+        face.Mutate(op =>
+        {
+            SafeCrop(op, area);
+
+            var afb = new AffineTransformBuilder();
+
+            // the Crop does the inverse translation so we need to undo it
+            afb.AppendTranslation(new PointF(area.X, area.Y));
+            afb.AppendMatrix(m);
+            op.Transform(afb);
+
+            SafeCrop(op, cutRect);
+        });
+    }
+
     internal static DenseTensor<float> CreateImageTensor(IReadOnlyCollection<Image<Rgb24>> imgs)
     {
         // ArcFace uses the rgb values directly, just the ints converted to float,
@@ -79,6 +128,29 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         var stdDev = new[] { stdDevVal, stdDevVal, stdDevVal };
         var inputDim = new[] { imgs.Count, 3, 112, 112 };
         return ImageToTensorExtensions.ImageToTensor(imgs, mean, stdDev, inputDim);
+    }
+
+    internal static System.Numerics.Matrix3x2 EstimateAffineAlignmentMatrix(IReadOnlyList<PointF> landmarks)
+    {
+        Guard.HasSizeEqualTo(landmarks, 5);
+        var estimate = new List<(PointF A, PointF B)>
+        {
+            (landmarks[0], ExpectedLandmarkPositions[0]),
+            (landmarks[1], ExpectedLandmarkPositions[1]),
+            (landmarks[2], ExpectedLandmarkPositions[2]),
+            (landmarks[3], ExpectedLandmarkPositions[3]),
+            (landmarks[4], ExpectedLandmarkPositions[4]),
+        };
+        var m = estimate.EstimateSimilarityMatrix();
+        return m;
+    }
+
+    private static void SafeCrop(IImageProcessingContext op, Rectangle rect)
+    {
+        var sz = op.GetCurrentSize();
+        var max = new Rectangle(0, 0, sz.Width, sz.Height);
+        max.Intersect(rect);
+        op.Crop(max);
     }
 }
 
