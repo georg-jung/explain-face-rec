@@ -25,12 +25,8 @@ internal class CalculateDistances
     {
         var sw = Stopwatch.StartNew();
         using var db = new LiteDatabase(_db.FullName);
-        BsonMapper.Global.Entity<EmbeddingDistance>().DbRef(x => x.X, _dbEmbeddingCollectionName);
-        BsonMapper.Global.Entity<EmbeddingDistance>().DbRef(x => x.Y, _dbEmbeddingCollectionName);
         var dbEmb = db.GetCollection<Embedding>(_dbEmbeddingCollectionName);
-        var dbDist = db.GetCollection<EmbeddingDistance>(_dbEmbeddingCollectionName + "Distances");
 
-        //dbDist.DeleteAll();
         var embs = dbEmb.FindAll().ToList();
 
         double avgCosDist = 0;
@@ -114,19 +110,10 @@ internal class CalculateDistances
                 {
                     ReportProgress();
                 }
-
-                //dbDist.Insert(new EmbeddingDistance()
-                //{
-                //    X = embX,
-                //    Y = embY,
-                //    CosineDistance = cosDist,
-                //    EuclideanDistance = euclDist,
-                //    SameIdentity = sameIdnt,
-                //});
             }
         }
 
-        Console.WriteLine("--- FINISHED! Final Stats ---");
+        Console.WriteLine($"--- FINISHED! Final Stats {_threshold} ---");
         ReportProgress();
         Console.WriteLine($"Took {sw.Elapsed.Humanize(4)}");
     }
