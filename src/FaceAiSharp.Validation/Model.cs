@@ -15,6 +15,8 @@ internal record Embedding
 
     public string Identity { get; set; } = null!;
 
+    public int ImageNumber { get; set; } = default;
+
     public string FilePath { get; set; } = null!;
 
     public float[] Embeddings { get; set; } = null!;

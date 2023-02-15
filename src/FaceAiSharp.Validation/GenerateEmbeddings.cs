@@ -60,7 +60,7 @@ internal sealed class GenerateEmbeddings : IDisposable
     public async Task Invoke()
     {
         using var db = new LiteDatabase(_db.FullName);
-        var dbEmb = db.GetCollection<EmbedderResult>(_dbEmbeddingCollectionName);
+        var dbEmb = db.GetCollection<Embedding>(_dbEmbeddingCollectionName);
         dbEmb.EnsureIndex(x => x.FilePath);
 
         var setFolder = _dataset.FullName;
@@ -123,13 +123,19 @@ internal sealed class GenerateEmbeddings : IDisposable
         channel.Complete();
     }
 
-    private async IAsyncEnumerable<(EmbedderResult Result, long Ticks)> GenerateEmbeddingsFromChannel(ChannelReader<ChannelData> channel)
+    private async IAsyncEnumerable<(Embedding Result, long Ticks)> GenerateEmbeddingsFromChannel(ChannelReader<ChannelData> channel)
     {
         await foreach (var (metadata, img, ticks) in channel.ReadAllAsync())
         {
             var sw = Stopwatch.StartNew();
             var embedding = _emb.Generate(img);
-            yield return (new(metadata.Identity, metadata.FilePath, embedding), ticks + sw.ElapsedMilliseconds);
+            yield return (new Embedding() with
+            {
+                Identity = metadata.Identity,
+                ImageNumber = metadata.ImageNumber,
+                FilePath = metadata.FilePath,
+                Embeddings = embedding,
+            }, ticks + sw.ElapsedMilliseconds);
         }
     }
 
