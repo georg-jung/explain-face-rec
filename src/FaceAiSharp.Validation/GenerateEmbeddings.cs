@@ -90,7 +90,7 @@ internal sealed class GenerateEmbeddings : IDisposable
         _cache.Dispose();
     }
 
-    private Image<Rgb24> Preprocess(string filePath)
+    private Image<Rgb24> Preprocess_Angle(string filePath)
     {
         var img = Image.Load<Rgb24>(filePath);
         var x = _det.Detect(img);
@@ -98,6 +98,16 @@ internal sealed class GenerateEmbeddings : IDisposable
         Debug.Assert(first.Landmarks != null, "No landmarks detected but required");
         var angle = ScrfdDetector.GetFaceAlignmentAngle(first.Landmarks);
         img.CropAlignedDestructive(Rectangle.Round(first.Box), (float)angle);
+        return img;
+    }
+
+    private Image<Rgb24> Preprocess(string filePath)
+    {
+        var img = Image.Load<Rgb24>(filePath);
+        var x = _det.Detect(img);
+        var first = x.First();
+        Debug.Assert(first.Landmarks != null, "No landmarks detected but required");
+        ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(img, first.Landmarks);
         return img;
     }
 

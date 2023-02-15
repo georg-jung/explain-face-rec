@@ -3,6 +3,10 @@
     "Validation calc-dist": {
       "commandName": "Project",
       "commandLineArgs": "calc-distances"
+    },
+    "Validation gen-embeddings": {
+      "commandName": "Project",
+      "commandLineArgs": "generate-embeddings"
     }
   }
 }

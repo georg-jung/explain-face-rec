@@ -30,7 +30,7 @@ var scrfdModel = new Option<FileInfo>(
 
 var threshold = new Option<float>(
     name: "--threshold",
-    getDefaultValue: () => 0.38f);
+    getDefaultValue: () => 0.42f);
 
 var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName };
 
