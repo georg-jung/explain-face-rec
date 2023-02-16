@@ -39,7 +39,24 @@
         }
     </div>
 
-    <MultiChoiceRadio Choices="@(new[] {"2D", "3D"})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
+    <p>
+        <MultiChoiceRadio Choices="@(new[] {"2D", "3D"})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
+    </p>
+    <p>
+        <MultiChoiceRadio Choices="@(new[] {PCA, UMAP})" @bind-SelectedChoice="@_pcaOrUmap" @bind-SelectedChoice:after="@ReduceDims" />
+    </p>
+    <p>
+        @if (UMAP.Equals(_pcaOrUmap))
+        {
+            var rangeId = Guid.NewGuid().ToString("n");
+            <label for="@rangeId" class="form-label">UMAP Number of neighbors: @_umapNeighbors</label>
+            <input @bind="@_umapNeighbors" type="range" class="form-range" min="1" max="100" @bind:event="oninput" id="@rangeId">
+        }
+    </p>
+
+    <p class="mt-3">
+        <button class="btn btn-primary" @onclick="@ReduceDims">Refresh</button>
+    </p>
 
     <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height: 60rem; width: 60rem;" />
 </div>
@@ -55,7 +72,11 @@
     private List<float[]> _embeddings = new();
     private List<string> _fileNames = new();
 
+    private const string UMAP = "UMAP";
+    private const string PCA = "PCA";
     private string _2dOr3d = "2D";
+    private string _pcaOrUmap = "PCA";
+    private int _umapNeighbors = 15;
 
     PlotlyChart? chart;
     Config config = new Config();
@@ -170,55 +191,31 @@
         }
     }
 
-    private async Task ReduceDimsUmap()
-    {
-        if (_embeddings.Count < 2) return;
-        var is2d = "2D".Equals(_2dOr3d, StringComparison.Ordinal);
-
-        var umap = new UMAP.Umap(dimensions: is2d ? 2 : 3, numberOfNeighbors: 5);
-        var numEpochs = umap.InitializeFit(_embeddings.ToArray());
-        for (var i = 0; i < numEpochs; i++)
-            umap.Step();
-
-        var embeddings = umap.GetEmbedding();
-
-        ITrace trace = is2d switch
-        {
-            true => new Scatter
-                {
-                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
-                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
-                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
-                    TextArray = _fileNames.ToList(),
-                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
-                },
-            false => new Scatter3D
-                {
-                    Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
-                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
-                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
-                    Z = embeddings.Select(x => x[2]).Cast<object>().ToList(),
-                    TextArray = _fileNames.ToList(),
-                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
-                },
-        };
-
-
-        await chart!.Clear();
-        await chart!.AddTrace(trace);
-        StateHasChanged();
-    }
-
     private async Task ReduceDims()
     {
         if (_embeddings.Count < 2) return;
         var is2d = "2D".Equals(_2dOr3d, StringComparison.Ordinal);
+        var isPca = PCA.Equals(_pcaOrUmap, StringComparison.Ordinal);
 
-        var embs = _embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
-        var pca = new Accord.Statistics.Analysis.PrincipalComponentAnalysis();
-        pca.NumberOfOutputs = is2d ? 2 : 3;
-        pca.Learn(embs);
-        var embeddings = pca.Transform(embs);
+        float[][] Umap() {
+            var umap = new UMAP.Umap(dimensions: is2d ? 2 : 3, numberOfNeighbors: _umapNeighbors);
+            var numEpochs = umap.InitializeFit(_embeddings.ToArray());
+            for (var i = 0; i < numEpochs; i++)
+                umap.Step();
+
+            return umap.GetEmbedding();
+        }
+
+        float[][] Pca()
+        {
+            var embs = _embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
+            var pca = new Accord.Statistics.Analysis.PrincipalComponentAnalysis();
+            pca.NumberOfOutputs = is2d ? 2 : 3;
+            pca.Learn(embs);
+            return pca.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
+        }
+
+        var embeddings = isPca ? Pca() : Umap();
 
         ITrace trace = is2d switch
         {
@@ -240,7 +237,6 @@
                     HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
                 },
         };
-
 
         await chart!.Clear();
         await chart!.AddTrace(trace);
