@@ -7,7 +7,6 @@
 @using SixLabors.ImageSharp.PixelFormats;
 @using Plotly.Blazor
 @using Plotly.Blazor.Traces
-@using Plotly.Blazor.Traces.ScatterLib
 @inject IJSRuntime JS
 @inject IClock clock;
 @inject ObjectPool<IFaceDetector> detectorPool;
@@ -32,7 +31,9 @@
         }
     </div>
 
-    <PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" style="height: 60rem; width: 60rem;" />
+    <MultiChoiceRadio Choices="@(new[] {"2D", "3D"})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
+
+    <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height: 60rem; width: 60rem;" />
 </div>
 
 @code {
@@ -46,29 +47,59 @@
     private List<float[]> _embeddings = new();
     private List<string> _fileNames = new();
 
+    private string _2dOr3d = "2D";
+
     PlotlyChart? chart;
     Config config = new Config();
     Layout layout = new Layout()
         {
-            YAxis = new[]
+            Scene = new[] {
+                new Plotly.Blazor.LayoutLib.Scene()
+                {
+                    XAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                    YAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                    ZAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                },
+            },
+            XAxis = new[]
             {
+                new Plotly.Blazor.LayoutLib.XAxis()
+                {
+                    ShowTickLabels = false,
+                    ShowLine = false,
+                    ZeroLine = false,
+                }
+            },
+            YAxis = new[]
+                {
                 new Plotly.Blazor.LayoutLib.YAxis()
                 {
                     ScaleAnchor = "x",
+                    ShowTickLabels = false,
+                    ShowLine = false,
+                    ZeroLine = false,
                 }
             },
+            ShowLegend = false,
         };
-    // Using of the interface IList is important for the event callback!
-    IList<ITrace> data = new List<ITrace>
-    {
-        new Scatter
-        {
-            Name = "ScatterTrace",
-            Mode = ModeFlag.Markers,
-            X = new List<object>(),
-            Y = new List<object>(),
-        }
-    };
 
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
@@ -124,29 +155,80 @@
         }
     }
 
-    private async Task ReduceDims()
+    private async Task ReduceDimsUmap()
     {
         if (_embeddings.Count < 2) return;
+        var is2d = "2D".Equals(_2dOr3d, StringComparison.Ordinal);
 
-        var umap = new UMAP.Umap();
+        var umap = new UMAP.Umap(dimensions: is2d ? 2 : 3, numberOfNeighbors: 5);
         var numEpochs = umap.InitializeFit(_embeddings.ToArray());
         for (var i = 0; i < numEpochs; i++)
             umap.Step();
 
         var embeddings = umap.GetEmbedding();
 
-        data = new List<ITrace>
-            {
-                new Scatter
+        ITrace trace = is2d switch
+        {
+            true => new Scatter
                 {
-                    Name = "ScatterTrace",
-                    Mode = ModeFlag.Markers,
+                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
                     X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
                     Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
                     TextArray = _fileNames.ToList(),
-                }
-            };
+                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
+                },
+            false => new Scatter3D
+                {
+                    Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    Z = embeddings.Select(x => x[2]).Cast<object>().ToList(),
+                    TextArray = _fileNames.ToList(),
+                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
+                },
+        };
+
+
+        await chart!.Clear();
+        await chart!.AddTrace(trace);
         StateHasChanged();
-        await chart!.NewPlot();
+    }
+
+    private async Task ReduceDims()
+    {
+        if (_embeddings.Count < 2) return;
+        var is2d = "2D".Equals(_2dOr3d, StringComparison.Ordinal);
+
+        var embs = _embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
+        var pca = new Accord.Statistics.Analysis.PrincipalComponentAnalysis();
+        pca.NumberOfOutputs = is2d ? 2 : 3;
+        pca.Learn(embs);        
+        var embeddings = pca.Transform(embs);
+
+        ITrace trace = is2d switch
+        {
+            true => new Scatter
+                {
+                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    TextArray = _fileNames.ToList(),
+                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
+                },
+            false => new Scatter3D
+                {
+                    Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    Z = embeddings.Select(x => x[2]).Cast<object>().ToList(),
+                    TextArray = _fileNames.ToList(),
+                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
+                },
+        };
+
+
+        await chart!.Clear();
+        await chart!.AddTrace(trace);
+        StateHasChanged();
     }
 }

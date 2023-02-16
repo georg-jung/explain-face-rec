@@ -1,0 +1,31 @@
+@typeparam TItem
+
+<div class="btn-group" role="group">
+    @foreach (var choice in Choices ?? Array.Empty<TItem>())
+    {
+        var id = Guid.NewGuid().ToString("n");
+        <input id="@id" type="radio" class="btn-check" autocomplete="off" value="@choice" checked="@(choice.Equals(SelectedChoice))" @onchange="e => SetChoice(choice, e.Value)">
+        <label class="btn btn-outline-primary" for="@id">
+            @(ChildContent == null ? choice : ChildContent(choice))
+        </label>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<TItem> Choices { get; set; } = new TItem[] { };
+
+    [Parameter]
+    public TItem? SelectedChoice { get; set; }
+
+    [Parameter]
+    public EventCallback<TItem?> SelectedChoiceChanged { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem>? ChildContent { get; set; }
+
+    private async Task SetChoice(TItem? choice, object? noopIfNotTrue)
+    {
+        await SelectedChoiceChanged.InvokeAsync(choice);
+    }
+}
