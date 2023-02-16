@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "src\Benchmark
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Tests", "src\FaceAiSharp.Tests\FaceAiSharp.Tests.csproj", "{98E4B2B7-6EDB-41B5-847E-AECCBFAE7A08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceAiSharp.Validation", "src\FaceAiSharp.Validation\FaceAiSharp.Validation.csproj", "{692660A5-B00C-474A-814A-9621F136DC73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Validation", "src\FaceAiSharp.Validation\FaceAiSharp.Validation.csproj", "{692660A5-B00C-474A-814A-9621F136DC73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
