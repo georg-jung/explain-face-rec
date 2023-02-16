@@ -42,6 +42,32 @@ internal static class BlazorMarkupExtensions
         }
     }
 
+    public static IEnumerable<(Stream Content, string FileName)> TryOpenMultiple(this InputFileChangeEventArgs e, int maxFileCount, long maxUploadSize)
+    {
+        var files = e.GetMultipleFiles(maxFileCount);
+        var skippedTooLargeFilesCount = 0;
+        foreach (var file in files)
+        {
+            Stream? s = null;
+            string? name = null;
+            try
+            {
+                s = file.OpenReadStream(maxUploadSize);
+                name = file.Name;
+            }
+            catch (IOException ex)
+              when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
+            {
+                skippedTooLargeFilesCount++;
+            }
+
+            if (s is not null)
+            {
+                yield return (s, name!);
+            }
+        }
+    }
+
     /// <summary>
     /// Tries to open the given <paramref name="stream"/> as image using ImageSharp.
     /// Catches any exceptions that are thrown while opening. Returns null if an

@@ -1,0 +1,152 @@
+@page "/2dDemo"
+@layout LegalLayout
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using Humanizer;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using Plotly.Blazor
+@using Plotly.Blazor.Traces
+@using Plotly.Blazor.Traces.ScatterLib
+@inject IJSRuntime JS
+@inject IClock clock;
+@inject ObjectPool<IFaceDetector> detectorPool;
+@inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool;
+
+<PageTitle>Face Recognition Pipeline</PageTitle>
+
+<div class="container mb-4">
+    <p>
+        To get started, please upload images that contain one or more human faces.
+    </p>
+
+    <div class="mb-3">
+        <InputFile multiple OnChange="@LoadFiles" class="@($"form-control {(_uploadWasTooLarge || _uploadNoImage ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+        @if (_uploadWasTooLarge)
+        {
+            <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+        }
+        @if (_uploadNoImage)
+        {
+            <div class="invalid-feedback">The uploaded file could not be read as image.</div>
+        }
+    </div>
+
+    <PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" style="height: 60rem; width: 60rem;" />
+</div>
+
+@code {
+    const int MaxUploadSize = 1024 * 1024 * 10; // 10 MB
+
+    private bool _uploadWasTooLarge = false;
+    private bool _uploadNoFace = false;
+    private bool _uploadNoImage = false;
+
+    private List<byte[]> _alignedFaces = new();
+    private List<float[]> _embeddings = new();
+    private List<string> _fileNames = new();
+
+    PlotlyChart? chart;
+    Config config = new Config();
+    Layout layout = new Layout()
+        {
+            YAxis = new[]
+            {
+                new Plotly.Blazor.LayoutLib.YAxis()
+                {
+                    ScaleAnchor = "x",
+                }
+            },
+        };
+    // Using of the interface IList is important for the event callback!
+    IList<ITrace> data = new List<ITrace>
+    {
+        new Scatter
+        {
+            Name = "ScatterTrace",
+            Mode = ModeFlag.Markers,
+            X = new List<object>(),
+            Y = new List<object>(),
+        }
+    };
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        var files = e.TryOpenMultiple(1000, MaxUploadSize);
+
+        foreach (var (content, name) in files)
+        {
+            await LoadFile(content, name);
+        }
+    }
+
+    private async Task LoadFile(System.IO.Stream file, string fileName)
+    {
+        using var img = await file.TryOpenImage();
+        if (img == null)
+        {
+            _uploadNoImage = true;
+            StateHasChanged();
+            return;
+        }
+
+        var det = detectorPool.Get();
+        var embGen = embedderPool.Get();
+        try
+        {
+            var detection = det.Detect(img);
+            if (detection.Count == 0)
+            {
+                _uploadNoFace = true;
+                StateHasChanged();
+                return;
+            }
+
+            var first = detection.First();
+            var lmrks = first.Landmarks ?? throw new InvalidOperationException("Face detection with landmarks is required.");
+
+            FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(img, first.Landmarks);
+            var emb = embGen.Generate(img);
+            _embeddings.Add(emb);
+
+            using var ms = new MemoryStream();
+            img.SaveAsJpeg(ms);
+            _alignedFaces.Add(ms.ToArray());
+
+            _fileNames.Add(fileName);
+
+            await ReduceDims();
+        }
+        finally
+        {
+            detectorPool.Return(det);
+            embedderPool.Return(embGen);
+        }
+    }
+
+    private async Task ReduceDims()
+    {
+        if (_embeddings.Count < 2) return;
+
+        var umap = new UMAP.Umap();
+        var numEpochs = umap.InitializeFit(_embeddings.ToArray());
+        for (var i = 0; i < numEpochs; i++)
+            umap.Step();
+
+        var embeddings = umap.GetEmbedding();
+
+        data = new List<ITrace>
+            {
+                new Scatter
+                {
+                    Name = "ScatterTrace",
+                    Mode = ModeFlag.Markers,
+                    X = embeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = embeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    TextArray = _fileNames.ToList(),
+                }
+            };
+        StateHasChanged();
+        await chart!.NewPlot();
+    }
+}
