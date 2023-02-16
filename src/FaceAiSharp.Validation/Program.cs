@@ -36,7 +36,7 @@ var threshold = new Option<float>(
     name: "--threshold",
     getDefaultValue: () => 0.28f);
 
-var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName };
+var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName, pairsFile };
 
 var calcAllDistances = new Command("calc-all-distances") { dbEmbeddingCollectionName, threshold };
 
@@ -45,11 +45,11 @@ var calcPairsDistances = new Command("calc-pairs-distances") { dbEmbeddingCollec
 #pragma warning disable SA1116 // Split parameters should start on line after declaration
 #pragma warning disable SA1117 // Parameters should be on same line or separate lines
 
-generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName) =>
+generateEmbeddings.SetHandler(async (dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName, pairsFile) =>
 {
-    using var cmd = new GenerateEmbeddings(dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
+    using var cmd = new GenerateEmbeddings(dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName, pairsFile);
     await cmd.Invoke();
-}, dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName);
+}, dataset, db, arcfaceModel, scrfdModel, dbEmbeddingCollectionName, pairsFile);
 rc.AddCommand(generateEmbeddings);
 
 calcAllDistances.SetHandler((db, dbEmbeddingCollectionName, threshold) =>

@@ -25,8 +25,9 @@ internal sealed class GenerateEmbeddings : IDisposable
     private readonly DirectoryInfo _dataset;
     private readonly FileInfo _db;
     private readonly string _dbEmbeddingCollectionName;
+    private readonly FileInfo? _pairsFile;
 
-    public GenerateEmbeddings(DirectoryInfo dataset, FileInfo db, FileInfo arcFaceModel, FileInfo scrfdModel, string dbEmbeddingCollectionName)
+    public GenerateEmbeddings(DirectoryInfo dataset, FileInfo db, FileInfo arcFaceModel, FileInfo scrfdModel, string dbEmbeddingCollectionName, FileInfo? pairsFile)
     {
         _embedderSessOpts = new SessionOptions
         {
@@ -55,6 +56,7 @@ internal sealed class GenerateEmbeddings : IDisposable
         _dataset = dataset;
         _db = db;
         _dbEmbeddingCollectionName = dbEmbeddingCollectionName;
+        _pairsFile = pairsFile;
     }
 
     public async Task Invoke()
@@ -66,7 +68,11 @@ internal sealed class GenerateEmbeddings : IDisposable
         var setFolder = _dataset.FullName;
 
         var setEnum = Dataset.EnumerateFolderPerIdentity(setFolder).Where(x => !dbEmb.Exists(db => db.FilePath == x.FilePath));
-        /* var embeddings = DatasetIterator.EnumerateEmbedderResults(emb, Preprocess, setEnum); */
+        if (_pairsFile is not null)
+        {
+            var pairsFiles = Dataset.CreatePairsBasedFileList(_pairsFile.FullName);
+            setEnum = setEnum.Where(x => pairsFiles.Contains((x.Identity, x.ImageNumber)));
+        }
 
         var ch = Channel.CreateBounded<ChannelData>(10);
         var producerTask = Task.Run(() => ProducePreprocessed(setEnum, ch));

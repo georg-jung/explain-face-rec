@@ -59,6 +59,21 @@ internal class Dataset
             yield return IterateFold();
         }
     }
+
+    public static HashSet<(string Identity, int ImageNumber)> CreatePairsBasedFileList(string pairsFile)
+    {
+        var folds = ParsePairs(pairsFile);
+        var pairs = folds.SelectMany(x => x);
+        var ret = new HashSet<(string Identity, int ImageNumber)>();
+        pairs.ForEach(p =>
+        {
+            var id2 = p.SameIdentity ? p.Identity1 : p.Identity2!;
+            ret.Add((p.Identity1, p.ImageNumber1));
+            ret.Add((id2, p.ImageNumber2));
+        });
+
+        return ret;
+    }
 }
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "I like it here")]
