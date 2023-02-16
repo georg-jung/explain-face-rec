@@ -105,8 +105,9 @@
     {
         var files = e.TryOpenMultiple(1000, MaxUploadSize);
 
-        foreach (var (content, name) in files)
+        foreach (var (content, name, tooLarge) in files)
         {
+            if (content is null) continue;
             await LoadFile(content, name);
         }
     }

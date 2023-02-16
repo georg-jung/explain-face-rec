@@ -42,29 +42,24 @@ internal static class BlazorMarkupExtensions
         }
     }
 
-    public static IEnumerable<(Stream Content, string FileName)> TryOpenMultiple(this InputFileChangeEventArgs e, int maxFileCount, long maxUploadSize)
+    public static IEnumerable<(Stream? Content, string FileName, bool TooLarge)> TryOpenMultiple(this InputFileChangeEventArgs e, int maxFileCount, long maxUploadSize)
     {
         var files = e.GetMultipleFiles(maxFileCount);
-        var skippedTooLargeFilesCount = 0;
         foreach (var file in files)
         {
             Stream? s = null;
             string? name = null;
             try
             {
-                s = file.OpenReadStream(maxUploadSize);
                 name = file.Name;
+                s = file.OpenReadStream(maxUploadSize);
             }
             catch (IOException ex)
               when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
             {
-                skippedTooLargeFilesCount++;
             }
 
-            if (s is not null)
-            {
-                yield return (s, name!);
-            }
+            yield return (s, name!, s is null);
         }
     }
 
