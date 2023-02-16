@@ -25,6 +25,11 @@ internal class CalculatePairsDistances
 
     public void Invoke()
     {
+        DoWork(_threshold);
+    }
+
+    private void DoWork(float threshold, bool shortOutput = false)
+    {
         var sw = Stopwatch.StartNew();
         using var db = new LiteDatabase(_db.FullName);
         var dbEmb = db.GetCollection<Embedding>(_dbEmbeddingCollectionName);
@@ -49,7 +54,7 @@ internal class CalculatePairsDistances
         var fp = 0;
         var fn = 0;
 
-        void ReportProgress()
+        void ReportProgressLong()
         {
             Console.WriteLine($"Calculated {cnt} pairs.");
             Console.WriteLine($"Had {trueCnt} pairs belonging to the same person.");
@@ -69,6 +74,11 @@ internal class CalculatePairsDistances
             Console.WriteLine($"Recall:    {(double)tp / (tp + fn):P2}");
             Console.WriteLine($"F1 score:  {(double)tp * 2 / ((tp * 2) + fp + fn):N4}");
             Console.WriteLine();
+        }
+
+        void ReportProgressShort()
+        {
+            Console.WriteLine($"Thresh:\t{threshold}\tAcc:{(double)(tp + tn) / (tp + tn + fp + fn):P2}\tF1:\t{(double)tp * 2 / ((tp * 2) + fp + fn):N4}");
         }
 
         foreach (var pair in pairs)
@@ -99,17 +109,24 @@ internal class CalculatePairsDistances
             }
 
 #pragma warning disable SA1503 // Braces should not be omitted
-            if (dotProd > _threshold && sameIdnt) tp++;
-            if (dotProd > _threshold && !sameIdnt) fp++;
-            if (dotProd <= _threshold && sameIdnt) fn++;
-            if (dotProd <= _threshold && !sameIdnt) tn++;
+            if (dotProd > threshold && sameIdnt) tp++;
+            if (dotProd > threshold && !sameIdnt) fp++;
+            if (dotProd <= threshold && sameIdnt) fn++;
+            if (dotProd <= threshold && !sameIdnt) tn++;
 #pragma warning restore SA1503 // Braces should not be omitted
 
             cnt++;
         }
 
-        Console.WriteLine($"--- FINISHED! Final Stats {_threshold} ---");
-        ReportProgress();
-        Console.WriteLine($"Took {sw.Elapsed.Humanize(4)}");
+        if (shortOutput)
+        {
+            ReportProgressShort();
+        }
+        else
+        {
+            Console.WriteLine($"--- FINISHED! Final Stats {threshold} ---");
+            ReportProgressLong();
+            Console.WriteLine($"Took {sw.Elapsed.Humanize(4)}");
+        }
     }
 }
