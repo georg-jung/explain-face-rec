@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Accord.Statistics" Version="3.8.0" />
-    <PackageVersion Include="BenchmarkDotNet" Version="0.13.4" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.13.5" />
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.4" />
     <PackageVersion Include="CommunityToolkit.Diagnostics" Version="8.1.0" />
     <PackageVersion Include="FaceONNX" Version="2.1.0.4" />
