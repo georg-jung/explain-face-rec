@@ -1,0 +1,153 @@
+@using Plotly.Blazor;
+@using Plotly.Blazor.Traces;
+
+<p>
+    <MultiChoiceRadio Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
+</p>
+<p>
+    <MultiChoiceRadio Choices="@(new[] {PCA, UMAP})" @bind-SelectedChoice="@_pcaOrUmap" @bind-SelectedChoice:after="@ReduceDims" />
+</p>
+<p>
+    @if (UMAP.Equals(_pcaOrUmap))
+    {
+        var rangeId = Guid.NewGuid().ToString("n");
+        <label for="@rangeId" class="form-label">UMAP Number of neighbors: @_umapNeighbors</label>
+        <input @bind="@_umapNeighbors" type="range" class="form-range" min="1" max="100" @bind:event="oninput" id="@rangeId">
+    }
+</p>
+
+<p class="mt-3">
+    <button class="btn btn-primary" @onclick="@ReduceDims">Refresh</button>
+</p>
+
+<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height: 60rem; width: 60rem;" />
+
+
+@code {
+    private const string UMAP = nameof(UMAP);
+    private const string PCA = nameof(PCA);
+    private const string TwoD = "2D";
+    private const string ThreeD = "3D";
+
+    private string _2dOr3d = ThreeD;
+    private string _pcaOrUmap = PCA;
+    private int _umapNeighbors = 15;
+
+    [Parameter]
+    public List<byte[]>? AlignedFaceImages { get; set; }
+
+    [Parameter]
+    public List<float[]>? Embeddings { get; set; }
+
+    [Parameter]
+    public List<string>? FileNames { get; set; }
+
+    PlotlyChart? chart;
+    Config config = new Config();
+    Layout layout = new Layout()
+        {
+            Scene = new[] {
+                new Plotly.Blazor.LayoutLib.Scene()
+                {
+                    XAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                    YAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                    ZAxis = new()
+                    {
+                        ShowAxesLabels = false,
+                        ShowTickLabels = false,
+                        ShowLine = false,
+                        ZeroLine = false,
+                    },
+                },
+            },
+            XAxis = new[]
+                {
+                new Plotly.Blazor.LayoutLib.XAxis()
+                {
+                    ShowTickLabels = false,
+                    ShowLine = false,
+                    ZeroLine = false,
+                }
+            },
+            YAxis = new[]
+                    {
+                new Plotly.Blazor.LayoutLib.YAxis()
+                {
+                    ScaleAnchor = "x",
+                    ShowTickLabels = false,
+                    ShowLine = false,
+                    ZeroLine = false,
+                }
+            },
+            ShowLegend = false,
+        };
+
+    public async Task ReduceDims()
+    {
+        // we need at least 3 embeddings for PCA to 3d
+        if (Embeddings is null || Embeddings.Count < 3) return;
+        if (Embeddings.Count != FileNames?.Count) throw new InvalidOperationException("FileNames.Count needs to equal Embeddings.Count");
+        if (Embeddings.Count != AlignedFaceImages?.Count) throw new InvalidOperationException("AlignedFaceImages.Count needs to equal Embeddings.Count");
+
+        var is2d = TwoD.Equals(_2dOr3d, StringComparison.Ordinal);
+        var isPca = PCA.Equals(_pcaOrUmap, StringComparison.Ordinal);
+
+        float[][] Umap()
+        {
+            var umap = new UMAP.Umap(dimensions: is2d ? 2 : 3, numberOfNeighbors: _umapNeighbors);
+            var numEpochs = umap.InitializeFit(Embeddings.ToArray());
+            for (var i = 0; i < numEpochs; i++)
+                umap.Step();
+
+            return umap.GetEmbedding();
+        }
+
+        float[][] Pca()
+        {
+            var embs = Embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
+            var pca = new Accord.Statistics.Analysis.PrincipalComponentAnalysis();
+            pca.NumberOfOutputs = is2d ? 2 : 3;
+            pca.Learn(embs);
+            return pca.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
+        }
+
+        var redEmbeddings = isPca ? Pca() : Umap();
+
+        ITrace trace = is2d switch
+        {
+            true => new Scatter
+                {
+                    Mode = Plotly.Blazor.Traces.ScatterLib.ModeFlag.Markers,
+                    X = redEmbeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = redEmbeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    TextArray = FileNames.ToList(),
+                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
+                },
+            false => new Scatter3D
+                {
+                    Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+                    X = redEmbeddings.Select(x => x[0]).Cast<object>().ToList(),
+                    Y = redEmbeddings.Select(x => x[1]).Cast<object>().ToList(),
+                    Z = redEmbeddings.Select(x => x[2]).Cast<object>().ToList(),
+                    TextArray = FileNames.ToList(),
+                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
+                },
+        };
+
+        await chart!.Clear();
+        await chart!.AddTrace(trace);
+        StateHasChanged();
+    }
+}
