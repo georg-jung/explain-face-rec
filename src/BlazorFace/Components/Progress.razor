@@ -1,0 +1,16 @@
+<div class="progress">
+    <div class="progress-bar progress-bar-striped progress-bar-animated @Class" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: @Percentage%">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public int Percentage { get; set; } = 0;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

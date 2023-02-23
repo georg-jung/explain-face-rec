@@ -39,7 +39,14 @@
         }
     </div>
 
-    <DimReductionPlot AlignedFaceImages="_alignedFaces" Embeddings="_embeddings" FileNames="_fileNames" @ref="dimRedPlot" />
+    @if (_loadProgress.HasValue)
+    {
+        <Progress Percentage="(int)((double)_loadProgress.Value.current / _loadProgress.Value.max * 100)" />
+    }
+    else if (_embeddings.Count > 0)
+    {
+        <DimReductionPlot AlignedFaceImages="_alignedFaces" Embeddings="_embeddings" FileNames="_fileNames" @ref="dimRedPlot" />
+    }
 </div>
 
 @code {
@@ -48,28 +55,36 @@
     private readonly List<string> _tooLargeFiles = new();
     private readonly List<string> _noFaceFiles = new();
     private bool _uploadNoImage = false;
+    (int current, int max)? _loadProgress;
 
     private List<byte[]> _alignedFaces = new();
     private List<float[]> _embeddings = new();
     private List<string> _fileNames = new();
 
     DimReductionPlot? dimRedPlot;
-    
+
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
         _tooLargeFiles.Clear();
         _noFaceFiles.Clear();
         var files = e.TryOpenMultiple(1000, MaxUploadSize);
 
+        var uploaded = e.FileCount;
+        var cnt = 0;
         foreach (var (content, name, tooLarge) in files)
         {
+            _loadProgress = (cnt, uploaded);
+            StateHasChanged();
             if (content is null)
             {
                 _tooLargeFiles.Add(name);
                 continue;
             }
             await LoadFile(content, name);
+            cnt++;
         }
+        _loadProgress = null;
+        StateHasChanged();
     }
 
     private async Task LoadFile(System.IO.Stream file, string fileName)
@@ -106,8 +121,6 @@
             _alignedFaces.Add(ms.ToArray());
 
             _fileNames.Add(fileName);
-
-            await dimRedPlot!.ReduceDims();
         }
         finally
         {

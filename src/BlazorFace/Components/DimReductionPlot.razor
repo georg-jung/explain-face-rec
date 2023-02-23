@@ -32,6 +32,7 @@
     private string _2dOr3d = ThreeD;
     private string _pcaOrUmap = PCA;
     private int _umapNeighbors = 15;
+    private bool _parametersDirty = false;
 
     [Parameter]
     public List<byte[]>? AlignedFaceImages { get; set; }
@@ -94,6 +95,21 @@
             ShowLegend = false,
         };
 
+
+    protected override void OnParametersSet()
+    {
+        _parametersDirty = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_parametersDirty) return;
+        if (Embeddings is null || Embeddings.Count < 3) return;
+        if (Embeddings.Count != FileNames?.Count) return;
+        if (Embeddings.Count != AlignedFaceImages?.Count) return;
+        await ReduceDims();
+    }
+
     public async Task ReduceDims()
     {
         // we need at least 3 embeddings for PCA to 3d
@@ -148,6 +164,7 @@
 
         await chart!.Clear();
         await chart!.AddTrace(trace);
+        _parametersDirty = false;
         StateHasChanged();
     }
 }
