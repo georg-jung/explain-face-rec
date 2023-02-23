@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Understanding Face Recognition</title>
+    <base href="/" />
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="css/bootstrap-5.2.3/bootstrap.min.css" />
+    <link rel="stylesheet" href="bootstrap-icons-1.10.3/bootstrap-icons.css" />
+    <link href="css/site.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="BlazorFace.Maui.styles.css" rel="stylesheet" />
+</head>
+<body class="d-flex flex-column h-100">
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app" class="d-flex flex-column h-100">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_content/Plotly.Blazor/plotly-latest.min.js" type="text/javascript"></script>
+    <script src="_content/Plotly.Blazor/plotly-interop.js" type="text/javascript"></script>
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="js/bootstrap-5.2.3/bootstrap.min.js"></script>
+
+    <!-- https://learn.microsoft.com/en-us/aspnet/core/blazor/images?view=aspnetcore-7.0#stream-image-data -->
+    <script>
+        window.setImage = async (imageElementId, imageStream) => {
+            const arrayBuffer = await imageStream.arrayBuffer();
+            const blob = new Blob([arrayBuffer]);
+            const url = URL.createObjectURL(blob);
+            const image = document.getElementById(imageElementId);
+            image.onload = () => {
+                URL.revokeObjectURL(url);
+            }
+            image.src = url;
+        }
+
+        window.clearImage = async (imageElementId) => {
+            const image = document.getElementById(imageElementId);
+            image.src = '';
+        }
+    </script>
+</body>
+
+</html>

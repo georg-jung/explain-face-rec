@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Tests", "src\Fa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Validation", "src\FaceAiSharp.Validation\FaceAiSharp.Validation.csproj", "{692660A5-B00C-474A-814A-9621F136DC73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorFace.Maui", "src\BlazorFace.Maui\BlazorFace.Maui.csproj", "{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,12 @@ Global
 		{692660A5-B00C-474A-814A-9621F136DC73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{692660A5-B00C-474A-814A-9621F136DC73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{692660A5-B00C-474A-814A-9621F136DC73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

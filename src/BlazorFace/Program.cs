@@ -22,22 +22,13 @@ namespace BlazorFace
             Version = GetInformationalVersion();
             var builder = WebApplication.CreateBuilder(args);
 
-            ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(builder);
-            ConfigureOptionsIndependent<ScrfdDetectorOptions>(builder);
+            ConfigureBlazorFaceServices(builder);
 
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
-            builder.Services.AddMemoryCache();
-            builder.Services.AddSingleton<IClock>(SystemClock.Instance);
-            builder.Services.AddTransient<IFaceDetector, ScrfdDetector>();
-            builder.Services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
-            builder.Services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
 
-            builder.Services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
-            AddInjectionObjectPool<IFaceDetector>(builder.Services);
-            AddInjectionObjectPool<IFaceEmbeddingsGenerator>(builder.Services);
-            AddInjectionObjectPool<IFaceLandmarksExtractor>(builder.Services);
+            AddBlazorFaceServices(builder.Services);
 
             // Add the following line:
             builder.WebHost.UseSentry(o =>
@@ -82,6 +73,29 @@ namespace BlazorFace
             app.Run();
         }
 
+        public static void ConfigureBlazorFaceServices(IServiceCollection services, IConfiguration configuration)
+        {
+            ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(services, configuration);
+            ConfigureOptionsIndependent<ScrfdDetectorOptions>(services, configuration);
+        }
+
+        public static void AddBlazorFaceServices(IServiceCollection services)
+        {
+            services.AddMemoryCache();
+            services.AddSingleton<IClock>(SystemClock.Instance);
+            services.AddTransient<IFaceDetector, ScrfdDetector>();
+            services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
+            services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
+
+            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            AddInjectionObjectPool<IFaceDetector>(services);
+            AddInjectionObjectPool<IFaceEmbeddingsGenerator>(services);
+            AddInjectionObjectPool<IFaceLandmarksExtractor>(services);
+        }
+
+        private static void ConfigureBlazorFaceServices(WebApplicationBuilder builder)
+            => ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
+
         /// <summary>
         /// Similar to Microsoft's
         /// <see cref="OptionsServiceCollectionExtensions.Configure{TOptions}(IServiceCollection, Action{TOptions})"/>
@@ -91,7 +105,7 @@ namespace BlazorFace
         /// Useful for configuring services that use the concept of an options type but
         /// don't depend on IOptions for implementation.
         /// </summary>
-        private static void ConfigureOptionsIndependent<TOptions>(WebApplicationBuilder builder)
+        private static void ConfigureOptionsIndependent<TOptions>(IServiceCollection services, IConfiguration configuration)
             where TOptions : class, new()
         {
             const string Options = "Options";
@@ -102,12 +116,12 @@ namespace BlazorFace
             }
 
             // see https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-7.0#validateonstart
-            builder.Services.AddOptions<TOptions>()
-                .Bind(builder.Configuration.GetSection(name))
+            services.AddOptions<TOptions>()
+                .Bind(configuration.GetSection(name))
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<TOptions>>().Value);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<TOptions>>().Value);
         }
 
         private static void AddInjectionObjectPool<T>(IServiceCollection serviceCollection)
