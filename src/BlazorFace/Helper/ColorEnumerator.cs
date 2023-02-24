@@ -1,4 +1,4 @@
-﻿// Copyright (c) Georg Jung. All rights reserved.
+// Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace BlazorFace.Helper;
@@ -22,5 +22,13 @@ internal static class ColorEnumerator
             yield return "#FECB50";
         }
         while (endlessSequence);
+    }
+
+    public static IEnumerable<string> RepeatForever(string value)
+    {
+        while (true)
+        {
+            yield return value;
+        }
     }
 }

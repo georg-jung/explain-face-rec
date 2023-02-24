@@ -29,25 +29,34 @@
 
 Hovered Index: @_hoveredIndex
 
-<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);" 
+<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);"
              HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
 
 @if (_groups is not null && _groups.Count > 0)
 {
     var cnt = 0;
-    @:Based the filenames of the uploaded images, we assume that the faces belong together as follows:
-    <ul>
-        @foreach (var (k, vs) in _groups)
-        {
-            if (cnt == 10)
+    @if (_disableGrouping)
+    {
+        @:Automatic grouping of faces is disabled.
+        <button class="btn btn-sm btn-link" @onclick="ToggleGrouping">Re-enable</button>
+    }
+    else
+    {
+        @:Based the filenames of the uploaded images, we assume that the faces belong together as follows:
+        <button class="btn btn-sm btn-link" @onclick="ToggleGrouping">Disable Grouping</button>
+        <ul>
+            @foreach (var (k, vs) in _groups)
             {
-                <li>and @(_groups.Count - 10) more</li>
-                break;
+                if (cnt == 10)
+                {
+                                <li>and @(_groups.Count - 10) more</li>
+                    break;
+                }
+                cnt++;
+                        <li><strong>@k:</strong> @string.Join(", ", vs).Truncate(500)</li>
             }
-            cnt++;
-            <li><strong>@k:</strong> @string.Join(", ", vs).Truncate(500)</li>
-        }
-    </ul>
+        </ul>
+    }
 }
 
 @code {
@@ -62,6 +71,7 @@ Hovered Index: @_hoveredIndex
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
     private Dictionary<string, List<string>>? _groups;
+    private bool _disableGrouping = false;
 
     [Parameter]
     public List<byte[]>? AlignedFaceImages { get; set; }
@@ -77,7 +87,7 @@ Hovered Index: @_hoveredIndex
     Layout layout = new Layout()
         {
             Scene = new[]
-                    {
+                            {
                 new Plotly.Blazor.LayoutLib.Scene()
                 {
                     XAxis = new()
@@ -104,7 +114,7 @@ Hovered Index: @_hoveredIndex
                 },
             },
             XAxis = new[]
-                    {
+                            {
                 new Plotly.Blazor.LayoutLib.XAxis()
                 {
                     ShowTickLabels = false,
@@ -113,7 +123,7 @@ Hovered Index: @_hoveredIndex
                 }
             },
             YAxis = new[]
-                    {
+                            {
                 new Plotly.Blazor.LayoutLib.YAxis()
                 {
                     ScaleAnchor = "x",
@@ -137,6 +147,12 @@ Hovered Index: @_hoveredIndex
         if (Embeddings is null || Embeddings.Count < 3) return;
         if (Embeddings.Count != FileNames?.Count) return;
         if (Embeddings.Count != AlignedFaceImages?.Count) return;
+        await ReduceDims();
+    }
+
+    public async Task ToggleGrouping()
+    {
+        _disableGrouping = !_disableGrouping;
         await ReduceDims();
     }
 
@@ -172,7 +188,10 @@ Hovered Index: @_hoveredIndex
         var redEmbeddings = isPca ? Pca() : Umap();
 
         // prepend grey for the unknown ones
-        var colors = ColorEnumerator.Plotly(true).Prepend("#4e4e4e");
+        const string GreyColor = "#4e4e4e";
+        var colors = _disableGrouping
+            ? ColorEnumerator.RepeatForever(GreyColor)
+            : ColorEnumerator.Plotly(true).Prepend(GreyColor);
         var fnColors = new Dictionary<string, string>();
         var zipped = grouper.GroupFilenames(FileNames).Zip(colors);
         _groups = new();
