@@ -1,5 +1,6 @@
 @using BlazorFace.Helper;
 @using BlazorFace.Services;
+@using Humanizer;
 @using Plotly.Blazor;
 @using Plotly.Blazor.Interop;
 @using Plotly.Blazor.Traces;
@@ -31,6 +32,24 @@ Hovered Index: @_hoveredIndex
 <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);" 
              HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
 
+@if (_groups is not null && _groups.Count > 0)
+{
+    var cnt = 0;
+    @:Based the filenames of the uploaded images, we assume that the faces belong together as follows:
+    <ul>
+        @foreach (var (k, vs) in _groups)
+        {
+            if (cnt == 10)
+            {
+                <li>and @(_groups.Count - 10) more</li>
+                break;
+            }
+            cnt++;
+            <li><strong>@k:</strong> @string.Join(", ", vs).Truncate(500)</li>
+        }
+    </ul>
+}
+
 @code {
     private const string UMAP = nameof(UMAP);
     private const string PCA = nameof(PCA);
@@ -42,6 +61,7 @@ Hovered Index: @_hoveredIndex
     private int _umapNeighbors = 15;
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
+    private Dictionary<string, List<string>>? _groups;
 
     [Parameter]
     public List<byte[]>? AlignedFaceImages { get; set; }
@@ -155,9 +175,14 @@ Hovered Index: @_hoveredIndex
         var colors = ColorEnumerator.Plotly(true).Prepend("#4e4e4e");
         var fnColors = new Dictionary<string, string>();
         var zipped = grouper.GroupFilenames(FileNames).Zip(colors);
+        _groups = new();
         foreach (var (group, color) in zipped)
         {
             group.ForEach(fn => fnColors[fn] = color);
+            if (group.Key is not null)
+            {
+                _groups[group.Key] = new(group);
+            }
         }
 
         var colorsInFilenameOrder = FileNames.Select(fn => (object)fnColors[fn]!).ToList();
