@@ -22,7 +22,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageVersion Include="NodaTime" Version="3.1.6" />
     <PackageVersion Include="NumSharp" Version="0.30.0" />
-    <PackageVersion Include="Plotly.Blazor" Version="2.18.0" />
+    <PackageVersion Include="Plotly.Blazor" Version="0.1.0-more-hover-data-nonpr.1" />
     <PackageVersion Include="Sentry.AspNetCore" Version="3.28.1" />
     <PackageVersion Include="SimpleSIMD" Version="3.3.1" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="2.1.3" />
