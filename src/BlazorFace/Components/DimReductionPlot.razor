@@ -1,6 +1,7 @@
 @using BlazorFace.Helper;
 @using BlazorFace.Services;
 @using Plotly.Blazor;
+@using Plotly.Blazor.Interop;
 @using Plotly.Blazor.Traces;
 @inject IFilenameGrouper grouper;
 
@@ -25,8 +26,10 @@
     </p>
 }
 
-<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);" />
+Hovered Index: @_hoveredIndex
 
+<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);" 
+             HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
 
 @code {
     private const string UMAP = nameof(UMAP);
@@ -38,6 +41,7 @@
     private string _pcaOrUmap = PCA;
     private int _umapNeighbors = 15;
     private bool _parametersDirty = false;
+    private int? _hoveredIndex;
 
     [Parameter]
     public List<byte[]>? AlignedFaceImages { get; set; }
@@ -191,5 +195,16 @@
         await chart!.AddTrace(trace);
         _parametersDirty = false;
         StateHasChanged();
+    }
+
+    public void HoverAction(IEnumerable<HoverEventDataPoint> e)
+    {
+        _hoveredIndex = e.FirstOrDefault()?.PointNumber;
+        StateHasChanged();
+    }
+
+    public async Task SubscribeEvents()
+    {
+        await chart!.SubscribeHoverEvent();
     }
 }
