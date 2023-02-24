@@ -14,7 +14,7 @@
     <PackageVersion Include="MathNet.Numerics" Version="5.0.0" />
     <PackageVersion Include="LiteDB" Version="5.0.15" />
     <PackageVersion Include="Microsoft.AI.DirectML" Version="1.10.1" />
-    <PackageVersion Include="Microsoft.CodeCoverage" Version="17.4.1" />
+    <PackageVersion Include="Microsoft.CodeCoverage" Version="17.5.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.14.0" />
