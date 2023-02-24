@@ -80,6 +80,8 @@
                 _tooLargeFiles.Add(name);
                 continue;
             }
+            if (_fileNames.Contains(name)) continue;
+
             await LoadFile(content, name);
             cnt++;
         }
