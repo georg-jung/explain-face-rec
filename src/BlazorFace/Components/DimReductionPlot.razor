@@ -1,5 +1,8 @@
+@using BlazorFace.Helper;
+@using BlazorFace.Services;
 @using Plotly.Blazor;
 @using Plotly.Blazor.Traces;
+@inject IFilenameGrouper grouper;
 
 <p>
     <MultiChoiceRadio Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
@@ -47,7 +50,8 @@
     Config config = new Config();
     Layout layout = new Layout()
         {
-            Scene = new[] {
+            Scene = new[]
+            {
                 new Plotly.Blazor.LayoutLib.Scene()
                 {
                     XAxis = new()
@@ -74,7 +78,7 @@
                 },
             },
             XAxis = new[]
-                {
+            {
                 new Plotly.Blazor.LayoutLib.XAxis()
                 {
                     ShowTickLabels = false,
@@ -83,7 +87,7 @@
                 }
             },
             YAxis = new[]
-                    {
+            {
                 new Plotly.Blazor.LayoutLib.YAxis()
                 {
                     ScaleAnchor = "x",
@@ -141,6 +145,17 @@
 
         var redEmbeddings = isPca ? Pca() : Umap();
 
+        // prepend grey for the unknown ones
+        var colors = ColorEnumerator.Plotly(true).Prepend("#4e4e4e");
+        var fnColors = new Dictionary<string, string>();
+        var zipped = grouper.GroupFilenames(FileNames).Zip(colors);
+        foreach(var (group, color) in zipped)
+        {
+            group.ForEach(fn => fnColors[fn] = color);
+        }
+
+        var colorsInFilenameOrder = FileNames.Select(fn => (object)fnColors[fn]!).ToList();
+
         ITrace trace = is2d switch
         {
             true => new Scatter
@@ -150,6 +165,10 @@
                     Y = redEmbeddings.Select(x => x[1]).Cast<object>().ToList(),
                     TextArray = FileNames.ToList(),
                     HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
+                    Marker = new()
+                    {
+                        ColorArray = colorsInFilenameOrder,
+                    }
                 },
             false => new Scatter3D
                 {
@@ -159,6 +178,10 @@
                     Z = redEmbeddings.Select(x => x[2]).Cast<object>().ToList(),
                     TextArray = FileNames.ToList(),
                     HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
+                    Marker = new()
+                    {
+                        ColorArray = colorsInFilenameOrder,
+                    }
                 },
         };
 

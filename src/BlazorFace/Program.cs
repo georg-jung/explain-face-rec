@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reflection;
+using BlazorFace.Services;
 using FaceAiSharp;
 using FaceAiSharp.Abstractions;
 using Microsoft.AspNetCore.Components;
@@ -83,6 +84,7 @@ namespace BlazorFace
         {
             services.AddMemoryCache();
             services.AddSingleton<IClock>(SystemClock.Instance);
+            services.AddSingleton<IFilenameGrouper, CommonPrefixFilenameGrouper>();
             services.AddTransient<IFaceDetector, ScrfdDetector>();
             services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
             services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
