@@ -203,3 +203,6 @@ dotnet_diagnostic.CS1591.severity = none
 # SA1623: The documentation text within a C# property's <summary> tag does not match the accessors within the property.
 # Eg. The property's documentation summary text should begin with: 'Gets a value indicating whether'
 dotnet_diagnostic.SA1623.severity = none
+
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = none
