@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Tests", "src\Fa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FaceAiSharp.Validation", "src\FaceAiSharp.Validation\FaceAiSharp.Validation.csproj", "{692660A5-B00C-474A-814A-9621F136DC73}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorFace.Maui", "src\BlazorFace.Maui\BlazorFace.Maui.csproj", "{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorFace.Maui", "src\BlazorFace.Maui\BlazorFace.Maui.csproj", "{9B59AB07-24DE-42DA-9E2A-7F29228B6D57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
