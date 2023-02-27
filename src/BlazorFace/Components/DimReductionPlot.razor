@@ -83,7 +83,10 @@ Hovered Index: @_hoveredIndex
     public List<string>? FileNames { get; set; }
 
     PlotlyChart? chart;
-    Config config = new Config();
+    Config config = new Config()
+    {
+        Responsive = true,
+    };
     Layout layout = new Layout()
         {
             Scene = new[]
