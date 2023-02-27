@@ -28,8 +28,6 @@
     </p>
 }
 
-Hovered Index: @_hoveredIndex
-
 <div class="d-flex flex-row">
     <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart"
                  style="height: min(60vw, 60vh); width: min(60vw, 60vh);"
@@ -39,9 +37,9 @@ Hovered Index: @_hoveredIndex
         <img id="@HoveredPointFaceImgId" class="mw-100 hovered-face-preview" style="width: 112px; height: 112px;" />
         @if (FileNames is not null && _hoveredIndex is int idx)
         {
-            <p>
+            <code>
                 @FileNames[idx]
-            </p>
+            </code>
         }
     </div>
 
@@ -242,7 +240,7 @@ Hovered Index: @_hoveredIndex
                     X = redEmbeddings.Select(x => x[0]).Cast<object>().ToList(),
                     Y = redEmbeddings.Select(x => x[1]).Cast<object>().ToList(),
                     TextArray = FileNames.ToList(),
-                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.Text,
+                    HoverInfo = Plotly.Blazor.Traces.ScatterLib.HoverInfoFlag.None,
                     Marker = new()
                     {
                         ColorArray = colorsInFilenameOrder,
@@ -255,7 +253,7 @@ Hovered Index: @_hoveredIndex
                     Y = redEmbeddings.Select(x => x[1]).Cast<object>().ToList(),
                     Z = redEmbeddings.Select(x => x[2]).Cast<object>().ToList(),
                     TextArray = FileNames.ToList(),
-                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.Text,
+                    HoverInfo = Plotly.Blazor.Traces.Scatter3DLib.HoverInfoFlag.None,
                     Marker = new()
                     {
                         ColorArray = colorsInFilenameOrder,
