@@ -10,6 +10,13 @@ namespace BlazorFace.Extensions;
 
 internal static class BlazorMarkupExtensions
 {
+    public static async Task SetImageStream(this IJSRuntime js, byte[] image, string imgId)
+    {
+        using var ms = new MemoryStream(image);
+        var dotnetImageStream = new DotNetStreamReference(ms);
+        await js.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
+    }
+
     public static async Task SetImageStream(this IJSRuntime js, Image image, string imgId)
     {
         // async probably doesnt make a difference, given we're writing to a MemoryStream

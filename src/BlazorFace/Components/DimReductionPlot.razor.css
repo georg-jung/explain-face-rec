@@ -1,0 +1,7 @@
+img.hovered-face-preview {
+    display: none;
+}
+
+img[src].hovered-face-preview {
+    display: block;
+}

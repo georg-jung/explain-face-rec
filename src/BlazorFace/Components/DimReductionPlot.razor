@@ -5,6 +5,7 @@
 @using Plotly.Blazor.Interop;
 @using Plotly.Blazor.Traces;
 @inject IFilenameGrouper grouper;
+@inject IJSRuntime JS
 
 <p>
     <MultiChoiceRadio Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
@@ -29,31 +30,48 @@
 
 Hovered Index: @_hoveredIndex
 
-<PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart" style="height:  min(60vw, 60vh); width: min(60vw, 60vh);"
-             HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
+<div class="d-flex flex-row">
+    <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart"
+                 style="height: min(60vw, 60vh); width: min(60vw, 60vh);"
+                 HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
+    <div class="ms-4 d-flex flex-column">
+        <p><em>Hover over a point in the scatter plot to preview the corresponding face.</em></p>
+        <img id="@HoveredPointFaceImgId" class="mw-100 hovered-face-preview" style="width: 112px; height: 112px;" />
+        @if (FileNames is not null && _hoveredIndex is int idx)
+        {
+            <p>
+                @FileNames[idx]
+            </p>
+        }
+    </div>
 
+</div>
 @if (_groups is not null && _groups.Count > 0)
 {
     var cnt = 0;
     @if (_disableGrouping)
     {
         @:Automatic grouping of faces is disabled.
-        <button class="btn btn-sm btn-link" @onclick="ToggleGrouping">Re-enable</button>
+        <a class="link-primary" href="#" @onclick="ToggleGrouping" @onclick:preventDefault>Re-enable</a>
     }
     else
     {
-        @:Based the filenames of the uploaded images, we assume that the faces belong together as follows:
-        <button class="btn btn-sm btn-link" @onclick="ToggleGrouping">Disable Grouping</button>
+        @:Based on the filenames of the uploaded images, we assume that the faces belong together as follows:
+        <a class="link-primary" href="#" @onclick="ToggleGrouping" @onclick:preventDefault>Disable Grouping</a>
         <ul>
+            @if (_ungrouped.Count > 0)
+            {
+                <li><em>No group:</em> @string.Join(", ", _ungrouped).Truncate(500)</li>
+            }
             @foreach (var (k, vs) in _groups)
             {
                 if (cnt == 10)
                 {
-                                <li>and @(_groups.Count - 10) more</li>
+                    <li>and @(_groups.Count - 10) more</li>
                     break;
                 }
                 cnt++;
-                        <li><strong>@k:</strong> @string.Join(", ", vs).Truncate(500)</li>
+                <li><strong>@k:</strong> @string.Join(", ", vs).Truncate(500)</li>
             }
         </ul>
     }
@@ -64,6 +82,7 @@ Hovered Index: @_hoveredIndex
     private const string PCA = nameof(PCA);
     private const string TwoD = "2D";
     private const string ThreeD = "3D";
+    private const string HoveredPointFaceImgId = nameof(HoveredPointFaceImgId);
 
     private string _2dOr3d = ThreeD;
     private string _pcaOrUmap = PCA;
@@ -71,6 +90,7 @@ Hovered Index: @_hoveredIndex
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
     private Dictionary<string, List<string>>? _groups;
+    private List<string> _ungrouped = new(0);
     private bool _disableGrouping = false;
 
     [Parameter]
@@ -205,6 +225,11 @@ Hovered Index: @_hoveredIndex
             {
                 _groups[group.Key] = new(group);
             }
+            else
+            {
+                // we assume there is just one null grouping
+                _ungrouped = new(group);
+            }
         }
 
         var colorsInFilenameOrder = FileNames.Select(fn => (object)fnColors[fn]!).ToList();
@@ -244,9 +269,13 @@ Hovered Index: @_hoveredIndex
         StateHasChanged();
     }
 
-    public void HoverAction(IEnumerable<HoverEventDataPoint> e)
+    public async void HoverAction(IEnumerable<HoverEventDataPoint> e)
     {
         _hoveredIndex = e.FirstOrDefault()?.PointNumber;
+        if (AlignedFaceImages is not null && _hoveredIndex.HasValue && AlignedFaceImages.Count > _hoveredIndex.Value)
+        {
+            await JS.SetImageStream(AlignedFaceImages[_hoveredIndex.Value], HoveredPointFaceImgId);
+        }
         StateHasChanged();
     }
 
