@@ -18,7 +18,7 @@
     <PackageReference Include="FaceONNX" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" />
     <PackageReference Include="NumSharp" />
     <PackageReference Include="SimpleSIMD" />
     <PackageReference Include="SixLabors.ImageSharp" />

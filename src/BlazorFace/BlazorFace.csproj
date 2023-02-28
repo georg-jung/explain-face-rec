@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Accord.Statistics" />
     <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="NodaTime" />
     <PackageReference Include="Plotly.Blazor" />
