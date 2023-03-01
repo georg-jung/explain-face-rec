@@ -29,7 +29,7 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
     private static readonly ResizeOptions _resizeOptions = new()
     {
         Mode = ResizeMode.Pad,
-        PadColor = Color.White,
+        PadColor = Color.Black,
         Size = new Size(112, 112),
     };
 
