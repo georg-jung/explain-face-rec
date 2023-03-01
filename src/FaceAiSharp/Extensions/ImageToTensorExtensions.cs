@@ -64,9 +64,9 @@ public static class ImageToTensorExtensions
     ///     exactly one picture.
     /// </param>
     /// <returns>A tensor containing the preprocessed image.</returns>
-    public static DenseTensor<float> ToTensor(this Image<Rgb24> image, float[] mean, float[] stddev, int[] inputDimension)
+    public static DenseTensor<float> ToTensor(this Image<Rgb24> image, float[] mean, float[] stddev, int[] inputDimension, bool convertToBgr = false)
     {
-        return ImageToTensor(new[] { image }, mean, stddev, inputDimension);
+        return ImageToTensor(new[] { image }, mean, stddev, inputDimension, convertToBgr);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public static class ImageToTensorExtensions
     /// <param name="stddev">The rgb stddev values used for normalization.</param>
     /// <param name="inputDimension">The size of the tensor that the OnnxRuntime model is expecting, e.g. [1, 3, 224, 224].</param>
     /// <returns>A tensor that contains the converted batch of images.</returns>
-    public static DenseTensor<float> ImageToTensor(IReadOnlyCollection<Image<Rgb24>> images, float[] mean, float[] stddev, int[] inputDimension)
+    public static DenseTensor<float> ImageToTensor(IReadOnlyCollection<Image<Rgb24>> images, float[] mean, float[] stddev, int[] inputDimension, bool convertToBgr = false)
     {
         // Calculate these outside the loop
         var normR = mean[0] / stddev[0];
@@ -112,6 +112,13 @@ public static class ImageToTensorExtensions
                     var spanG = inputSpan.Slice(index, rowSpan.Length);
                     index += strides[1];
                     var spanB = inputSpan.Slice(index, rowSpan.Length);
+
+                    if (convertToBgr)
+                    {
+                        var xr = spanR;
+                        spanR = spanB;
+                        spanB = xr;
+                    }
 
                     // Now we can just directly loop through and copy the values directly from span to span.
                     for (int x = 0; x < rowSpan.Length; x++)

@@ -20,8 +20,6 @@ public sealed class FaceOnnxDetector : IFaceDetector, IDisposable
 
     public void Dispose() => _faceDetector.Dispose();
 
-    public float GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks) => throw new NotSupportedException();
-
     public IReadOnlyCollection<FaceDetectorResult> Detect(Image image)
     {
         _faceDetector.ConfidenceThreshold = ConfidenceThreshold;
@@ -36,4 +34,10 @@ public sealed class FaceOnnxDetector : IFaceDetector, IDisposable
 
         return res.Select(ToReturnType).ToList();
     }
+
+    float IFaceDetector.GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks) => throw new NotSupportedException();
+
+    PointF IFaceDetector.GetLeftEyeCenter(IReadOnlyList<PointF> landmarks) => throw new NotImplementedException();
+
+    PointF IFaceDetector.GetRightEyeCenter(IReadOnlyList<PointF> landmarks) => throw new NotImplementedException();
 }

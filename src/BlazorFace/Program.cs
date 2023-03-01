@@ -78,6 +78,7 @@ namespace BlazorFace
         {
             ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(services, configuration);
             ConfigureOptionsIndependent<ScrfdDetectorOptions>(services, configuration);
+            ConfigureOptionsIndependent<OpenVinoOpenClosedEye0001Options>(services, configuration);
         }
 
         public static void AddBlazorFaceServices(IServiceCollection services)
@@ -88,11 +89,13 @@ namespace BlazorFace
             services.AddTransient<IFaceDetector, ScrfdDetector>();
             services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
             services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
+            services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>();
 
             services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
             AddInjectionObjectPool<IFaceDetector>(services);
             AddInjectionObjectPool<IFaceEmbeddingsGenerator>(services);
             AddInjectionObjectPool<IFaceLandmarksExtractor>(services);
+            AddInjectionObjectPool<IEyeStateDetector>(services);
         }
 
         private static void ConfigureBlazorFaceServices(WebApplicationBuilder builder)

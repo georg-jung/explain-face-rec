@@ -166,6 +166,10 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 
     float IFaceDetector.GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks) => (float)GetFaceAlignmentAngle(landmarks);
 
+    PointF IFaceDetector.GetLeftEyeCenter(IReadOnlyList<PointF> landmarks) => GetLeftEye(landmarks);
+
+    PointF IFaceDetector.GetRightEyeCenter(IReadOnlyList<PointF> landmarks) => GetRightEye(landmarks);
+
     public void Dispose() => _session.Dispose();
 
     internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img) => img.ToTensor();

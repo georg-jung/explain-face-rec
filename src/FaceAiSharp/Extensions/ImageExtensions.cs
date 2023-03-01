@@ -51,6 +51,10 @@ namespace FaceAiSharp.Extensions
         public static Image CropAligned(this Image sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
             => sourceImage.Clone(op => op.CropAligned(faceArea, angle, alignedMaxEdgeSize));
 
+        public static Image<TPixel> CropAligned<TPixel>(this Image<TPixel> sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
+            where TPixel : unmanaged, IPixel<TPixel>
+            => sourceImage.Clone(op => op.CropAligned(faceArea, angle, alignedMaxEdgeSize));
+
         public static void CropAlignedDestructive<TPixel>(this Image<TPixel> sourceImage, Rectangle faceArea, float angle, int? alignedMaxEdgeSize = 250)
             where TPixel : unmanaged, IPixel<TPixel>
             => sourceImage.Mutate(op => op.CropAligned(faceArea, angle, alignedMaxEdgeSize));

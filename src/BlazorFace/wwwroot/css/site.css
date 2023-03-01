@@ -62,3 +62,11 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+img.d-none-if-no-src {
+    display: none;
+}
+
+img[src].d-none-if-no-src {
+    display: block;
+}

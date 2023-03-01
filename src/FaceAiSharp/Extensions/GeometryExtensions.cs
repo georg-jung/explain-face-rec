@@ -140,6 +140,10 @@ public static class GeometryExtensions
     public static float EuclideanSimilarity(this float[] x, float[] y)
         => 1.0f / (1.0f + EuclideanDistance(x, y));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float EuclideanDistance(this PointF x, PointF y)
+        => EuclideanDistance(new[] { x.X, x.Y }, new[] { y.X, y.Y });
+
     // Cosine inspired by
     // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Cosine.cs
 

@@ -12,6 +12,7 @@
 @inject ObjectPool<IFaceDetector> detectorPool;
 @inject ObjectPool<IFaceLandmarksExtractor> landmarksPool;
 @inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool;
+@inject ObjectPool<IEyeStateDetector> eyeStatePool;
 
 <PageTitle>Face Recognition Pipeline</PageTitle>
 
@@ -49,6 +50,16 @@
     <h2 class="mt-4">3. First Face with Landmarks</h2>
     <p>Finding landmarks took @_landmarksMs ms.</p>
     <img id="@ImgFirstFaceWithLandmarksId" class="mw-100" />
+    <div class="d-flex flex-row mt-2">
+        <div class="d-flex flex-column me-2">
+            <img id="@ImgFirstFaceLEyeId" class="mw-100 d-none-if-no-src" style="width: 64px; height: 64px;" />
+            @(_leftOpen switch { true => "Open", false => "Closed", _ => null})
+        </div>
+        <div class="d-flex flex-column">
+            <img id="@ImgFirstFaceREyeId" class="mw-100 d-none-if-no-src" style="width: 64px; height: 64px;" />
+            @(_rightOpen switch { true => "Open", false => "Closed", _ => null})
+        </div>
+    </div>
 
     <h2 class="mt-4">4. Aligned First Face</h2>
     <p>Aligning took @_alignMs ms.</p>
@@ -79,12 +90,16 @@
     const string ImgDetectionId = "img-detection";
     const string ImgFirstFaceId = "img-first-face";
     const string ImgFirstFaceWithLandmarksId = "img-first-face-with-landmarks";
+    const string ImgFirstFaceLEyeId = "img-first-face-leye";
+    const string ImgFirstFaceREyeId = "img-first-face-reye";
     const string ImgAlignedFirstFaceId = "img-aligned-first-face";
 
     private bool _uploadWasTooLarge = false;
     private bool _uploadNoFace = false;
     private bool _uploadNoImage = false;
     private float? _angle;
+    private bool? _leftOpen;
+    private bool? _rightOpen;
     private float[]? _embeddings;
 
     private int? _uploadMs;
@@ -104,11 +119,14 @@
             _totalMs = null;
         _uploadNoFace = _uploadWasTooLarge = _uploadNoImage = false;
         _angle = null;
+        _leftOpen = _rightOpen = null;
         _embeddings = null;
         await JS.ClearImage(ImgDetectionId);
         await JS.ClearImage(ImgFirstFaceId);
         await JS.ClearImage(ImgFirstFaceWithLandmarksId);
         await JS.ClearImage(ImgAlignedFirstFaceId);
+        await JS.ClearImage(ImgFirstFaceLEyeId);
+        await JS.ClearImage(ImgFirstFaceREyeId);
     }
 
     private async void LoadFiles(InputFileChangeEventArgs e)
@@ -130,6 +148,7 @@
         var det = detectorPool.Get();
         var lmrks = landmarksPool.Get();
         var embGen = embedderPool.Get();
+        var eyeState = eyeStatePool.Get();
         try
         {
             var pivot = clock.GetCurrentInstant();
@@ -164,7 +183,24 @@
 
             pivot = clock.GetCurrentInstant();
             _angle = det.GetFaceAlignmentAngle(firstFaceLandmarks); // lmrks.GetFaceAlignmentAngle(landmarks);
-            // img.CropAlignedDestructive(firstFaceRect, _angle.Value);
+
+            //var angleAligned = img.Clone();
+            //angleAligned.CropAlignedDestructive(firstFaceRect, _angle.Value);
+            var (leye, reye) = (det.GetLeftEyeCenter(firstFaceLandmarks), det.GetRightEyeCenter(firstFaceLandmarks));
+            var dist = leye.EuclideanDistance(reye);
+            var squareAroundEyeLen = dist / 3;
+            var eyeRectSz = new Size((int)squareAroundEyeLen * 2);
+            leye.Offset(-squareAroundEyeLen, -squareAroundEyeLen);
+            reye.Offset(-squareAroundEyeLen, -squareAroundEyeLen);
+            var leyeRect = new Rectangle(Point.Round(leye), eyeRectSz);
+            var reyeRect = new Rectangle(Point.Round(reye), eyeRectSz);
+            var leyeImg = img.CropAligned(leyeRect, _angle.Value, 32);
+            var reyeImg = img.CropAligned(reyeRect, _angle.Value, 32);
+            await JS.SetImageStream(leyeImg, ImgFirstFaceLEyeId);
+            await JS.SetImageStream(reyeImg, ImgFirstFaceREyeId);
+            _leftOpen = eyeState.IsOpen(leyeImg);
+            _rightOpen = eyeState.IsOpen(reyeImg);
+
             FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(img, firstFaceLandmarks);
             _alignMs = (int)(clock.GetCurrentInstant() - pivot).TotalMilliseconds;
             await JS.SetImageStream(img, ImgAlignedFirstFaceId);
@@ -182,6 +218,7 @@
             detectorPool.Return(det);
             landmarksPool.Return(lmrks);
             embedderPool.Return(embGen);
+            eyeStatePool.Return(eyeState);
         }
     }
 }
