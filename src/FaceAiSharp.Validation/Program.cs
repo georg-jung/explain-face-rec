@@ -30,7 +30,11 @@ var arcfaceModel = new Option<FileInfo>(
 
 var scrfdModel = new Option<FileInfo>(
     name: "--scrfd-model",
-    getDefaultValue: () => new FileInfo(@"C:\Users\georg\OneDrive\Dokumente\ScrfdOnnx\scrfd_2.5g_bnkps.onnx"));
+    getDefaultValue: () => new FileInfo(@"C:\Users\georg\OneDrive\Dokumente\BlazorFace\ScrfdOnnx\scrfd_10g_bnkps.onnx"));
+
+var eyeStateModel = new Option<FileInfo>(
+    name: "--eyestate-model",
+    getDefaultValue: () => new FileInfo(@"C:\Users\georg\OneDrive\Dokumente\BlazorFace\openvino_open-closed-eye-0001\open_closed_eye.onnx"));
 
 var threshold = new Option<float>(
     name: "--threshold",
@@ -41,6 +45,8 @@ var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceMo
 var calcAllDistances = new Command("calc-all-distances") { dbEmbeddingCollectionName, threshold };
 
 var calcPairsDistances = new Command("calc-pairs-distances") { dbEmbeddingCollectionName, threshold, pairsFile };
+
+var countClosedEyes = new Command("count-closed-eyes") { dataset, scrfdModel, eyeStateModel };
 
 #pragma warning disable SA1116 // Split parameters should start on line after declaration
 #pragma warning disable SA1117 // Parameters should be on same line or separate lines
@@ -65,5 +71,12 @@ calcPairsDistances.SetHandler((db, dbEmbeddingCollectionName, threshold, pairsFi
     calc.Invoke();
 }, db, dbEmbeddingCollectionName, threshold, pairsFile);
 rc.AddCommand(calcPairsDistances);
+
+countClosedEyes.SetHandler((dataset, db, scrfdModel, eyeStateModel) =>
+{
+    var cnt = new CountClosedEyes(dataset, db, scrfdModel, eyeStateModel);
+    cnt.Invoke();
+}, dataset, db, scrfdModel, eyeStateModel);
+rc.AddCommand(countClosedEyes);
 
 return await rc.InvokeAsync(args);

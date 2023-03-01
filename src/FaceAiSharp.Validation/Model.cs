@@ -22,6 +22,17 @@ internal record Embedding
     public float[] Embeddings { get; set; } = null!;
 }
 
+internal record EyeState
+{
+    public ObjectId EyeStateId { get; set; } = null!;
+
+    public string FilePath { get; set; } = null!;
+
+    public int OpenEyes { get; set; }
+
+    public int ClosedEyes { get; set; }
+}
+
 internal record DefinedPair
 {
     public string Identity1 { get; set; } = null!;

@@ -11,6 +11,10 @@
     "Validation gen-embeddings": {
       "commandName": "Project",
       "commandLineArgs": "generate-embeddings"
+    },
+    "count-closed-eyes": {
+      "commandName": "Project",
+      "commandLineArgs": "count-closed-eyes --dataset C:\\Users\\georg\\Downloads\\Group5a"
     }
   }
 }
