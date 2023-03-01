@@ -52,7 +52,7 @@
 
         window.clearImage = async (imageElementId) => {
             const image = document.getElementById(imageElementId);
-            image.src = '';
+            image.removeAttribute('src', '');
         }
     </script>
 </body>
