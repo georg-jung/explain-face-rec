@@ -38,7 +38,7 @@ var eyeStateModel = new Option<FileInfo>(
 
 var threshold = new Option<float>(
     name: "--threshold",
-    getDefaultValue: () => 0.28f);
+    getDefaultValue: () => 0.29f);
 
 var generateEmbeddings = new Command("generate-embeddings") { dataset, arcfaceModel, scrfdModel, dbEmbeddingCollectionName, pairsFile };
 

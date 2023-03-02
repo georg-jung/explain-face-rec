@@ -53,9 +53,11 @@ internal class CalculatePairsDistances
         var tn = 0;
         var fp = 0;
         var fn = 0;
+        var confidences = new List<(float Confidence, bool IsMatch)>(6000); // 6000 = number of pairs in pairs.txt of lfw
 
         void ReportProgressLong()
         {
+            confidences.Sort((x, y) => y.Confidence.CompareTo(x.Confidence)); // we want to sort desc so exchange x and y
             Console.WriteLine($"Calculated {cnt} pairs.");
             Console.WriteLine($"Had {trueCnt} pairs belonging to the same person.");
             Console.WriteLine($"Avergage cosine distance:                   {avgCosDist / cnt}");
@@ -73,6 +75,8 @@ internal class CalculatePairsDistances
             Console.WriteLine($"Precision: {(double)tp / (tp + fp):P2}");
             Console.WriteLine($"Recall:    {(double)tp / (tp + fn):P2}");
             Console.WriteLine($"F1 score:  {(double)tp * 2 / ((tp * 2) + fp + fn):N4}");
+            Console.WriteLine($"AuROC:     {Metrics.Auc(confidences)}");
+            Console.WriteLine($"Threshold for best accuracy: {Metrics.FindThreshold(confidences)}");
             Console.WriteLine();
         }
 
@@ -94,6 +98,7 @@ internal class CalculatePairsDistances
             avgCosDist += cosDist;
             avgEuclDist += euclDist;
             avgDotProd += dotProd;
+            confidences.Add((dotProd, sameIdnt));
             if (sameIdnt)
             {
                 avgCosDistTrue += cosDist;
