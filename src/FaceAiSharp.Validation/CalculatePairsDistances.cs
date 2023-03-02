@@ -48,6 +48,7 @@ internal class CalculatePairsDistances
         double avgDotProdFalse = 0;
         int cnt = 0;
         int trueCnt = 0;
+        int missing = 0;
 
         var tp = 0;
         var tn = 0;
@@ -59,6 +60,11 @@ internal class CalculatePairsDistances
         {
             confidences.Sort((x, y) => y.Confidence.CompareTo(x.Confidence)); // we want to sort desc so exchange x and y
             Console.WriteLine($"Calculated {cnt} pairs.");
+            if (missing > 0)
+            {
+                Console.WriteLine($"{missing} pairs MISSING!");
+            }
+
             Console.WriteLine($"Had {trueCnt} pairs belonging to the same person.");
             Console.WriteLine($"Avergage cosine distance:                   {avgCosDist / cnt}");
             Console.WriteLine($"Avergage euclidean distance:                {avgEuclDist / cnt}");
@@ -90,6 +96,11 @@ internal class CalculatePairsDistances
             var embX = dbEmb.FindOne(db => db.Identity == pair.Identity1 && db.ImageNumber == pair.ImageNumber1);
             var yId = pair.SameIdentity ? pair.Identity1 : pair.Identity2;
             var embY = dbEmb.FindOne(db => db.Identity == yId && db.ImageNumber == pair.ImageNumber2);
+            if (embX is null || embY is null)
+            {
+                missing++;
+                continue;
+            }
 
             var cosDist = embX.Embeddings.CosineDistance(embY.Embeddings);
             var euclDist = embX.Embeddings.EuclideanDistance(embY.Embeddings);
