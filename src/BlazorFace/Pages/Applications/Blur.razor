@@ -1,28 +1,42 @@
 @inherits ChooseSingleImageBase
 @page "/Demos/BlurFaces"
+@using FaceAiSharp.Abstractions;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
 
 @{
     base.BuildRenderTree(__builder);
 }
 
 <div class="d-flex flex-row justify-content-center mb-4 restrict-child-image-size">
-    <BlurFace @ref=@_blurFace />
+    <img id="@imgId" class="mw-100" />
 </div>
 
 @code {
-    private BlurFace _blurFace;
+    private string imgId = Guid.NewGuid().ToString("n");
 
     protected override async Task Clear()
     {
         await base.Clear();
-        await _blurFace.ClearImage();
+        await JS.ClearImage(imgId);
     }
 
     protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
     {
-        await _blurFace.SetImage(image);
-        return null;
+        var det = detectorPool.Get();
+
+        try
+        {
+            FaceAiSharp.Applications.BlurFaces(det, image);
+            await JS.SetImageStream(image, imgId);
+            return null;
+        }
+        finally
+        {
+            detectorPool.Return(det);
+        }
     }
 }
