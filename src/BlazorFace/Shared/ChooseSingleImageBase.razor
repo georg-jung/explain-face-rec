@@ -1,0 +1,99 @@
+@layout LegalLayout
+
+@using Humanizer;
+@using SixLabors.ImageSharp.PixelFormats;
+
+<div class="container mb-4 d-flex flex-column align-items-center">
+    @if (_processing)
+    {
+        <div class="d-flex flex-row">
+            <Spinner Class="me-2" />
+            Processing...
+        </div>
+    }
+    else
+    {
+        <p>
+            To get started, please upload an image that contains one or more human faces.
+        </p>
+
+        <div class="mb-3">
+            <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadWasTooLarge || _uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+            @if (_uploadWasTooLarge)
+            {
+                <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
+            }
+            @if (_uploadNoImage)
+            {
+                <div class="invalid-feedback">The uploaded file could not be read as image.</div>
+            }
+            @if (_uploadErrorMessage is not null)
+            {
+                <div class="invalid-feedback">@_uploadErrorMessage</div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
+
+    private string _inputFileId = Guid.NewGuid().ToString("n");
+    private bool _uploadWasTooLarge = false;
+    private bool _uploadNoImage = false;
+    private string? _uploadErrorMessage = null;
+    private bool _processing = false;
+
+    /// <summary>
+    /// Called when an upload is initiated but before it is processed.
+    /// Calls Clear() by default.
+    /// </summary>
+    protected virtual Task OnBeforeLoadFileAsync()
+    {
+        Clear();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Clears everything related to the uploaded image.
+    /// </summary>
+    protected virtual Task Clear()
+    {
+        _uploadNoImage = _uploadWasTooLarge = false;
+        _uploadErrorMessage = null;
+        _inputFileId = Guid.NewGuid().ToString("n");
+        return Task.CompletedTask;
+    }
+
+    protected virtual Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        return Task.FromResult<string?>(null);
+    }
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        await OnBeforeLoadFileAsync();
+        try
+        {
+            using var stream = e.TryOpen(MaxUploadSize, out _uploadWasTooLarge);
+            if (stream is null) return;
+
+            _processing = true;
+            StateHasChanged();
+
+            using var img = await stream.TryOpenImage();
+            if (img is null)
+            {
+                _uploadNoImage = true;
+                return;
+            }
+
+            _uploadErrorMessage = await OnImageLoadedAsync(img);
+        }
+        finally
+        {
+            _processing = false;
+            StateHasChanged();
+        }
+    }
+}

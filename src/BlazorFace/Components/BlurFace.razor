@@ -1,0 +1,50 @@
+@using BlazorFace.Extensions;
+@using FaceAiSharp.Abstractions;
+@using Microsoft.Extensions.ObjectPool;
+@using Microsoft.JSInterop;
+@using SixLabors.ImageSharp.PixelFormats;
+@using SixLabors.ImageSharp;
+@using SixLabors.ImageSharp.Processing;
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+
+<img id="@imgId" class="mw-100" />
+
+@code {
+    private string imgId = Guid.NewGuid().ToString("n");
+
+    [Parameter]
+    public string Test { get; set; }
+
+    /// <summary>
+    /// Destructive. Mutates the given image. Blurs all faces. Renders the result.
+    /// </summary>
+    public async Task SetImage(Image<Rgb24> input, float sigmaFactor = 10f)
+    {
+        var det = detectorPool.Get();
+
+        try
+        {
+            var res = det.Detect(input);
+            input.Mutate(op =>
+            {
+                foreach (var fc in res)
+                {
+                    var r = Rectangle.Round(fc.Box);
+                    var max = Math.Max(r.Width, r.Height);
+                    var sigma = Math.Max(max / sigmaFactor, sigmaFactor);
+                    op.GaussianBlur(sigma, r);
+                }
+            });
+            await JS.SetImageStream(input, imgId);
+        }
+        finally
+        {
+            detectorPool.Return(det);
+        }
+    }
+
+    public async Task ClearImage() {
+        JS.ClearImage(imgId);
+    }
+}

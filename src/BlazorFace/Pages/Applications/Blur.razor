@@ -1,0 +1,28 @@
+@inherits ChooseSingleImageBase
+@page "/Demos/BlurFaces"
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="d-flex flex-row justify-content-center mb-4 restrict-child-image-size">
+    <BlurFace @ref=@_blurFace />
+</div>
+
+@code {
+    private BlurFace _blurFace;
+
+    protected override async Task Clear()
+    {
+        await base.Clear();
+        await _blurFace.ClearImage();
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        await _blurFace.SetImage(image);
+        return null;
+    }
+}
