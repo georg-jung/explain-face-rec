@@ -69,6 +69,19 @@ public static class GeometryExtensions
             (int)Math.Round(rectangle.Width * factor),
             (int)Math.Round(rectangle.Height * factor));
 
+    public static Rectangle ScaleCentered(this Rectangle rectangle, double factor)
+    {
+        var w = (int)Math.Round(rectangle.Width * factor);
+        var h = (int)Math.Round(rectangle.Height * factor);
+        var dw = w - rectangle.Width;
+        var dh = h - rectangle.Height;
+        return new(
+            rectangle.X - (dw / 2),
+            rectangle.Y - (dh / 2),
+            w,
+            h);
+    }
+
     public static Size Scale(this Size size, double factor)
         => new(
             (int)Math.Round(size.Width * factor),

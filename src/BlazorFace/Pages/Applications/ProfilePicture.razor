@@ -1,0 +1,50 @@
+@inherits ChooseSingleImageBase
+@page "/Demos/ProfilePicture"
+@using FaceAiSharp.Abstractions;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="d-flex flex-row justify-content-center mb-4 restrict-child-image-size">
+    <img id="@imgId" class="rounded me-5" />
+    <img id="@imgId2" class="rounded-circle" />
+</div>
+
+@code {
+    private string imgId = Guid.NewGuid().ToString("n");
+    private string imgId2 = Guid.NewGuid().ToString("n");
+
+    protected override async Task Clear()
+    {
+        await base.Clear();
+        await JS.ClearImage(imgId);
+        await JS.ClearImage(imgId2);
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+
+        try
+        {
+            FaceAiSharp.Applications.CropProfilePicture(det, image);
+            await JS.SetImageStream(image, imgId);
+            await JS.SetImageStream(image, imgId2);
+            return null;
+        }
+        catch (ArgumentException arg)
+        {
+            return arg.Message;
+        }
+        finally
+        {
+            detectorPool.Return(det);
+        }
+    }
+}

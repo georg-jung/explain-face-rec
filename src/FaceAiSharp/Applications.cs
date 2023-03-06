@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using FaceAiSharp.Abstractions;
+using FaceAiSharp.Extensions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -34,5 +35,29 @@ public static class Applications
             }
         });
         return cnt;
+    }
+
+    public static void CropProfilePicture(this IFaceDetector detector, Image<Rgb24> input, int? maxEdgeSize = 640, float scaleFactor = 1.35f)
+    {
+        var res = detector.Detect(input);
+        if (res.Count == 0)
+        {
+            throw new ArgumentException("No faces could be found in the given image", nameof(input));
+        }
+
+        var maxFace = res.MaxBy(x => x.Confidence);
+        var r = Rectangle.Round(maxFace.Box);
+        r = r.ScaleCentered(scaleFactor);
+        r.Intersect(input.Bounds());
+        var angl = 0.0f;
+        if (maxFace.Landmarks is not null)
+        {
+            angl = detector.GetFaceAlignmentAngle(maxFace.Landmarks);
+        }
+
+        input.Mutate(op =>
+        {
+            op.CropAligned(r, angl, maxEdgeSize);
+        });
     }
 }

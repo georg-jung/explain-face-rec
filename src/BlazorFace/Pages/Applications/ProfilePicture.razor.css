@@ -1,0 +1,4 @@
+.restrict-child-image-size ::deep > img {
+    max-height: 75vh;
+    max-width: min(40vw, 40%);
+}
