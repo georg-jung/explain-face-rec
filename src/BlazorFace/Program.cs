@@ -2,11 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reflection;
+using Blazored.Modal;
 using BlazorFace.Services;
 using FaceAiSharp;
 using FaceAiSharp.Abstractions;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -29,6 +28,7 @@ namespace BlazorFace
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
 
+            builder.Services.AddBlazoredModal();
             AddBlazorFaceServices(builder.Services);
 
             // Add the following line:
