@@ -13,6 +13,15 @@ namespace FaceAiSharp;
 
 public static class Metrics
 {
+    /// <summary>
+    /// Calculate the "area under the ROC curve" value for the given estimations. AUC is a quality metric
+    /// for a classifier. Higher is better. Below 0.5 is useless for a binary classifier.
+    /// </summary>
+    /// <param name="estimations">
+    ///     A list of tuples of confidence values our model calculated with their the corresponding
+    ///     ground-truth values.
+    /// </param>
+    /// <returns>The "area under the ROC curve" value for the given estimations.</returns>
     public static float Auc(IReadOnlyList<(float Confidence, bool IsMatch)> estimations)
     {
         var auc = 0.0;
@@ -40,6 +49,14 @@ public static class Metrics
         return (float)auc;
     }
 
+    /// <summary>
+    /// Generates the points needed to draw a ROC curve for the classifier that generated the estimations you pass as arguments.
+    /// </summary>
+    /// <param name="estimations">
+    ///     A list of tuples of confidence values our model calculated with their the corresponding
+    ///     ground-truth values.
+    /// </param>
+    /// <returns>Points to draw in a ROC curve.</returns>
     public static IEnumerable<(float X_FPR, float Y_TPR, float Threshold)> RocPoints(IReadOnlyList<(float Confidence, bool IsMatch)> estimations)
     {
         var idx = 0;
@@ -59,6 +76,15 @@ public static class Metrics
         }
     }
 
+    /// <summary>
+    /// Finds the optimal threshold for a binary classifier. The optimal threshold is defined as the threshold
+    /// that leads to the highest possible accuracy.
+    /// </summary>
+    /// <param name="estimations">
+    ///     A list of tuples of confidence values our model calculated with their the corresponding
+    ///     ground-truth values.
+    /// </param>
+    /// <returns>The threshold that leads to the highest possible accuracy.</returns>
     public static float FindThreshold(IReadOnlyList<(float Confidence, bool IsMatch)> estimations)
     {
         var idx = 0;
