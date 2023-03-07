@@ -84,9 +84,12 @@
         return Task.FromResult<string?>(null);
     }
 
-    private void ChooseFromGalleryClick()
+    private async Task ChooseFromGalleryClick()
     {
-        Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
+        var diag = Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
+        var res = await diag.Result;
+        using var img = Image.Load<Rgb24>((string)res.Data!);
+        await OnImageLoadedAsync(img);
     }
 
     private async void LoadFiles(InputFileChangeEventArgs e)

@@ -1,6 +1,7 @@
 <Bootstrap5Modal @ref="_modal">
     <div class="modal-body">
         <p>Hallo!</p>
+        <button class="btn btn-primary" @onclick="@(() => Chosen(Media.BarackObama01))">Obama 01</button>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
@@ -11,4 +12,6 @@
     private Bootstrap5Modal? _modal;
 
     private Task Close() => _modal!.CloseAsync(ModalResult.Cancel());
+
+    private Task Chosen(string file) => _modal!.CloseAsync(ModalResult.Ok<string>(file));
 }
