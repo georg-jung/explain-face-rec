@@ -26,7 +26,7 @@
                 @{
                     var rangeId = Guid.NewGuid().ToString("n");
                 }
-                <label for="@rangeId" class="form-label">Narrowness of the eye cutout: @_eyeDistanceDivisor</label>
+                <label for="@rangeId" class="form-label">Narrowness of the eye cutout: @($"{_eyeDistanceDivisor:N1}")</label>
                 <input
                     @bind-value="@_eyeDistanceDivisor"
                     @bind-value:event="oninput"
