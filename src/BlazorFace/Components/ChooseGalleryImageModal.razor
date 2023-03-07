@@ -1,0 +1,14 @@
+<Bootstrap5Modal @ref="_modal">
+    <div class="modal-body">
+        <p>Hallo!</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
+    </div>
+</Bootstrap5Modal>
+
+@code {
+    private Bootstrap5Modal? _modal;
+
+    private Task Close() => _modal!.CloseAsync(ModalResult.Cancel());
+}

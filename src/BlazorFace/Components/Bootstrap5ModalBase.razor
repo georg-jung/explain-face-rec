@@ -1,0 +1,46 @@
+<div class="modal fade @(_show ? "show d-block" : "")" tabindex="-1" role="dialog">
+    <div class="modal-backdrop fade @(_show ? "show d-block" : "")" @onclick="OnBackdropClicked"></div>
+    <div class="modal-dialog @ModalDialogExtraClass" style="z-index: 1050">
+        <!-- Pop it above the backdrop -->
+        <div class="modal-content">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Could hold e.g. "modal-xl", "modal-sm", "modal-fullscreen-md-down".
+    /// </summary>
+    [Parameter]
+    public string? ModalDialogExtraClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    public string? ModalTitle => BlazoredModal.Title;
+
+    public ModalOptions ModalOptions => BlazoredModal.Options;
+
+    [CascadingParameter]
+    private BlazoredModalInstance BlazoredModal { get; set; } = default!;
+
+    private bool _show = false;
+
+    public async Task CloseAsync(ModalResult modalResult)
+    {
+        _show = false;
+        await BlazoredModal.CloseAsync(modalResult);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _show = true;
+            StateHasChanged();
+        }
+    }
+
+    protected virtual Task OnBackdropClicked() => CloseAsync(ModalResult.Cancel());
+}

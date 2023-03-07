@@ -1,0 +1,31 @@
+<Bootstrap5ModalBase @ref="_modalBase" ModalDialogExtraClass="@ModalDialogExtraClass">
+    <div class="modal-header">
+        <h1 class="modal-title fs-5">@ModalTitle</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseClick"></button>
+    </div>
+    @ChildContent
+</Bootstrap5ModalBase>
+
+@code {
+    /// <summary>
+    /// Could hold e.g. "modal-xl", "modal-sm", "modal-fullscreen-md-down".
+    /// </summary>
+    [Parameter]
+    public string? ModalDialogExtraClass { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    public string? ModalTitle => _modalBase.ModalTitle;
+
+    public ModalOptions ModalOptions => _modalBase.ModalOptions;
+
+    private Bootstrap5ModalBase? _modalBase;
+
+    public async Task CloseAsync(ModalResult modalResult)
+    {
+        await _modalBase!.CloseAsync(modalResult);
+    }
+
+    private Task CloseClick() => CloseAsync(ModalResult.Cancel());
+}

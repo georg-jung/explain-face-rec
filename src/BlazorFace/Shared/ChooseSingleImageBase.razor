@@ -36,12 +36,14 @@
                 }
             </div>
             <p class="m-3"><em>- or -</em></p>
-            <button class="btn btn-outline-primary">Choose from examples</button>
+            <button class="btn btn-outline-primary" @onclick=ChooseFromGalleryClick>Choose from examples</button>
         </div>
     </div>
 </div>
 
 @code {
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
     protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
     protected virtual int MaxNoConversionSize => 1024 * 1024 / 2; // 0.5 MB
     protected virtual int MaxImageEdge => 1024;
@@ -80,6 +82,11 @@
     protected virtual Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
     {
         return Task.FromResult<string?>(null);
+    }
+
+    private void ChooseFromGalleryClick()
+    {
+        Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
     }
 
     private async void LoadFiles(InputFileChangeEventArgs e)
