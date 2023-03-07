@@ -27,6 +27,7 @@ jobs:
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         ref: ${{ inputs.build-ref }}
+        lfs: true
     - uses: dotnet/nbgv@v0.4
       id: nbgv
     - name: Set up Docker Buildx

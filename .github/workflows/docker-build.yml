@@ -13,6 +13,7 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        lfs: true
     - uses: dotnet/nbgv@v0.4
       id: nbgv
     - name: Build the Docker image
