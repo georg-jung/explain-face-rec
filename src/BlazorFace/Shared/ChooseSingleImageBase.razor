@@ -3,6 +3,8 @@
 @using Humanizer;
 @using SixLabors.ImageSharp.PixelFormats;
 
+@inject ILogger<ChooseSingleImageBase> log;
+
 <div class="container mb-4 d-flex flex-column align-items-center">
     @if (_processing)
     {
@@ -11,35 +13,36 @@
             Processing...
         </div>
     }
-    else
-    {
+
+    @*
+        It is important that the InputFile is not destroyed/removed from the RenderTree before we got
+        a Stream from the IBrowserFile. Thus, hide it instead of removing it.
+    *@
+    <div class="@(_processing ? "d-none" : "")">
         <p>
             To get started, please upload an image that contains one or more human faces.
         </p>
 
         <div class="mb-3">
-            <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadWasTooLarge || _uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
-            @if (_uploadWasTooLarge)
-            {
-                <div class="invalid-feedback">Maximum supported file size is @MaxUploadSize.Bytes().</div>
-            }
+            <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
             @if (_uploadNoImage)
             {
-                <div class="invalid-feedback">The uploaded file could not be read as image.</div>
+                <div class="invalid-feedback">The uploaded file could not be read as image. Either the file you chose was to large or you didn't choose a supported image file format.</div>
             }
             @if (_uploadErrorMessage is not null)
             {
                 <div class="invalid-feedback">@_uploadErrorMessage</div>
             }
         </div>
-    }
+    </div>
 </div>
 
 @code {
     protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
+    protected virtual int MaxNoConversionSize => 1024 * 1024 / 2; // 0.5 MB
+    protected virtual int MaxImageEdge => 1024;
 
     private string _inputFileId = Guid.NewGuid().ToString("n");
-    private bool _uploadWasTooLarge = false;
     private bool _uploadNoImage = false;
     private string? _uploadErrorMessage = null;
     private bool _processing = false;
@@ -55,14 +58,18 @@
     }
 
     /// <summary>
-    /// Clears everything related to the uploaded image.
+    /// Clears everything related to the uploaded image, except the image upload &lt;InputFile&gt; component itself.
     /// </summary>
     protected virtual Task Clear()
     {
-        _uploadNoImage = _uploadWasTooLarge = false;
+        _uploadNoImage = false;
         _uploadErrorMessage = null;
-        _inputFileId = Guid.NewGuid().ToString("n");
         return Task.CompletedTask;
+    }
+
+    protected void ClearInputFile()
+    {
+        _inputFileId = Guid.NewGuid().ToString("n");
     }
 
     protected virtual Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
@@ -73,15 +80,12 @@
     private async void LoadFiles(InputFileChangeEventArgs e)
     {
         await OnBeforeLoadFileAsync();
+        _processing = true;
+        StateHasChanged();
         try
         {
-            using var stream = e.TryOpen(MaxUploadSize, out _uploadWasTooLarge);
-            if (stream is null) return;
-
-            _processing = true;
-            StateHasChanged();
-
-            using var img = await stream.TryOpenImage();
+            using var img = await e.File.TryOpenImageBrowserConverted(MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
+            ClearInputFile();
             if (img is null)
             {
                 _uploadNoImage = true;
