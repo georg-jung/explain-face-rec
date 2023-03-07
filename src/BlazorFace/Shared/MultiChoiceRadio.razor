@@ -1,6 +1,6 @@
 @typeparam TItem
 
-<div class="btn-group" role="group">
+<div class="btn-group @Class" role="group">
     @foreach (var choice in Choices ?? Array.Empty<TItem>())
     {
         var id = Guid.NewGuid().ToString("n");
@@ -12,6 +12,9 @@
 </div>
 
 @code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
     [Parameter]
     public IEnumerable<TItem> Choices { get; set; } = new TItem[] { };
 

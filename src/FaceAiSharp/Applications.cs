@@ -60,4 +60,66 @@ public static class Applications
             op.CropAligned(r, angl, maxEdgeSize);
         });
     }
+
+    /// <summary>
+    /// Counts the number of faces in the given image.
+    /// </summary>
+    /// <param name="detector">The detector used to search for faces.</param>
+    /// <param name="input">The input image.</param>
+    /// <returns>The number of faces found.</returns>
+    public static int CountFaces(this IFaceDetector detector, Image<Rgb24> input)
+    {
+        var res = detector.Detect(input);
+        return res.Count;
+    }
+
+    /// <summary>
+    /// Counts the number of faces as well as opened and closed eyes in the given image.
+    /// Note that the eye state will only be estimated for eyes with an edge length >= 16.
+    /// Thus it is possible that Faces > OpenEyes + ClosedEyes.
+    /// </summary>
+    /// <param name="detector">The detector used to search for faces.</param>
+    /// <param name="eyeStateDetector">The eye state detector.</param>
+    /// <param name="input">The input image.</param>
+    /// <param name="eyeDistanceDivisor">
+    ///     The higher the value given is, the smaller the boxes around the eyes will be.
+    ///     Square eye box length = distance between eyes / <paramref name="eyeDistanceDivisor"/> * 2.
+    ///     3.0 seems to be a suitable value for typical eye sizes and some additional space around the eyes.
+    /// </param>
+    /// <returns>The numbers of faces, open and closed eyes found.</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown if the face detections by <paramref name="detector"/>
+    ///     do not include facial landmarks.
+    /// </exception>
+    public static (int Faces, int OpenEyes, int ClosedEyes) CountEyeStates(this IFaceDetector detector, IEyeStateDetector eyeStateDetector, Image<Rgb24> input, float eyeDistanceDivisor = 3)
+    {
+        var dets = detector.Detect(input);
+        var open = 0;
+        var closed = 0;
+        foreach (var det in dets)
+        {
+            var lmrks = det.Landmarks
+                ?? throw new InvalidOperationException("Facial landmarks are required but not given for all faces found.");
+            var angle = detector.GetFaceAlignmentAngle(lmrks);
+            var leye = detector.GetLeftEyeCenter(lmrks);
+            var reye = detector.GetRightEyeCenter(lmrks);
+            var bx = ImageCalculations.GetEyeBoxesFromCenterPoints(leye, reye, eyeDistanceDivisor);
+
+            if (Math.Min(bx.Left.Width, bx.Right.Width) < 16)
+            {
+                continue;
+            }
+
+            using var leyeImg = input.CropAligned(bx.Left, angle, 32);
+            using var reyeImg = input.CropAligned(bx.Right, angle, 32);
+            var leftOpen = eyeStateDetector.IsOpen(leyeImg);
+            var rightOpen = eyeStateDetector.IsOpen(reyeImg);
+            open += leftOpen ? 1 : 0;
+            closed += !leftOpen ? 1 : 0;
+            open += rightOpen ? 1 : 0;
+            closed += !rightOpen ? 1 : 0;
+        }
+
+        return (dets.Count, open, closed);
+    }
 }

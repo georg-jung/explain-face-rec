@@ -1,0 +1,115 @@
+@inherits ChooseSingleImageBase
+@page "/Demos/Count"
+@using FaceAiSharp.Abstractions;
+@using Humanizer;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IEyeStateDetector> esPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="container my-4 d-flex flex-column align-items-center">
+    @if (!IsProcessing)
+    {
+        <p>
+            What should be counted?
+            <MultiChoiceRadio Choices="@(new[] {Faces, OpenEyes})" @bind-SelectedChoice="@_facesOrEyes" class="ms-3" />
+        </p>
+        @if (_facesOrEyes == OpenEyes)
+        {
+            <p>
+                @{
+                    var rangeId = Guid.NewGuid().ToString("n");
+                }
+                <label for="@rangeId" class="form-label">Narrowness of the eye cutout: @_eyeDistanceDivisor</label>
+                <input
+                    @bind-value="@_eyeDistanceDivisor"
+                    @bind-value:event="oninput"
+                    @bind-value:culture="@System.Globalization.CultureInfo.InvariantCulture"
+                    type="range" class="form-range" min="2.0" max="4.0" step="0.1" id="@rangeId">
+            </p>
+        }
+    }
+
+    @if (_countMsg is not null)
+    {
+        <p>
+            @_countMsg
+        </p>
+    }
+
+
+    <div class="d-flex flex-row justify-content-center mb-4 restrict-child-image-size">
+        <img id="@imgId" class="mw-100" />
+    </div>
+</div>
+
+@code {
+    private const string Faces = nameof(Faces);
+    private const string OpenEyes = "Open eyes";
+
+    protected override int MaxImageEdge => 2048;
+
+    private readonly string imgId = Guid.NewGuid().ToString("n");
+    private string _facesOrEyes = Faces;
+    private string? _countMsg = null;
+    private float _eyeDistanceDivisor = 3;
+
+    protected override async Task Clear()
+    {
+        _countMsg = null;
+        await base.Clear();
+        await JS.ClearImage(imgId);
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        await (_facesOrEyes == Faces ? CountFaces(image) : CountEyes(image));
+        return null;
+    }
+
+    private async Task CountFaces(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+
+        try
+        {
+            var cnt = FaceAiSharp.Applications.CountFaces(det, image);
+            _countMsg = $"Found {"face".ToQuantity(cnt)}.";
+            await JS.SetImageStream(image, imgId);
+        }
+        finally
+        {
+            detectorPool.Return(det);
+        }
+    }
+
+    private async Task CountEyes(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+        var es = esPool.Get();
+
+        try
+        {
+            var (faces, o, c) = FaceAiSharp.Applications.CountEyeStates(det, es, image, _eyeDistanceDivisor);
+            _countMsg = $"Found {o} open {"eye".ToQuantity(o, ShowQuantityAs.None)} and {c} closed {"eye".ToQuantity(c, ShowQuantityAs.None)}.";
+            if (faces > o + c)
+            {
+                _countMsg += $" Thus, the state of {"eye".ToQuantity(o + c)} was estimated in {"face".ToQuantity(faces)}." +
+                    " The remaining eyes were skipped. Only eyes with an edge length of at least 16 pixels are considered." +
+                    " Upload a more zoomed-in or cropped image to get more accurate results or change the narrowness above.";
+            }
+            await JS.SetImageStream(image, imgId);
+        }
+        finally
+        {
+            esPool.Return(es);
+            detectorPool.Return(det);
+        }
+    }
+}

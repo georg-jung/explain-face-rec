@@ -11,12 +11,12 @@
     base.BuildRenderTree(__builder);
 }
 
-<div class="d-flex flex-row justify-content-center mb-4 restrict-child-image-size">
+<div class="d-flex flex-row justify-content-center my-4 restrict-child-image-size">
     <img id="@imgId" class="mw-100" />
 </div>
 
 @code {
-    private string imgId = Guid.NewGuid().ToString("n");
+    private readonly string imgId = Guid.NewGuid().ToString("n");
 
     protected override async Task Clear()
     {

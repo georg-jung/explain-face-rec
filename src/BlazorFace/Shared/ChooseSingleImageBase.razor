@@ -5,7 +5,7 @@
 
 @inject ILogger<ChooseSingleImageBase> log;
 
-<div class="container mb-4 d-flex flex-column align-items-center">
+<div class="container d-flex flex-column align-items-center">
     @if (_processing)
     {
         <div class="d-flex flex-row">
@@ -23,7 +23,7 @@
             To get started, please upload an image that contains one or more human faces.
         </p>
 
-        <div class="mb-3">
+        <div>
             <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
             @if (_uploadNoImage)
             {
@@ -41,6 +41,7 @@
     protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
     protected virtual int MaxNoConversionSize => 1024 * 1024 / 2; // 0.5 MB
     protected virtual int MaxImageEdge => 1024;
+    protected bool IsProcessing => _processing;
 
     private string _inputFileId = Guid.NewGuid().ToString("n");
     private bool _uploadNoImage = false;
