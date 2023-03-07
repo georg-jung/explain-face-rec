@@ -88,8 +88,21 @@
     {
         var diag = Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
         var res = await diag.Result;
-        using var img = Image.Load<Rgb24>((string)res.Data!);
+        if (res.Cancelled || res.Data is not string path)
+        {
+            return;
+        }
+
+        ClearInputFile();
+        _processing = true;
+        StateHasChanged();
+
+        using var img = Image.Load<Rgb24>(path);
+        // attention: a potential error message is not processed here
         await OnImageLoadedAsync(img);
+
+        _processing = false;
+        StateHasChanged();
     }
 
     private async void LoadFiles(InputFileChangeEventArgs e)

@@ -12,6 +12,8 @@ public static class Media
 #else
     public static readonly string PortraitsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "media", "portraits");
 #endif
-    public static readonly string BarackObama01 = Path.Combine(PortraitsDir, "Barack_Obama_01.jpg");
-    public static readonly string JohnFKennedy01 = Path.Combine(PortraitsDir, "John_F_Kennedy_01.jpg");
+
+    private static readonly Lazy<IReadOnlyList<string>> _portraits = new(() => Directory.GetFiles(PortraitsDir, "*.jpg"));
+
+    public static IReadOnlyList<string> Portraits => _portraits.Value;
 }

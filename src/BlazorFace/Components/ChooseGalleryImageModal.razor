@@ -1,7 +1,27 @@
 <Bootstrap5Modal @ref="_modal">
     <div class="modal-body">
-        <p>Hallo!</p>
-        <button class="btn btn-primary" @onclick="@(() => Chosen(Media.BarackObama01))">Obama 01</button>
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="portrait-tab" data-bs-toggle="tab" data-bs-target="#portrait-tab-pane" type="button" role="tab" aria-controls="portrait-tab-pane" aria-selected="true">Portraits</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="group-tab" data-bs-toggle="tab" data-bs-target="#group-tab-pane" type="button" role="tab" aria-controls="group-tab-pane" aria-selected="false">Groups</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="portrait-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                <div class="d-flex flex-row pt-3">
+                    @foreach (var portrait in Media.Portraits)
+                    {
+                        var name = Path.GetFileNameWithoutExtension(portrait).Replace("_", " ");
+                        <button class="btn btn-primary m-2" @onclick="@(() => Chosen(portrait))">@name</button>
+                    }
+                </div>
+            </div>
+            <div class="tab-pane fade" id="group-tab-pane" role="tabpanel" aria-labelledby="group-tab" tabindex="0">
+                ...
+            </div>
+        </div>
     </div>
     <div class="modal-footer">
         <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
