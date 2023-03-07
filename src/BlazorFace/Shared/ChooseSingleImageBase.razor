@@ -18,21 +18,25 @@
         It is important that the InputFile is not destroyed/removed from the RenderTree before we got
         a Stream from the IBrowserFile. Thus, hide it instead of removing it.
     *@
-    <div class="@(_processing ? "d-none" : "")">
+    <div class="@(_processing ? "d-none" : "") d-flex flex-column align-items-center">
         <p>
-            To get started, please upload an image that contains one or more human faces.
+            Get started with an image that contains one or more human faces.
         </p>
 
-        <div>
-            <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
-            @if (_uploadNoImage)
-            {
-                <div class="invalid-feedback">The uploaded file could not be read as image. Either the file you chose was to large or you didn't choose a supported image file format.</div>
-            }
-            @if (_uploadErrorMessage is not null)
-            {
-                <div class="invalid-feedback">@_uploadErrorMessage</div>
-            }
+        <div class="d-flex flex-md-row flex-column align-items-center">
+            <div>
+                <InputFile OnChange="@LoadFiles" @key=@_inputFileId class="@($"form-control {(_uploadNoImage || _uploadErrorMessage is not null ? "is-invalid" : "")}")" style="max-width: 32rem;" />
+                @if (_uploadNoImage)
+                {
+                    <div class="invalid-feedback">The uploaded file could not be read as image. Either the file you chose was to large or you didn't choose a supported image file format.</div>
+                }
+                @if (_uploadErrorMessage is not null)
+                {
+                    <div class="invalid-feedback">@_uploadErrorMessage</div>
+                }
+            </div>
+            <p class="m-3"><em>- or -</em></p>
+            <button class="btn btn-outline-primary">Choose from examples</button>
         </div>
     </div>
 </div>

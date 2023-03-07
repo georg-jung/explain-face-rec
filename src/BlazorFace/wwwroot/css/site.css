@@ -70,3 +70,7 @@ img.d-none-if-no-src {
 img[src].d-none-if-no-src {
     display: block;
 }
+
+.restrict-child-image-size > img {
+    max-height: 75vh;
+}
