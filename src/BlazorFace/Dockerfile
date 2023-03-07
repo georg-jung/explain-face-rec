@@ -11,6 +11,7 @@ COPY ["BlazorFace.sln", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
+COPY ["src/FaceAiSharp/FaceAiSharp.csproj", "src/FaceAiSharp/"]
 RUN dotnet restore "src/BlazorFace/BlazorFace.csproj"
 COPY . .
 RUN dotnet build "src/BlazorFace/BlazorFace.csproj" -c Release -o /app/build

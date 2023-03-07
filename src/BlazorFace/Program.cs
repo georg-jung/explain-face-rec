@@ -55,7 +55,7 @@ namespace BlazorFace
                 app.UseStaticFiles(new StaticFileOptions
                 {
                     FileProvider = new PhysicalFileProvider(
-                        Path.Combine(builder.Environment.ContentRootPath, @"..\..\media")),
+                        Path.Combine(builder.Environment.ContentRootPath, @"../../media")),
                     RequestPath = "/media",
                 });
             }
