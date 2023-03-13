@@ -13,6 +13,7 @@
     <PackageReference Include="Accord.Statistics" />
     <PackageReference Include="Blazored.Modal" />
     <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.DirectML" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="NodaTime" />

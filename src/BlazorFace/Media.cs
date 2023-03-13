@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Reflection;
+using Markdig;
 
 namespace BlazorFace;
 
@@ -21,7 +22,11 @@ public static class Media
 
     private static readonly Lazy<IReadOnlyList<string>> _groups = new(() => Directory.GetFiles(GroupsDir, "*.jpg"));
 
+    private static readonly Lazy<string> _sourcesHtml = new(() => Markdown.ToHtml(File.ReadAllText(Path.Combine(MediaDir, "Sources.md"))));
+
     public static IReadOnlyList<string> Portraits => _portraits.Value;
 
     public static IReadOnlyList<string> Groups => _groups.Value;
+
+    public static string SourcesHtml => _sourcesHtml.Value;
 }
