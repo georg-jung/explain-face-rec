@@ -10,7 +10,7 @@
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="portrait-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                <div class="d-flex flex-row pt-3">
+                <div class="d-flex flex-row pt-3 flex-wrap">
                     @foreach (var portrait in Media.Portraits)
                     {
                         var name = Path.GetFileNameWithoutExtension(portrait).Replace("_", " ");
@@ -19,7 +19,13 @@
                 </div>
             </div>
             <div class="tab-pane fade" id="group-tab-pane" role="tabpanel" aria-labelledby="group-tab" tabindex="0">
-                ...
+                <div class="d-flex flex-row pt-3 flex-wrap">
+                    @foreach (var img in Media.Groups)
+                    {
+                        var name = Path.GetFileNameWithoutExtension(img).Replace("_", " ");
+                            <button class="btn btn-primary m-2" @onclick="@(() => Chosen(img))">@name</button>
+                    }
+                </div>
             </div>
         </div>
     </div>
