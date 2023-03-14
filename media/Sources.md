@@ -2,6 +2,8 @@
 
 Some of the files might not be byte-wise copies of the sources listed but are recompressed.
 
+## Photos
+
 * portraits/John_F_Kennedy_01.jpg
   * <https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/John_F._Kennedy%2C_White_House_color_photo_portrait.jpg/592px-John_F._Kennedy%2C_White_House_color_photo_portrait.jpg>
   * <https://commons.wikimedia.org/wiki/File:John_F._Kennedy,_White_House_color_photo_portrait.jpg>
@@ -54,3 +56,29 @@ Some of the files might not be byte-wise copies of the sources listed but are re
   * <https://commons.wikimedia.org/wiki/File:Elaine_Chao_at_the_Regional_Media_Day.jpg>
   * <https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Elaine_Chao_at_the_Regional_Media_Day.jpg/1026px-Elaine_Chao_at_the_Regional_Media_Day.jpg>
   * Public Domain
+
+## Icons
+
+* image-with-people3.svg
+  * Based on
+    * <https://icons.getbootstrap.com/icons/image/>
+    * <https://icons.getbootstrap.com/icons/person-fill/>
+* face-detection.svg
+  * Based on
+    * <https://icons.getbootstrap.com/icons/image/>
+    * <https://icons.getbootstrap.com/icons/cpu/>
+    * <https://icons.getbootstrap.com/icons/arrow-right/>
+    * <https://icons.getbootstrap.com/icons/person-fill/>
+* face-recognition.svg
+  * Based on
+    * <https://icons.getbootstrap.com/icons/cpu/>
+    * <https://icons.getbootstrap.com/icons/arrow-right/>
+    * <https://icons.getbootstrap.com/icons/person-bounding-box/>
+    * <https://icons.getbootstrap.com/icons/person-fill/>
+* person-fill-perspective-warped.svg
+  * Based on <https://icons.getbootstrap.com/icons/person-fill/>
+
+### Bootstrap Icons
+
+* [MIT License](https://github.com/twbs/icons/blob/a7c0bc0c8222cbbdfcf5c30a21a7af50cbe77d35/LICENSE.md)
+* Copyright (c) 2019-2021 The Bootstrap Authors
