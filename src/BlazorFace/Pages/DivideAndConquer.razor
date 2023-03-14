@@ -26,8 +26,25 @@
         How do we tell if two pictures show the same person? As humans, we focus on the face, because it is
         <em>the</em> feature to identify people. While other aspects of a portrait might allow to draw conclusions
         about the identity of the pictured person too, they are less universal and often less precise or more changeable.
-        Thus it seems reasonable to first look for the face(s) in a picture and process just them further on.
+        Thus, it seems reasonable to first look for the face(s) in a picture and process just them further on.
     </p>
+
     <h2 class="fs-4">Face Detection vs. Face Recognition</h2>
-    
+    <p>
+        The first obvious decomposition into subproblems we can make is therefore to handle finding faces and identifying
+        a person separately. Finding faces is typically called <em>Face Detection</em>, identifying the person
+        <em>Face Recognition</em>. Identifying a person is however a much more general and abstract task than answering
+        our opening question, <em>Are the two the same?</em> Rather, the goal is to gain an understanding of the
+        similarity between images of faces. This also allows us to work on questions like &raquo;How many different
+        people do these 14 photos of faces show?&laquo; or &raquo;Does this face belong to the same person as these
+        eight faces that we already know about?&laquo; We could infer this to some extent if we could only decide
+        yes or no for two faces. A true understanding of person resemblance however allows us to answer these
+        questions more specifically and precisely.
+    </p>
+</div>
+
+<div class="container mt-4 d-flex flex-column align-items-center">
+    <a href="/FaceDetection" class="btn btn-primary">
+        So, how do we tackle this?
+    </a>
 </div>
