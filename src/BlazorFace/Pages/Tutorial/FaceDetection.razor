@@ -1,0 +1,22 @@
+@page "/FaceDetection"
+<PageTitle>Face Detection - Understanding Face Recognition</PageTitle>
+
+<div class="container col-xxl-6 col-xl-8">
+    <h1 class="fs-3">Face Detection</h1>
+    <p>
+        In the beginning, there is an image that we get as input. We know about it only simple parameters like the dimensions. We first have to find out whether there is a face at all or perhaps even several. If we have found faces, we know where they are located in the image, so that we can create appropriate crops.
+    </p>
+    <div class="d-flex flex-row justify-content-center restrict-child-img-size mw-100">
+        <img class="rounded m-2" src="media/face-detection.svg"
+             title="Face Detection" />
+    </div>
+
+    <h2 class="fs-4 text-center mt-5 mb-3">Live Demo: Face Detection</h2>
+    <FaceDetectionDemo />
+</div>
+
+<div class="container mt-4 d-flex flex-column align-items-center">
+    <a href="/FacialLandmarks" class="btn btn-primary">
+        Next
+    </a>
+</div>

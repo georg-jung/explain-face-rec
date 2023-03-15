@@ -1,0 +1,50 @@
+@inherits ChooseSingleImageBase
+
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="d-flex flex-row justify-content-center my-4 restrict-child-image-size">
+    <img id="@imgId" class="mw-100" />
+</div>
+
+@code {
+    private readonly string imgId = Guid.NewGuid().ToString("n");
+
+    protected override async Task Clear()
+    {
+        await base.Clear();
+        await JS.ClearImage(imgId);
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+
+        try
+        {
+            var detections = det.Detect(image);
+            var rectangles = detections.Select(x => Rectangle.Round(x.Box)).ToList();
+
+            var brush = Brushes.Solid(Color.Red);
+            image.DrawRectangles(brush, rectangles);
+            await JS.SetImageStream(image, imgId);
+            StateHasChanged();
+
+            return detections.Count > 0 ? null : "No faces could be found in this image.";
+        }
+        finally
+        {
+            detectorPool.Return(det);
+        }
+    }
+}

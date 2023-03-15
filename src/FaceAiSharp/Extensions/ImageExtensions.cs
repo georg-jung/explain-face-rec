@@ -130,18 +130,20 @@ namespace FaceAiSharp.Extensions
 
         /// <summary>
         /// Draws multiple rectangles onto a given image, e.g. to demonstrate where faces were detected in a picture.
+        /// The given image is mutated.
         /// </summary>
         /// <param name="image">The image to draw the rectangles onto.</param>
         /// <param name="brush">The brush to draw the lines with.</param>
         /// <param name="toDraw">An enumeration of the rectangles to draw.</param>
-        /// <param name="thickness">The thickness to draw the lines in.</param>
-        /// <returns>A copy of the given image with the rectangles drawn onto.</returns>
-        public static Image DrawRectangles(this Image image, IBrush brush, IEnumerable<Rectangle> toDraw, float thickness = 1.0f)
-            => image.Clone(op =>
+        /// <param name="thickness">The thickness to draw the lines in. Chosen automatically based on image dimensions if null.</param>
+        /// <remarks>This is a destructive operation.</remarks>
+        public static void DrawRectangles(this Image image, IBrush brush, IEnumerable<Rectangle> toDraw, float? thickness = null)
+            => image.Mutate(op =>
             {
+                var tn = thickness ?? Math.Max(image.Width / 400f, 1);
                 foreach (var rect in toDraw)
                 {
-                    op.Draw(brush, thickness, rect);
+                    op.Draw(brush, tn, rect);
                 }
             });
 
