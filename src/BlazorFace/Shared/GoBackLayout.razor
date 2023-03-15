@@ -1,0 +1,19 @@
+@inherits LayoutComponentBase
+@layout MainLayout
+
+@inject IJSRuntime JS
+
+@Body
+
+<div class="container d-flex flex-column align-items-center mt-2">
+    <button class="btn btn-secondary" @onclick="GoBack">
+        Go back
+    </button>
+</div>
+
+@code {
+    async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+}

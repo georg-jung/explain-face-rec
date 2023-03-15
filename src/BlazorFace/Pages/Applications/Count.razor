@@ -1,5 +1,7 @@
 @inherits ChooseSingleImageBase
 @page "/Demos/Count"
+@layout GoBackLayout
+
 @using FaceAiSharp.Abstractions;
 @using Humanizer;
 @using SixLabors.ImageSharp.PixelFormats;
@@ -8,6 +10,10 @@
 @inject IJSRuntime JS
 @inject ObjectPool<IFaceDetector> detectorPool
 @inject ObjectPool<IEyeStateDetector> esPool
+
+<div class="text-center mb-4">
+    <h1>Demo: Count Faces or Eyes</h1>
+</div>
 
 @{
     base.BuildRenderTree(__builder);

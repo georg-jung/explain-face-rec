@@ -1,11 +1,17 @@
 @inherits ChooseSingleImageBase
 @page "/Demos/BlurFaces"
+@layout GoBackLayout
+
 @using FaceAiSharp.Abstractions;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
 @inject ObjectPool<IFaceDetector> detectorPool
+
+<div class="text-center mb-4">
+    <h1>Demo: Blur All Faces</h1>
+</div>
 
 @{
     base.BuildRenderTree(__builder);
