@@ -17,13 +17,23 @@ namespace FaceAiSharp;
 public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisposable
 {
     // points from https://github.com/deepinsight/insightface/blob/c7bf2048e8947a6398b4b8bda6d1958138fdc9b5/python-package/insightface/utils/face_align.py
-    private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositions = new List<PointF>()
+    private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositionsInsightface = new List<PointF>()
     {
         new PointF(38.2946f, 51.6963f),
         new PointF(73.5318f, 51.5014f),
         new PointF(56.0252f, 71.7366f),
         new PointF(41.5493f, 92.3655f),
         new PointF(70.7299f, 92.2041f),
+    }.AsReadOnly();
+
+    // points from https://github.com/onnx/models/blob/8e893eb39b131f6d3970be6ebd525327d3df34ea/vision/body_analysis/arcface/dependencies/arcface_inference.ipynb
+    private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositionsOnnxZoo = new List<PointF>()
+    {
+        new PointF(30.2946f, 51.6963f),
+        new PointF(65.5318f, 51.5014f),
+        new PointF(48.0252f, 71.7366f),
+        new PointF(33.5493f, 92.3655f),
+        new PointF(62.7299f, 92.2041f),
     }.AsReadOnly();
 
     private static readonly ResizeOptions _resizeOptions = new()
@@ -151,11 +161,11 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         Guard.HasSizeEqualTo(landmarks, 5);
         var estimate = new List<(PointF A, PointF B)>
         {
-            (landmarks[0], ExpectedLandmarkPositions[0]),
-            (landmarks[1], ExpectedLandmarkPositions[1]),
-            (landmarks[2], ExpectedLandmarkPositions[2]),
-            (landmarks[3], ExpectedLandmarkPositions[3]),
-            (landmarks[4], ExpectedLandmarkPositions[4]),
+            (landmarks[0], ExpectedLandmarkPositionsOnnxZoo[0]),
+            (landmarks[1], ExpectedLandmarkPositionsOnnxZoo[1]),
+            (landmarks[2], ExpectedLandmarkPositionsOnnxZoo[2]),
+            (landmarks[3], ExpectedLandmarkPositionsOnnxZoo[3]),
+            (landmarks[4], ExpectedLandmarkPositionsOnnxZoo[4]),
         };
         var m = estimate.EstimateSimilarityMatrix();
         return m;
