@@ -86,10 +86,15 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
     /// </summary>
     /// <param name="face">Image containing the face. The given image will be mutated.</param>
     /// <param name="landmarks">5 facial landmark points.</param>
-    public static void AlignUsingFacialLandmarks(Image face, IReadOnlyList<PointF> landmarks)
+    /// <param name="edgeSize">
+    ///     ArcFace typically expects 112x112 inputs. Specifying another edge size might be useful for
+    ///     custom models or to manually analyze the resulting aligned faces.</param>
+    public static void AlignUsingFacialLandmarks(Image face, IReadOnlyList<PointF> landmarks, int edgeSize = 112)
     {
-        var cutRect = new Rectangle(0, 0, 112, 112);
+        var cutRect = new Rectangle(0, 0, edgeSize, edgeSize);
         var m = EstimateAffineAlignmentMatrix(landmarks);
+        var scaleTo112 = 112f / edgeSize;
+        m = Matrix3x2.Multiply(m, Matrix3x2.CreateScale(1 / scaleTo112, 1 / scaleTo112));
         var success = Matrix3x2.Invert(m, out var mi);
         if (!success)
         {
