@@ -16,7 +16,31 @@ namespace FaceAiSharp;
 
 public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisposable
 {
-    // points from https://github.com/deepinsight/insightface/blob/c7bf2048e8947a6398b4b8bda6d1958138fdc9b5/python-package/insightface/utils/face_align.py
+    /*  --- FINISHED! Final Stats 0,275 ---
+        Calculated 6000 pairs.
+        Had 3000 pairs belonging to the same person.
+        Avergage cosine distance:                   0,6669038685361545
+        Avergage euclidean distance:                1,1050784109483163
+        Avergage dot product:                       0,3330961314615561
+        Avergage cosine distance [same person]:     0,34073335826396944
+        Avergage euclidean distance [same person]:  0,8019862072567145
+        Avergage dot product [same person]:         0,6592666412101438
+        Avergage cosine distance [diff. person]:    0,9930743788083395
+        Avergage euclidean distance [diff. person]: 1,408170614639918
+        Avergage dot product [diff. person]:        0,006925621712968374
+        P:     3000 TP:     2822 FP:        1
+        N:     3000 TN:     2999 FN:      178
+        Accuracy:  97,02 %
+        Precision: 99,96 %
+        Recall:    94,07 %
+        F1 score:  0,9693
+        AuROC:     0,9739247
+        Threshold for best accuracy: 0,28119734
+    */
+
+    /// <summary>
+    /// Points from https://github.com/deepinsight/insightface/blob/c7bf2048e8947a6398b4b8bda6d1958138fdc9b5/python-package/insightface/utils/face_align.py.
+    /// </summary>
     private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositionsInsightface = new List<PointF>()
     {
         new PointF(38.2946f, 51.6963f),
@@ -26,7 +50,31 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         new PointF(70.7299f, 92.2041f),
     }.AsReadOnly();
 
-    // points from https://github.com/onnx/models/blob/8e893eb39b131f6d3970be6ebd525327d3df34ea/vision/body_analysis/arcface/dependencies/arcface_inference.ipynb
+    /*  --- FINISHED! Final Stats 0,264 ---
+        Calculated 6000 pairs.
+        Had 3000 pairs belonging to the same person.
+        Avergage cosine distance:                   0,6998155847887199
+        Avergage euclidean distance:                1,149087769721945
+        Avergage dot product:                       0,30018441526552975
+        Avergage cosine distance [same person]:     0,4252110035220782
+        Avergage euclidean distance [same person]:  0,9035951985418796
+        Avergage dot product [same person]:         0,5747889964582088
+        Avergage cosine distance [diff. person]:    0,9744201660553614
+        Avergage euclidean distance [diff. person]: 1,3945803409020106
+        Avergage dot product [diff. person]:        0,025579834072850645
+        P:     3000 TP:     2804 FP:       13
+        N:     3000 TN:     2987 FN:      196
+        Accuracy:  96,52 %
+        Precision: 99,54 %
+        Recall:    93,47 %
+        F1 score:  0,9641
+        AuROC:     0,97111547
+        Threshold for best accuracy: 0,26378733
+    */
+
+    /// <summary>
+    /// Points from https://github.com/onnx/models/blob/8e893eb39b131f6d3970be6ebd525327d3df34ea/vision/body_analysis/arcface/dependencies/arcface_inference.ipynb.
+    /// </summary>
     private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositionsOnnxZoo = new List<PointF>()
     {
         new PointF(30.2946f, 51.6963f),
@@ -117,7 +165,7 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
          * the complete image would waste cpu time. Thus we first invert the matrix, project our
          * 112x112 crop area using the matrix' inverse and take the minimum surrounding rectangle
          * of that projection. We crop the image using that rectangle and proceed. */
-        var area = cutRect.SupersetAreaOfTransform(mi);
+    var area = cutRect.SupersetAreaOfTransform(mi);
 
         /* The matrix m includes scaling. If we scale the image using an affine transform,
          * we loose quality because we don't use any specialized resizing methods. Thus, we extract
@@ -161,11 +209,11 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         Guard.HasSizeEqualTo(landmarks, 5);
         var estimate = new List<(PointF A, PointF B)>
         {
-            (landmarks[0], ExpectedLandmarkPositionsOnnxZoo[0]),
-            (landmarks[1], ExpectedLandmarkPositionsOnnxZoo[1]),
-            (landmarks[2], ExpectedLandmarkPositionsOnnxZoo[2]),
-            (landmarks[3], ExpectedLandmarkPositionsOnnxZoo[3]),
-            (landmarks[4], ExpectedLandmarkPositionsOnnxZoo[4]),
+            (landmarks[0], ExpectedLandmarkPositionsInsightface[0]),
+            (landmarks[1], ExpectedLandmarkPositionsInsightface[1]),
+            (landmarks[2], ExpectedLandmarkPositionsInsightface[2]),
+            (landmarks[3], ExpectedLandmarkPositionsInsightface[3]),
+            (landmarks[4], ExpectedLandmarkPositionsInsightface[4]),
         };
         var m = estimate.EstimateSimilarityMatrix();
         return m;
