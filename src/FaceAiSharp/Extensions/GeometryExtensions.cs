@@ -270,7 +270,18 @@ public static class GeometryExtensions
     }
 
     // Inspired by https://stackoverflow.com/a/2692295/1200847
+
+    /// <summary>
+    /// Calculates the horizontal scale factor (X Axis) of a transform that is applied by multiplying the given matrix.
+    /// </summary>
+    /// <param name="m">Input matrix.</param>
+    /// <returns>The horizontal scale factor/x axis.</returns>
     public static float GetHScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M11 * m.M11) + (m.M21 * m.M21));
 
+    /// <summary>
+    /// Calculates the vertical scale factor (Y Axis) of a transform that is applied by multiplying the given matrix.
+    /// </summary>
+    /// <param name="m">Input matrix.</param>
+    /// <returns>The vertical scale factor/y axis.</returns>
     public static float GetVScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M12 * m.M12) + (m.M22 * m.M22));
 }
