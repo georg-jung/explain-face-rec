@@ -123,20 +123,20 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
          * we loose quality because we don't use any specialized resizing methods. Thus, we extract
          * the x and y scale factors from the matrix, scale using Resize first and remove the scaling
          * from m by multiplying it with an inverted scale matrix. */
-        var (vScale, hScale) = (m.GetVScaleFactor(), m.GetHScaleFactor());
-        var mScale = Matrix3x2.CreateScale(1 / vScale, 1 / hScale);
+        var (hScale, vScale) = (m.GetHScaleFactor(), m.GetVScaleFactor());
+        var mScale = Matrix3x2.CreateScale(1 / hScale, 1 / vScale);
         face.Mutate(op =>
         {
             SafeCrop(op, area);
 
             var afb = new AffineTransformBuilder();
             var sz = op.GetCurrentSize();
-            var scale = new SizeF(sz.Width * vScale, sz.Height * hScale);
+            var scale = new SizeF(sz.Width * hScale, sz.Height * vScale);
             op.Resize(Size.Round(scale));
             m = Matrix3x2.Multiply(mScale, m);
 
             // the Crop does the inverse translation so we need to undo it
-            afb.AppendTranslation(new PointF(Math.Max(0, area.X * vScale), Math.Max(0, area.Y * hScale)));
+            afb.AppendTranslation(new PointF(Math.Max(0, area.X * hScale), Math.Max(0, area.Y * vScale)));
             afb.AppendMatrix(m);
             op.Transform(afb);
 
