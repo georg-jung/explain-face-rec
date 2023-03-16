@@ -1,0 +1,30 @@
+@inject IJSRuntime JS
+
+<link rel="stylesheet" href="image-compare-viewer-1.5.0/image-compare-viewer.min.css" />
+<div id="@this.GetHashCode()" class="image-compare @Class">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public string Class { get; set; } = "";
+
+    [Parameter]
+    public string? LeftLabel { get; set; }
+
+    [Parameter]
+    public string? RightLabel { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/ImageCompareViewer.razor.js");
+            var showLabels = LeftLabel is not null || RightLabel is not null;
+            await module.InvokeVoidAsync("mount", GetHashCode(), showLabels, LeftLabel, RightLabel);
+        }
+    }
+}

@@ -1,0 +1,70 @@
+@inherits ChooseSingleImageBase
+
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using FaceAiSharp;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="d-flex flex-row justify-content-center align-items-center mt-3 restrict-child-image-size">
+    <ImageCompareViewer LeftLabel="Unaligned" RightLabel="Aligned">
+        <img id="@imgUnalignedId" />
+        <img id="@imgAlignedId" />
+    </ImageCompareViewer>
+</div>
+
+@code {
+    private readonly string imgUnalignedId = Guid.NewGuid().ToString("n");
+    private readonly string imgAlignedId = Guid.NewGuid().ToString("n");
+
+    protected override async Task Clear()
+    {
+        await base.Clear();
+        await JS.ClearImage(imgUnalignedId);
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+        var emb = embedderPool.Get();
+
+        try
+        {
+            var detections = det.Detect(image);
+            if (detections.Count == 0)
+            {
+                return "No faces could be found in this image.";
+            }
+
+            var first = detections.FirstOrDefault();
+            if (first.Landmarks is null || first.Landmarks.Count == 0)
+            {
+                throw new InvalidOperationException("Landmarks are required.");
+            }
+
+            using var unaligned = image.Extract(Rectangle.Round(first.Box).GetMinimumSupersetSquare(), 450, true);
+
+            ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 450);
+
+            await JS.SetImageStream(unaligned, imgUnalignedId);
+            await JS.SetImageStream(image, imgAlignedId);
+            StateHasChanged();
+
+            return detections.Count > 0 ? null : "";
+        }
+        finally
+        {
+            embedderPool.Return(emb);
+            detectorPool.Return(det);
+        }
+    }
+}
