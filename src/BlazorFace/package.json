@@ -1,8 +1,0 @@
-{
-  "name": "blazorface",
-  "author": "Georg Jung",
-  "license": "MIT",
-  "devDependencies": {
-    "image-compare-viewer": "^1.5.0"
-  }
-}
