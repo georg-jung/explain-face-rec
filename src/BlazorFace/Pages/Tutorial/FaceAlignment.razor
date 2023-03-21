@@ -17,13 +17,20 @@
         Nowadays, there are several frameworks for Facial Landmark Detection. Simpler ones approximate the position of 5 points: both eyes and corners of the mouth as well as the tip of the nose. The dlib approach is also common, where 68 more detailed points are searched. However, modern models can even create a three-dimensional point cloud that reflects the face. Such information is used, for example, in face-swapping apps or in masking filters on Instagram, Snapchat and co.
     </p>
     <p>
-        For the simple approach of just rotating the face, the five points are sufficient. With this type of normalization, however, we would disregard the perspective. Modern face recognition methods have known fixed points where they expect to find eyes, corners of the mouth and nose in their input data. If we know the real points in the image of the face, we can approximate an affine transformation that moves the points in the face as close as possible to the target points. An affine transformation can be expressed by a matrix and include, for example, shear, scale, and rotation. We obtain the matrix by solving a system of equations with the source and target points. Then we multiply the image of the face by the matrix and get the aligned image.
+        For the simple approach of just rotating the face, the five points are sufficient. With this type of normalization, however, we would disregard the perspective. Modern face recognition methods often have known fixed points where they expect to find eyes, corners of the mouth and the nose in their input data. If we know their real positions in the image of the face, we can approximate an affine transformation that moves the points in the face as close as possible to the target points. An affine transformation can be expressed by a matrix and include, for example, shear, scale, and rotation. We obtain the matrix by solving a system of equations with the source and target points. Then we multiply the image of the face by the matrix and get the aligned image.
     </p>
     <figure class="figure d-flex flex-column align-items-center my-3">
         <img class="figure-img" style="max-width: min(70%, 12rem); border: 1px solid" src="media/deepinsight-targetpoints.opt.svg"
              title="Alignment Transform Target Points" />
         <figcaption class="figure-caption text-center">Expected eye, mouth and nose positions for ArcFace.</figcaption>
     </figure>
+    <p>
+        We have multiple options to obtain these landmark points. There are specialized AI models that focus on this task like
+        <a href="https://google.github.io/mediapipe/solutions/face_mesh.html">Google's Face Mesh</a>.
+        A simpler and often more efficient option is to use a face detection model that does not only find faces but also determines the landmark points in one step. Popular models that achieve this include
+        <a href="https://github.com/deepinsight/insightface/tree/master/detection/scrfd">SCRFD</a> and
+        <a href="https://kpzhang93.github.io/MTCNN_face_detection_alignment/index.html">MTCNN</a>.
+    </p>
     <div class="card mt-4 mb-3">
         <div class="card-header text-center">
             Live Demo: Face Alignment
@@ -34,7 +41,7 @@
     </div>
 
     <p>
-        As you might have noticed, the aligned images are not technically a transformed version of the image that we obtained by cropping the rectangle areas out of the input image. Rather, the aligned version sometimes uses more surrounding pixels from the input image than the cropped rectangle version did. As we know the facial landmark points in the original input image's coordinates, we can estimate the affine transform regarding one face for the whole input image. Thus, we can use pixels from the input image that are cropped off in the simpler cropped version.
+        As you might have noticed, the aligned images are not technically transformed versions of the images that we obtained by cropping the rectangle areas out of the input image. Rather, the aligned version sometimes uses more surrounding pixels from the input image than the cropped rectangle version did. As we know the facial landmark points in the original input image's coordinates, we can estimate the affine transform regarding one face for the whole input image. Because the transform will include a translation then, it does not matter where the face is located in the input image. Thus, we can use pixels from the input image that are cropped off in the simpler cropped version.
     </p>
 
     <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">
