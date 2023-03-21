@@ -4,14 +4,26 @@
 <div class="container col-xxl-6 col-xl-8">
     <h1 class="fs-3">Face Alignment</h1>
     <p>
-        Most modern face recognition mechanisms work on crops of images that just contain the face of a person, like those we
-        are able to create with face detection. 
+        Most modern face recognition mechanisms work on crops of images that just contain the face of a person, like those we are able to create with face detection. Feeding crops of images that were created just using the bounding boxes we get from face detection works to some extend. We can improve the accuracy quite a bit though if we <em>align</em> the faces first. In real-world scenarios, people might have their heads turned slightly. The photo may also be taken from different perspectives, such as from above or below. Then the face is shifted in perspective.
     </p>
-    <div class="d-flex flex-row justify-content-center restrict-child-img-size mw-100">
+    <div class="d-flex flex-row justify-content-center restrict-child-img-size mw-100 my-3">
         <img class="m-2" style="max-width: min(70%, 16rem)" src="media/face-alignment.opt.svg"
              title="Face Alignment" />
     </div>
-
+    <p>
+        Just like other AI methods, face recognition works best if we normalize the input data first. Thus, the result may depend more on the differences or similarities at issue - namely, which person is shown - and less on any other differences that are reduced by normalization. A simple approach is to rotate the face so that the two eyes are on a horizontal line. To do this, we need to know the position of the eyes in addition to the rectangles in which the faces lie. The task of finding such defined features in the face is called Facial Landmark Detection.
+    </p>
+    <p>
+        Nowadays, there are several frameworks for Facial Landmark Detection. Simpler ones approximate the position of 5 points: both eyes and corners of the mouth as well as the tip of the nose. The dlib approach is also common, where 68 more detailed points are searched. However, modern models can even create a three-dimensional point cloud that reflects the face. Such information is used, for example, in face-swapping apps or in masking filters on Instagram, Snapchat and co.
+    </p>
+    <p>
+        For the simple approach of just rotating the face, the five points are sufficient. With this type of normalization, however, we would disregard the perspective. Modern face recognition methods have known fixed points where they expect to find eyes, corners of the mouth and nose in their input data. If we know the real points in the image of the face, we can approximate an affine transformation that moves the points in the face as close as possible to the target points. An affine transformation can be expressed by a matrix and include, for example, shear, scale, and rotation. We obtain the matrix by solving a system of equations with the source and target points. Then we multiply the image of the face by the matrix and get the aligned image.
+    </p>
+    <figure class="figure d-flex flex-column align-items-center my-3">
+        <img class="figure-img" style="max-width: min(70%, 12rem); border: 1px solid" src="media/deepinsight-targetpoints.opt.svg"
+             title="Alignment Transform Target Points" />
+        <figcaption class="figure-caption text-center">Expected eye, mouth and nose positions for ArcFace.</figcaption>
+    </figure>
     <div class="card mt-4 mb-3">
         <div class="card-header text-center">
             Live Demo: Face Alignment
@@ -22,7 +34,7 @@
     </div>
 
     <p>
-        
+        As you might have noticed, the aligned images are not technically a transformed version of the image that we obtained by cropping the rectangle areas out of the input image. Rather, the aligned version sometimes uses more surrounding pixels from the input image than the cropped rectangle version did. As we know the facial landmark points in the original input image's coordinates, we can estimate the affine transform regarding one face for the whole input image. Thus, we can use pixels from the input image that are cropped off in the simpler cropped version.
     </p>
 
     <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">

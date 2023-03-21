@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="112"
+   height="112"
+   viewBox="0 0 112 112"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="deepinsight-targetpoints.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="7.319248"
+     inkscape:cx="54.445484"
+     inkscape:cy="43.447086"
+     inkscape:window-width="2560"
+     inkscape:window-height="1369"
+     inkscape:window-x="-8"
+     inkscape:window-y="816"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#000000;-inkscape-stroke:hairline;fill-opacity:1"
+       id="rect346"
+       width="2"
+       height="2"
+       x="37.2946"
+       y="50.6963" />
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#000000;-inkscape-stroke:hairline;fill-opacity:1"
+       id="rect347"
+       width="2"
+       height="2"
+       x="72.5318"
+       y="50.5014" />
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#000000;-inkscape-stroke:hairline;fill-opacity:1"
+       id="rect348"
+       width="2"
+       height="2"
+       x="55.0252"
+       y="70.7366" />
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#000000;-inkscape-stroke:hairline;fill-opacity:1"
+       id="rect349"
+       width="2"
+       height="2"
+       x="40.5493"
+       y="91.3655" />
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#000000;-inkscape-stroke:hairline;fill-opacity:1"
+       id="rect350"
+       width="2"
+       height="2"
+       x="69.7299"
+       y="91.2041" />
+  </g>
+</svg>
