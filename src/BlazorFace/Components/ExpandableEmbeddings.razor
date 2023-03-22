@@ -1,8 +1,18 @@
-<div class="accordion">
+<style>
+    .accordion-button:not(.collapsed) > code {
+        display: none;
+    }
+</style>
+
+<div class="accordion @Class">
     <div class="accordion-item">
         <h2 class="accordion-header">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-@this.GetHashCode()" aria-expanded="false" aria-controls="accordion-@this.GetHashCode()">
+            <button class="accordion-button collapsed align-items-end" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-@this.GetHashCode()" aria-expanded="false" aria-controls="accordion-@this.GetHashCode()">
                 Embeddings
+                @if (Embeddings is not null)
+                {
+                    <code class="mx-3 text-truncate">@Embeddings.Substring(0, 100)</code>
+                }
             </button>
         </h2>
         <div id="accordion-@this.GetHashCode()" class="accordion-collapse collapse">
@@ -16,4 +26,7 @@
 @code {
     [Parameter]
     public string? Embeddings { get; set; }
+
+    [Parameter]
+    public string Class { get; set; } = "";
 }
