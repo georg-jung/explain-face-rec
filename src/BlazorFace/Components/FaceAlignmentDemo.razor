@@ -18,7 +18,7 @@
 <div class="d-flex flex-row justify-content-center mt-3 @(IsProcessing ? "d-none" : "")">
     <p>
         Expected landmark positions:
-        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Red, Yellow, Blue, Green, Hide})" @bind-SelectedChoice="@_overlayColorString" />
+        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Yellow, Red, Blue, Green, Hide})" @bind-SelectedChoice="@_overlayColorString" />
     </p>
 </div>
 
@@ -53,13 +53,13 @@
 </div>
 
 @code {
-    private const string Red = nameof(Red);
     private const string Yellow = nameof(Yellow);
+    private const string Red = nameof(Red);
     private const string Blue = nameof(Blue);
     private const string Green = nameof(Green);
     private const string Hide = nameof(Hide);
 
-    private string _overlayColorString = Red;
+    private string _overlayColorString = Yellow;
     private Color _overlayColor => _overlayColorString switch
     {
         Red => Color.Red,

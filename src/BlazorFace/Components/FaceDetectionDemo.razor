@@ -12,7 +12,7 @@
 <div class="d-flex flex-row justify-content-center">
     <p>
         Bounding Box Color:
-        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Red, Yellow, Blue, Green})" @bind-SelectedChoice="@_bboxColorString" />
+        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Yellow, Red, Blue, Green})" @bind-SelectedChoice="@_bboxColorString" />
     </p>
 </div>
 
@@ -25,14 +25,14 @@
 </div>
 
 @code {
-    private const string Red = nameof(Red);
     private const string Yellow = nameof(Yellow);
+    private const string Red = nameof(Red);
     private const string Blue = nameof(Blue);
     private const string Green = nameof(Green);
 
     private readonly string imgId = Guid.NewGuid().ToString("n");
 
-    private string _bboxColorString = Red;
+    private string _bboxColorString = Yellow;
     private Color _bboxColor => _bboxColorString switch
     {
         Red => Color.Red,
