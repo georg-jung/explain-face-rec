@@ -15,14 +15,60 @@
     base.BuildRenderTree(__builder);
 }
 
+<div class="d-flex flex-row justify-content-center mt-3 @(IsProcessing ? "d-none" : "")">
+    <p>
+        Expected landmark positions:
+        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Red, Yellow, Blue, Green, Hide})" @bind-SelectedChoice="@_overlayColorString" />
+    </p>
+</div>
+
+<style>
+    .img-overlay-wrap {
+      position: relative;
+      display: inline-block; /* shrinks container to image size */
+      transition: transform 150ms ease-in-out;
+    }
+
+        .img-overlay-wrap .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
+        }
+</style>
+
 <div class="d-flex flex-row justify-content-center align-items-center mt-3 restrict-child-image-size">
-    <ImageCompareViewer LeftLabel="Unaligned" RightLabel="Aligned">
-        <img id="@imgUnalignedId" />
-        <img id="@imgAlignedId" />
-    </ImageCompareViewer>
+    <div class="img-overlay-wrap">
+        <ImageCompareViewer LeftLabel="Unaligned" RightLabel="Aligned">
+            <img id="@imgUnalignedId" />
+            <img id="@imgAlignedId" />
+        </ImageCompareViewer>
+        <svg class="overlay" style="color: #@(_overlayColor.ToHex())">
+            <use xlink:href='/media/deepinsight-targetpoints.opt.svg#img' href="/media/deepinsight-targetpoints.opt.svg#img"></use>
+        </svg>
+    </div>
 </div>
 
 @code {
+    private const string Red = nameof(Red);
+    private const string Yellow = nameof(Yellow);
+    private const string Blue = nameof(Blue);
+    private const string Green = nameof(Green);
+    private const string Hide = nameof(Hide);
+
+    private string _overlayColorString = Red;
+    private Color _overlayColor => _overlayColorString switch
+    {
+        Red => Color.Red,
+        Yellow => Color.Yellow,
+        Blue => Color.DodgerBlue,
+        Green => Color.LimeGreen,
+        _ => Color.Transparent,
+    };
+
     private readonly string imgUnalignedId = Guid.NewGuid().ToString("n");
     private readonly string imgAlignedId = Guid.NewGuid().ToString("n");
 
@@ -59,7 +105,7 @@
             await JS.SetImageStream(image, imgAlignedId);
             StateHasChanged();
 
-            return detections.Count > 0 ? null : "";
+            return null;
         }
         finally
         {
