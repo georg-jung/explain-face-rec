@@ -1,0 +1,77 @@
+@inherits ChooseSingleImageBase
+
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using FaceAiSharp;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceEmbeddingsGenerator> embGenPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<figure class="figure d-flex flex-column align-items-center my-3 restrict-child-image-size @(_showFig ? "" : "d-none")">
+    <img id="@imgId" class="figure-img" title="Aligned Face" />
+    <figcaption class="figure-caption text-center">
+        Aligned face used as input
+    </figcaption>
+</figure
+
+@if (_embeddings != null)
+{
+    <BlazorFace.Components.ExpandableEmbeddings Class="mt-4" Embeddings="@string.Join("\n", _embeddings)" />
+}
+
+@code {
+    private readonly string imgId = Guid.NewGuid().ToString("n");
+    private bool _showFig = false;
+    private float[]? _embeddings;
+
+    protected override async Task Clear()
+    {
+        _embeddings = null;
+        _showFig = false;
+        await base.Clear();
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        var det = detectorPool.Get();
+        var emb = embGenPool.Get();
+
+        try
+        {
+            var detections = det.Detect(image);
+            if (detections.Count == 0)
+            {
+                return "No faces could be found in this image.";
+            }
+
+            var first = detections.FirstOrDefault();
+            if (first.Landmarks is null || first.Landmarks.Count == 0)
+            {
+                throw new InvalidOperationException("Landmarks are required.");
+            }
+
+            ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 255);
+
+            _showFig = true;
+            await JS.SetImageStream(image, imgId);
+            StateHasChanged();
+
+            _embeddings = emb.Generate(image);
+
+            return null;
+        }
+        finally
+        {
+            embGenPool.Return(emb);
+            detectorPool.Return(det);
+        }
+    }
+}

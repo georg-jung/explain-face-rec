@@ -1,0 +1,40 @@
+@page "/FaceRecognition"
+<PageTitle>Face Recognition - Understanding Face Recognition</PageTitle>
+
+<div class="container col-xxl-6 col-xl-8">
+    <h1 class="fs-3">Face Recognition</h1>
+    <p>
+        In <a href="/DivideAndConquer">Divide and Conquer</a> we defined the goal of face recognition as <em>gaining an understanding of the similarity between images of faces</em>. How can we imagine this? How can a software gain an understanding? As in other AI topics, a common approach to this is to reduce the input data to what is essential for the use case. For answering more concrete questions like "Do these faces belong to the same person?" we are actually not interested in the faces themselves, but in the abstract identity information contained in the face. As humans, we have a sense of this that is difficult to formalize. A typical approach from a more mathematical point of view is to encode the information as a many-dimensional vector. Such vectors have defined distances from each other. They can also be very similar in some dimensions, but completely different in others. These properties also apply to our intuition about faces: Two persons can look alike. They can also look very different, but have similarities in individual aspects, e.g. have large eyes.
+    </p>
+    <p>
+        Thus, if we have a function that assigns vectors to faces, we can answer many questions about the identity of the persons depicted using the vectors. Now we have formalized the problem and have a clearer task. In addition, vectors have other advantages. They are more compact than images if we reduce the information to the essentials. We don't have to keep the actual photos to compare multiple faces and start the process from scratch each time. Instead, we can determine the identity encoded in an image once and work with it more efficiently and easily in the future.
+    </p>
+    <div class="d-flex flex-row justify-content-center restrict-child-img-size mw-100 my-3">
+        <img class="m-2" style="max-width: min(70%, 28rem)" src="media/face-recognition-focussed.opt.svg"
+             title="Face Recognition" />
+    </div>
+    <p>
+        Such vectors are typically called <em>embeddings</em>. This is not specific to Face Recognition. For example, in the field of Natural Language Processing, text input is converted into embeddings that encode the meaning of words and sentences. On the basis of the embeddings, sentences could be generated again - for example in another language.
+    </p>
+    <div class="card mt-4 mb-3">
+        <div class="card-header text-center">
+            Live Demo: Face Recognition/Embedding Generation
+        </div>
+        <div class="card-body">
+            <EmbeddingGenerationDemo />
+        </div>
+    </div>
+
+    <p>
+        If you tried the demo above, you know what an embedding like this looks like. It is a vector with 512 entries, so in a 512-dimensional space. At first glance, this is a rather unintuitive way to visualize a person's identity. In the next step, we'll take a closer look at what we can do with embeddings and how they can help us represent the similarity of people more intuitively.
+    </p>
+
+    <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">
+        <a href="/FaceAlignment" class="btn btn-secondary">
+            Previous
+        </a>
+        <a href="/DimensionalityReduction" class="disabled btn btn-primary">
+            Next
+        </a>
+    </div>
+</div>
