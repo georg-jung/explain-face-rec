@@ -47,6 +47,17 @@
         As you might have noticed, the aligned images are not technically transformed versions of the images that we obtained by cropping the rectangle areas out of the input image. Rather, the aligned version sometimes uses more surrounding pixels from the input image than the cropped rectangle version did. As we know the facial landmark points in the original input image's coordinates, we can estimate the affine transform regarding one face for the whole input image. Because the transform will include a translation then, it does not matter where the face is located in the input image. Thus, we can use pixels from the input image that are cropped off in the simpler cropped version.
     </p>
 
+    <h2 class="fs-4 mt-4">Usage examples</h2>
+    <p>
+        Beyond alignment for face recognition, there are more use cases for algorithms that find facial landmarks. For example:
+    </p>
+
+    <ul>
+        <li>Face modifying filters for social media, see e.g. <a href="https://github.com/google/mediapipe/blob/master/docs/solutions/face_mesh.md">Google MediaPipe Face Mesh</a></li>
+        <li>Retouch skin blemishes only on one photo and automatically transfer to other photos of the same person</li>
+        <li>Virtual trying on of glasses</li>
+    </ul>
+
     <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">
         <a href="/FaceDetection" class="btn btn-secondary">
             Previous
