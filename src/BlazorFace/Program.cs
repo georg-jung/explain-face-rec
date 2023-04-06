@@ -91,7 +91,10 @@ namespace BlazorFace
             services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
             services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>();
 
-            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+            services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>(sp => new DefaultObjectPoolProvider
+            {
+                MaximumRetained = 1,
+            });
             AddInjectionObjectPool<IFaceDetector>(services);
             AddInjectionObjectPool<IFaceEmbeddingsGenerator>(services);
             AddInjectionObjectPool<IFaceLandmarksExtractor>(services);
