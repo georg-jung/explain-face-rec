@@ -1,0 +1,144 @@
+@layout LegalLayout
+
+@using Humanizer;
+@using SixLabors.ImageSharp.PixelFormats;
+
+@inject ILogger<ChooseImageGroupBase> log;
+
+<div class="container d-flex flex-column align-items-center">
+    @if (_loadProgress.HasValue)
+    {
+        <div style="width:calc(min(32rem,100%))">
+            <Progress Percentage="(int)((double)_loadProgress.Value.current / _loadProgress.Value.max * 100)" />
+        </div>
+    }
+    else if (_loading)
+    {
+        <div class="d-flex flex-row">
+            <Spinner Class="me-2" />
+            Processing...
+        </div>
+    }
+
+    @*
+        It is important that the InputFile is not destroyed/removed from the RenderTree before we got
+        a Stream from the IBrowserFile. Thus, hide it instead of removing it.
+    *@
+    <div class="@(IsProcessing ? "d-none" : "") d-flex flex-column align-items-center">
+        <p>
+            Get started with images that contain one or more human faces.
+        </p>
+
+        <div class="d-flex flex-md-row flex-column align-items-center">
+            <div>
+                <InputFile OnChange="@LoadFiles" multiple @key=@_inputFileId class="form-control" style="max-width: 32rem;" />
+            </div>
+            <p class="m-3"><em>- or -</em></p>
+            <button class="btn btn-outline-primary" @onclick=ChooseFromGalleryClick>Choose from examples</button>
+        </div>
+
+        @foreach (var msg in _uploadErrorMessages)
+        {
+            <Alert class="mt-3">@msg</Alert>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] public IModalService Modal { get; set; } = default!;
+
+    protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
+    protected virtual int MaxNoConversionSize => 1024 * 1024 / 2; // 0.5 MB
+    protected virtual int MaxImageEdge => 1024;
+    protected bool IsProcessing => _loading || _loadProgress.HasValue;
+
+    private string _inputFileId = Guid.NewGuid().ToString("n");
+    private List<string> _uploadErrorMessages = new();
+    private bool _loading = false;
+    (int current, int max)? _loadProgress;
+
+    /// <summary>
+    /// Called when an upload is initiated but before it is processed.
+    /// </summary>
+    protected virtual Task OnBeforeLoadFileAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Clears everything related to the uploaded image, except the image upload &lt;InputFile&gt; component itself.
+    /// </summary>
+    protected virtual Task Clear()
+    {
+        _uploadErrorMessages.Clear();
+        return Task.CompletedTask;
+    }
+
+    protected void ClearInputFile()
+    {
+        _inputFileId = Guid.NewGuid().ToString("n");
+    }
+
+    protected virtual Task<string?> OnImageLoadedAsync(Image<Rgb24> image, string fileName)
+    {
+        return Task.FromResult<string?>(null);
+    }
+
+    private async Task ChooseFromGalleryClick()
+    {
+        await OnBeforeLoadFileAsync();
+        var diag = Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
+        var res = await diag.Result;
+        if (res.Cancelled || res.Data is not string path)
+        {
+            return;
+        }
+
+        ClearInputFile();
+        _loading = true;
+        StateHasChanged();
+
+        using var img = Image.Load<Rgb24>(path);
+        // attention: a potential error message is not processed here
+        await OnImageLoadedAsync(img, System.IO.Path.GetFileName(path));
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async void LoadFiles(InputFileChangeEventArgs e)
+    {
+        await OnBeforeLoadFileAsync();
+        _loading = true;
+        StateHasChanged();
+        try
+        {
+            var cnt = Math.Min(e.FileCount, 100);
+            _loadProgress = (0, cnt);
+            var uploads = e.TryOpenMultipleImagesBrowserConverted(100, MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
+            var idx = 0;
+            await foreach(var upload in uploads) {
+                using var img = upload.Content;
+                if (img is null)
+                {
+                    _uploadErrorMessages.Add($"{upload.FileName} could not be loaded.");
+                }
+                else
+                {
+                    var msg = await OnImageLoadedAsync(img, upload.FileName);
+                    if (msg is not null) _uploadErrorMessages.Add(msg);
+                }
+                idx++;
+                _loadProgress = (idx, cnt);
+                StateHasChanged();
+            }
+            ClearInputFile();
+        }
+        finally
+        {
+            _loadProgress = null;
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+}

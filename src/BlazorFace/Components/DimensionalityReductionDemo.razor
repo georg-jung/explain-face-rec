@@ -1,0 +1,71 @@
+@inherits ChooseImageGroupBase
+
+@using FaceAiSharp.Abstractions;
+@using SixLabors.ImageSharp.PixelFormats;
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceEmbeddingsGenerator> embGenPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+@if (!IsProcessing)
+{
+    <div class="mt-4">
+        <DimReductionPlot AlignedFaceImages="_alignedFaces" Embeddings="_embeddings" FileNames="_fileNames" />
+    </div>
+}
+
+@code {
+    private readonly string imgId = Guid.NewGuid().ToString("n");
+    private bool _showFig = false;
+
+    private readonly List<byte[]> _alignedFaces = new();
+    private readonly List<float[]> _embeddings = new();
+    private readonly List<string> _fileNames = new();
+
+    protected override async Task Clear()
+    {
+        _alignedFaces.Clear();
+        _embeddings.Clear();
+        _fileNames.Clear();
+        _showFig = false;
+        await base.Clear();
+    }
+
+    protected override Task<string?> OnImageLoadedAsync(Image<Rgb24> image, string fileName)
+    {
+        var det = detectorPool.Get();
+        var embGen = embGenPool.Get();
+        try
+        {
+            var detection = det.Detect(image);
+            if (detection.Count == 0)
+            {
+                return Task.FromResult<string?>($"{fileName} was skipped because no face was found.");
+            }
+
+            var first = detection.First();
+            var lmrks = first.Landmarks ?? throw new InvalidOperationException("Face detection with landmarks is required.");
+
+            FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks);
+            var emb = embGen.Generate(image);
+            _embeddings.Add(emb);
+
+            using var ms = new MemoryStream();
+            image.SaveAsJpeg(ms);
+            _alignedFaces.Add(ms.ToArray());
+
+            _fileNames.Add(fileName);
+
+            return Task.FromResult<string?>(null);
+        }
+        finally
+        {
+            detectorPool.Return(det);
+            embGenPool.Return(embGen);
+        }
+    }
+}

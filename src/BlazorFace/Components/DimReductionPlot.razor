@@ -7,24 +7,27 @@
 @inject IFilenameGrouper grouper;
 @inject IJSRuntime JS
 
-<p>
-    <MultiChoiceRadio Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
+<p class="d-flex flex-row align-items-center row">
+    <span class="col-md-3 col-sm-6 col-12 mb-2">Dimensions to plot:</span>
+    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
 </p>
-<p>
-    <MultiChoiceRadio Choices="@(new[] {PCA, UMAP})" @bind-SelectedChoice="@_pcaOrUmap" @bind-SelectedChoice:after="@ReduceDims" />
+<p class="d-flex flex-row align-items-center row">
+    <span class="col-md-3 col-sm-6 col-12 mb-2">Dimensionality reduction algorithm:</span>
+    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {PCA, UMAP})" @bind-SelectedChoice="@_pcaOrUmap" @bind-SelectedChoice:after="@ReduceDims" />
 </p>
-
 @if (UMAP.Equals(_pcaOrUmap))
 {
-    <p>
-        @{
-            var rangeId = Guid.NewGuid().ToString("n");
-        }
-        <label for="@rangeId" class="form-label">UMAP Number of neighbors: @_umapNeighbors</label>
-        <input @bind="@_umapNeighbors" type="range" class="form-range" min="1" max="100" @bind:event="oninput" id="@rangeId">
-    </p>
-    <p class="mt-3">
-        <button class="btn btn-secondary" @onclick="@ReduceDims">Recalculate</button>
+    <p class="d-flex flex-row align-items-center row">
+        <div class="col-12 col-sm-8 col-lg-4">
+            @{
+                var rangeId = Guid.NewGuid().ToString("n");
+            }
+            <label for="@rangeId" class="form-label">UMAP Number of neighbors: @_umapNeighbors</label>
+            <input @bind="@_umapNeighbors" type="range" class="form-range" min="1" max="100" @bind:event="oninput" id="@rangeId">
+        </div>
+        <div class="mt-3 col-sm-4 col-12">
+            <button class="btn btn-secondary" @onclick="@ReduceDims">Recalculate</button>
+        </div>
     </p>
 }
 
@@ -84,7 +87,7 @@
 
     private string _2dOr3d = ThreeD;
     private string _pcaOrUmap = PCA;
-    private int _umapNeighbors = 15;
+    private int _umapNeighbors = 3;
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
     private Dictionary<string, List<string>>? _groups;

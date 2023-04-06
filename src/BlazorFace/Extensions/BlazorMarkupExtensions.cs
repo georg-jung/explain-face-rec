@@ -74,6 +74,34 @@ internal static class BlazorMarkupExtensions
         }
     }
 
+    public static async IAsyncEnumerable<(Image<Rgb24>? Content, string FileName)> TryOpenMultipleImagesBrowserConverted(
+        this InputFileChangeEventArgs e,
+        int maxFileCount,
+        int maxNoConversionSize,
+        long maxUploadSize,
+        int maxWidth,
+        int maxHeight,
+        ILogger? log)
+    {
+        var files = e.GetMultipleFiles(maxFileCount);
+        foreach (var file in files)
+        {
+            Image<Rgb24>? img = null;
+            string? name = null;
+            try
+            {
+                name = file.Name;
+                img = await file.TryOpenImageBrowserConverted(maxNoConversionSize, maxUploadSize, maxWidth, maxHeight, log);
+            }
+            catch (IOException ex)
+              when (ex.Message.Contains("byte", StringComparison.OrdinalIgnoreCase))
+            {
+            }
+
+            yield return (img, name!);
+        }
+    }
+
     public static async Task<Image<Rgb24>?> TryOpenImageBrowserConverted(this IBrowserFile file, int maxNoConversionSize, long maxUploadSize, int maxWidth, int maxHeight, ILogger? log)
     {
         const string jpegMime = "image/jpeg";
