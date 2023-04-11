@@ -7,6 +7,14 @@
 @inject IFilenameGrouper grouper;
 @inject IJSRuntime JS
 
+@if (Embeddings is null || Embeddings.Count < 3)
+{
+    <p class="text-center">
+        <em>Please add at least three faces to get a meaningful visualization.</em>
+    </p>
+    return;
+}
+
 <p class="d-flex flex-row align-items-center row">
     <span class="col-md-3 col-sm-6 col-12 mb-2">Dimensions to plot:</span>
     <MultiChoiceRadio Class="col-auto" Choices="@(new[] {TwoD, ThreeD})" @bind-SelectedChoice="@_2dOr3d" @bind-SelectedChoice:after="@ReduceDims" />
@@ -31,11 +39,20 @@
     </p>
 }
 
-<div class="d-flex flex-row">
+<div class="d-flex flex-md-row flex-column">
+    <style>
+        @@media (min-width: 768px) {
+            /* md+ https://getbootstrap.com/docs/5.2/layout/breakpoints/ */
+            .md-mw-20vw {
+                max-width: 20vw;
+            }
+        }
+    </style>
     <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart"
-                 style="height: min(60vw, 60vh); width: min(60vw, 60vh);"
+                 style="aspect-ratio: 1 / 1; width: min(60vw, 60vh);"
                  HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
-    <div class="ms-4 d-flex flex-column">
+    <div class="ms-md-4 mb-4 mb-md-0 d-flex flex-column md-mw-20vw">
+        <p><em>Drag the plot to move it.</em></p>
         <p><em>Hover over a point in the scatter plot to preview the corresponding face.</em></p>
         <img id="@HoveredPointFaceImgId" class="mw-100 hovered-face-preview" style="width: 112px; height: 112px;" />
         @if (FileNames is not null && _hoveredIndex is int idx)
