@@ -1,12 +1,13 @@
-@page "/DimensionalityReduction"
-<PageTitle>Dimensionality Reduction - Understanding Face Recognition</PageTitle>
+@page "/ComparingFaces"
 
-<div class="container col-xl-8">
-    <h1 class="fs-3">Dimensionality Reduction &ndash; Visualize Embeddings</h1>
+<PageTitle>Comparing Faces - Understanding Face Recognition</PageTitle>
+
+<div class="container col-xxl-6 col-xl-8">
+    <h1 class="fs-3">Comparing Faces</h1>
 
     <div class="card mt-4 mb-3">
         <div class="card-header center-and-right">
-            <span>Live Demo: Dimensionality Reduction</span>
+            <span>Live Demo: Compare Faces</span>
             <div>
                 <a href="" class="text-decoration-none" @onclick="Clear" @onclick:preventDefault>
                     <i class="bi bi-arrow-clockwise"></i>
@@ -15,15 +16,15 @@
             </div>
         </div>
         <div class="card-body">
-            <DimensionalityReductionDemo @ref="@demo" />
+            <DirectComparisonDemo @ref="@demo" />
         </div>
     </div>
 
     <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">
-        <a href="/FaceRecognition" class="btn btn-secondary">
+        <a href="/DimensionalityReduction" class="btn btn-secondary">
             Previous
         </a>
-        <a href="/ComparingFaces" class="disbaled btn btn-primary">
+        <a href="#" class="disbaled btn btn-primary">
             Next
         </a>
     </div>
@@ -32,7 +33,7 @@
 <Toc />
 
 @code {
-    private DimensionalityReductionDemo? demo;
+    private DirectComparisonDemo? demo;
 
     private Task Clear() => demo!.ClearDemo();
 }

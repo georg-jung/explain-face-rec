@@ -1,0 +1,137 @@
+@inherits ChooseSingleImageBase
+
+@using FaceAiSharp.Abstractions;
+@using FaceAiSharp.Extensions;
+@using FaceAiSharp;
+@using SixLabors.ImageSharp.Drawing.Processing;
+@using SixLabors.ImageSharp.PixelFormats;
+@using BlazorFace.Components;
+
+@inject IJSRuntime JS
+@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceEmbeddingsGenerator> embGenPool
+
+@{
+    base.BuildRenderTree(__builder);
+}
+
+<div class="@(IsProcessing ? "d-none" : "")">
+    <div class="d-flex flex-row justify-content-evenly">
+        <figure class="figure d-flex flex-column align-items-center my-3 restrict-child-image-size">
+            @if (_embeddings1 is null)
+            {
+                <i class="bi bi-person text-muted" style="font-size: 4rem;"></i>
+            }
+            <img id="@imgId1" class="figure-img @(_embeddings1 is null ? "d-none" : "")" title="Aligned Face 1" />
+            <figcaption class="figure-caption text-center @(_embeddings1 is null ? "text-primary" : "")">
+                First face
+                @if (_embeddings1 is null)
+                {
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                }
+                else
+                {
+                    <a href="" @onclick="@(() => (_embeddings1, _dot) = (null, null))" @onclick:preventDefault class="link-danger"><i class="bi bi-trash"></i></a>
+                }
+            </figcaption>
+        </figure>
+
+        <figure class="figure d-flex flex-column align-items-center my-3 restrict-child-image-size">
+            @if (_embeddings2 is null)
+            {
+                <i class="bi bi-person text-muted" style="font-size: 4rem;"></i>
+            }
+            <img id="@imgId2" class="figure-img @(_embeddings2 is null ? "d-none" : "")" title="Aligned Face 2" />
+            <figcaption class="figure-caption text-center @(_embeddings1 is not null ? "text-primary" : "")">
+                Second face
+                @if (_embeddings1 is not null)
+                {
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                }
+            </figcaption>
+        </figure>
+    </div>
+    @if (_dot.HasValue)
+    {
+        <p class="text-center">The dot product of the embedding vectors is @_dot.</p>
+        @if (_dot >= 0.42)
+        {
+            <div class="alert alert-success" role="alert">
+                Both pictures show the same person.
+            </div>
+        }
+        else if (_dot > 0.28 && _dot < 0.42)
+        {
+            <div class="alert alert-warning" role="alert">
+                Hard to tell if the pictures show the same person.
+            </div>
+        }
+        else if (_dot <= 0.28)
+        {
+            <div class="alert alert-danger" role="alert">
+                These are two different people.
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private readonly string imgId1 = Guid.NewGuid().ToString("n");
+    private readonly string imgId2 = Guid.NewGuid().ToString("n");
+    private float[]? _embeddings1;
+    private float[]? _embeddings2;
+    private float? _dot;
+
+    public async Task ClearDemo()
+    {
+        await Clear();
+        _embeddings1 = null;
+        _embeddings2 = null;
+        _dot = null;
+        StateHasChanged();
+    }
+
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
+    {
+        string? Handle(out float[]? embeddings)
+        {
+            var det = detectorPool.Get();
+            var emb = embGenPool.Get();
+
+            try
+            {
+                var detections = det.Detect(image);
+                if (detections.Count == 0)
+                {
+                    embeddings = null;
+                    return "No faces could be found in this image.";
+                }
+
+                var first = detections.FirstOrDefault();
+                if (first.Landmarks is null || first.Landmarks.Count == 0)
+                {
+                    throw new InvalidOperationException("Landmarks are required.");
+                }
+
+                ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 255);
+
+                embeddings = emb.Generate(image);
+
+                return null;
+            }
+            finally
+            {
+                embGenPool.Return(emb);
+                detectorPool.Return(det);
+            }
+        }
+
+        var (res, imgId) = _embeddings1 is null ? (Handle(out _embeddings1), imgId1) : (Handle(out _embeddings2), imgId2);
+        if (res is not null) return res;
+
+        await JS.SetImageStream(image, imgId);
+        if (_embeddings1 is not null && _embeddings2 is not null) _dot = _embeddings1.Dot(_embeddings2);
+        StateHasChanged();
+        return null;
+    }
+}
