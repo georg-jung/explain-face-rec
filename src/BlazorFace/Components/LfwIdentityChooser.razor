@@ -6,12 +6,18 @@
         @foreach (var (id, files) in Media.LfwFaces)
         {
             <li>
-                <a class="dropdown-item" href="#" @onclick="@(async () => await IdentitySelectedCallback.InvokeAsync(id))" @onclick:preventDefault>
+                <button class="dropdown-item" @onclick="@(async () => await IdentitySelectedCallback.InvokeAsync(id))">
                     @id.Replace("_", " ")
                     <span class="badge rounded-pill bg-secondary">@files.Length</span>
-                </a>
+                </button>
             </li>
         }
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <a class="dropdown-item link-primary" href="/MediaReferencesAndLicenses" target="_blank">
+                <em>Sources</em>
+            </a>
+        </li>
     </ul>
 </div>
 

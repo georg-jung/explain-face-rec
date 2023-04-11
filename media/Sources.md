@@ -57,6 +57,12 @@ Some of the files might not be byte-wise copies of the sources listed but are re
   * <https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Elaine_Chao_at_the_Regional_Media_Day.jpg/1026px-Elaine_Chao_at_the_Regional_Media_Day.jpg>
   * Public Domain
 
+### People image collections
+
+> Where multiple images of one person can be used as example, such as the images of Adam Sandler and George W. Bush.
+
+These images are a subset of the [LFW dataset](http://vis-www.cs.umass.edu/lfw/).
+
 ## Icons
 
 * image-with-people3.svg
