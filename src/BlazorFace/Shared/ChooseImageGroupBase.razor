@@ -35,6 +35,8 @@
             </div>
             <p class="m-3"><em>- or -</em></p>
             <button class="btn btn-outline-primary" @onclick=ChooseFromGalleryClick>Choose from examples</button>
+            <p class="m-3"><em>- or -</em></p>
+            <LfwIdentityChooser IdentitySelectedCallback="LfwIdentitiySelected" />
         </div>
 
         @foreach (var msg in _uploadErrorMessages)
@@ -84,6 +86,12 @@
         return Task.FromResult<string?>(null);
     }
 
+    private async Task LfwIdentitiySelected(string identity)
+    {
+        var files = Media.LfwFaces[identity];
+        await LoadFiles(files);
+    }
+
     private async Task ChooseFromGalleryClick()
     {
         await OnBeforeLoadFileAsync();
@@ -104,6 +112,35 @@
 
         _loading = false;
         StateHasChanged();
+    }
+
+    private async Task LoadFiles(IReadOnlyCollection<string> files)
+    {
+        await OnBeforeLoadFileAsync();
+        _loading = true;
+        StateHasChanged();
+        try
+        {
+            var cnt = files.Count;
+            _loadProgress = (0, cnt);
+            var idx = 0;
+            foreach (var file in files)
+            {
+                using var img = await Image.LoadAsync<Rgb24>(file);
+                var msg = await OnImageLoadedAsync(img, Path.GetFileName(file));
+                if (msg is not null) _uploadErrorMessages.Add(msg);
+                idx++;
+                _loadProgress = (idx, cnt);
+                StateHasChanged();
+            }
+            ClearInputFile();
+        }
+        finally
+        {
+            _loadProgress = null;
+            _loading = false;
+            StateHasChanged();
+        }
     }
 
     private async void LoadFiles(InputFileChangeEventArgs e)

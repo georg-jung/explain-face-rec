@@ -1,0 +1,21 @@
+<div class="dropdown">
+    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        Add faces
+    </button>
+    <ul class="dropdown-menu">
+        @foreach (var (id, files) in Media.LfwFaces)
+        {
+            <li>
+                <a class="dropdown-item" href="#" @onclick="@(async () => await IdentitySelectedCallback.InvokeAsync(id))" @onclick:preventDefault>
+                    @id.Replace("_", " ")
+                    <span class="badge rounded-pill bg-secondary">@files.Length</span>
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> IdentitySelectedCallback { get; set; }
+}
