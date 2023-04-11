@@ -31,6 +31,12 @@
             font-weight: 500;
         }
 
+        .toc a.underline-instead-border:hover {
+            color: var(--bd-violet);
+            border-left-color: transparent;
+            text-decoration: underline;
+        }
+
     @@media (min-width: 1200px) {
         .toc {
             position: fixed;
@@ -62,5 +68,7 @@
         <li>
             <NavLink href="DimensionalityReduction">Dimensionality Reduction</NavLink>
         </li>
-</ul>
+    </ul>
+    <hr class="ms-3" />
+    <a href="/" class="underline-instead-border">Home</a>
 </div>
