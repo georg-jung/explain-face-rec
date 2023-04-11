@@ -1,0 +1,66 @@
+<style>
+    /* inpired by https://getbootstrap.com/docs/5.3/ */
+    .toc {
+        font-size: 0.875rem;
+        --bd-violet: #712cf9;
+    }
+
+    .toc ul, ul.toc {
+        padding-left: 0;
+        margin-bottom: 0;
+        list-style: none;
+    }
+
+    .toc a {
+        display: block;
+        padding: 0.125rem 0 0.125rem 0.75rem;
+        color: inherit;
+        text-decoration: none;
+        border-left: 0.125rem solid transparent;
+    }
+
+        .toc a.active, .toc a:hover {
+            /* for dark mode
+            color: var(--bs-emphasis-color);
+            border-left-color: var(--bs-emphasis-color);*/
+            color: var(--bd-violet);
+            border-left-color: var(--bd-violet);
+        }
+
+        .toc a.active {
+            font-weight: 500;
+        }
+
+    @@media (min-width: 1200px) {
+        .toc {
+            position: fixed;
+            left: 1rem;
+            top: 6rem;
+            width: unset;
+        }
+    }
+</style>
+<div class="toc mt-5 mt-xl-0 text-secondary container col-md-6 col-8">
+    <strong class="ms-3">Chapters</strong>
+    <hr class="ms-3" />
+    <ul>
+        <li>
+            <NavLink href="Goals">What you'll learn</NavLink>
+        </li>
+        <li>
+            <NavLink href="DivideAndConquer">Divide and Conquer</NavLink>
+        </li>
+        <li>
+            <NavLink href="FaceDetection">Face Detection</NavLink>
+        </li>
+        <li>
+            <NavLink href="FaceAlignment">Face Alignment</NavLink>
+        </li>
+        <li>
+            <NavLink href="FaceRecognition">Face Recognition</NavLink>
+        </li>
+        <li>
+            <NavLink href="DimensionalityReduction">Dimensionality Reduction</NavLink>
+        </li>
+</ul>
+</div>
