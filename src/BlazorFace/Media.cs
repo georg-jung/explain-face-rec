@@ -25,7 +25,7 @@ public static class Media
     private static readonly Lazy<IReadOnlyList<string>> _groups = new(() => Directory.GetFiles(GroupsDir, "*.jpg"));
 
     private static readonly Lazy<IReadOnlyDictionary<string, string[]>> _lfwFaces =
-        new(() => Directory.GetDirectories(LfwDir).ToDictionary(dir => Path.GetFileName(dir), dir => Directory.GetFiles(dir, "*.jpg")));
+        new(() => Directory.GetDirectories(LfwDir).Order().ToDictionary(dir => Path.GetFileName(dir), dir => Directory.GetFiles(dir, "*.jpg")));
 
     private static readonly Lazy<string> _sourcesHtml = new(() => Markdown.ToHtml(File.ReadAllText(Path.Combine(MediaDir, "Sources.md"))));
 
