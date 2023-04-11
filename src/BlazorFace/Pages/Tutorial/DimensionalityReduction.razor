@@ -5,11 +5,17 @@
     <h1 class="fs-3">Dimensionality Reduction &ndash; Visualize Embeddings</h1>
 
     <div class="card mt-4 mb-3">
-        <div class="card-header text-center">
-            Live Demo: Dimensionality Reduction
+        <div class="card-header center-and-right">
+            <span>Live Demo: Dimensionality Reduction</span>
+            <div>
+                <a href="" class="text-decoration-none" @onclick="Clear" @onclick:preventDefault>
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Clear
+                </a>
+            </div>
         </div>
         <div class="card-body">
-            <DimensionalityReductionDemo />
+            <DimensionalityReductionDemo @ref="@demo" />
         </div>
     </div>
 
@@ -24,3 +30,9 @@
 </div>
 
 <Toc />
+
+@code {
+    private DimensionalityReductionDemo? demo;
+
+    private Task Clear() => demo!.ClearDemo();
+}

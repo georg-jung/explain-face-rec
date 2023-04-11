@@ -26,6 +26,8 @@
     private readonly List<float[]> _embeddings = new();
     private readonly List<string> _fileNames = new();
 
+    public Task ClearDemo() => Clear();
+
     protected override async Task Clear()
     {
         _alignedFaces.Clear();
@@ -33,6 +35,7 @@
         _fileNames.Clear();
         _showFig = false;
         await base.Clear();
+        StateHasChanged();
     }
 
     protected override Task<string?> OnImageLoadedAsync(Image<Rgb24> image, string fileName)

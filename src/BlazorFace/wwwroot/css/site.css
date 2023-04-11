@@ -94,3 +94,26 @@ img[src].d-none-if-no-src {
     background-color: var(--bd-callout-bg, var(--bs-gray-100));
     border-left: 0.25rem solid var(--bd-callout-border, var(--bs-gray-300));
 }
+
+/* inspired by https://stackoverflow.com/a/56792646/1200847 */
+.center-and-right {
+    display: grid;
+}
+
+    .center-and-right > * {
+        grid-column-start: 1;
+        grid-row-start: 1;
+        justify-self: left;
+    }
+
+    @media (min-width: 576px) {
+        .center-and-right > * {
+            grid-column-start: 1;
+            grid-row-start: 1;
+            justify-self: center;
+        }
+    }
+
+    .center-and-right > *:last-child {
+        justify-self: right;
+    }
