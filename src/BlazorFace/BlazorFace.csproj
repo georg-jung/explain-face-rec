@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Accord.MachineLearning" />
     <PackageReference Include="Accord.Statistics" />
     <PackageReference Include="Blazored.Modal" />
     <PackageReference Include="Humanizer.Core" />

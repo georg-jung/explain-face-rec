@@ -21,17 +21,17 @@
 </p>
 <p class="d-flex flex-row align-items-center row">
     <span class="col-md-3 col-sm-6 col-12 mb-2">Dimensionality reduction algorithm:</span>
-    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {PCA, UMAP})" @bind-SelectedChoice="@_pcaOrUmap" @bind-SelectedChoice:after="@ReduceDims" />
+    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {PCA, UMAP, Tsne})" @bind-SelectedChoice="@_reductionAlgo" @bind-SelectedChoice:after="@ReduceDims" />
 </p>
-@if (UMAP.Equals(_pcaOrUmap))
+@if (UMAP.Equals(_reductionAlgo) || Tsne.Equals(_reductionAlgo))
 {
     <p class="d-flex flex-row align-items-center row">
         <div class="col-12 col-sm-8 col-lg-4">
             @{
                 var rangeId = Guid.NewGuid().ToString("n");
             }
-            <label for="@rangeId" class="form-label">UMAP Number of neighbors: @_umapNeighbors</label>
-            <input @bind="@_umapNeighbors" type="range" class="form-range" min="1" max="100" @bind:event="oninput" id="@rangeId">
+            <label for="@rangeId" class="form-label">Number of neighbors/perplexity: @_perplexity</label>
+            <input @bind="@_perplexity" type="range" class="form-range" min="1" max="@_maxPerplexity" @bind:event="oninput" id="@rangeId">
         </div>
         <div class="mt-3 col-sm-4 col-12">
             <button class="btn btn-secondary" @onclick="@ReduceDims">Recalculate</button>
@@ -98,13 +98,15 @@
 @code {
     private const string UMAP = nameof(UMAP);
     private const string PCA = nameof(PCA);
+    private const string Tsne = "t-SNE";
     private const string TwoD = "2D";
     private const string ThreeD = "3D";
     private const string HoveredPointFaceImgId = nameof(HoveredPointFaceImgId);
 
     private string _2dOr3d = ThreeD;
-    private string _pcaOrUmap = PCA;
-    private int _umapNeighbors = 3;
+    private string _reductionAlgo = PCA;
+    private int _perplexity = 3;
+    private int _maxPerplexity => Embeddings is null ? 0 : (Embeddings.Count - 2) / 3;
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
     private Dictionary<string, List<string>>? _groups;
@@ -205,11 +207,11 @@
         if (Embeddings.Count != AlignedFaceImages?.Count) throw new InvalidOperationException("AlignedFaceImages.Count needs to equal Embeddings.Count");
 
         var is2d = TwoD.Equals(_2dOr3d, StringComparison.Ordinal);
-        var isPca = PCA.Equals(_pcaOrUmap, StringComparison.Ordinal);
+        var numberOfOutputs = is2d ? 2 : 3;
 
         float[][] Umap()
         {
-            var umap = new UMAP.Umap(dimensions: is2d ? 2 : 3, numberOfNeighbors: _umapNeighbors);
+            var umap = new UMAP.Umap(dimensions: numberOfOutputs, numberOfNeighbors: _perplexity);
             var numEpochs = umap.InitializeFit(Embeddings.ToArray());
             for (var i = 0; i < numEpochs; i++)
                 umap.Step();
@@ -221,12 +223,29 @@
         {
             var embs = Embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
             var pca = new Accord.Statistics.Analysis.PrincipalComponentAnalysis();
-            pca.NumberOfOutputs = is2d ? 2 : 3;
+            pca.NumberOfOutputs = numberOfOutputs;
             pca.Learn(embs);
             return pca.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
         }
 
-        var redEmbeddings = isPca ? Pca() : Umap();
+        float[][] tSne()
+        {
+            var embs = Embeddings.Select(arr => Array.ConvertAll(arr, x => (double)x)).ToArray();
+            var tsne = new Accord.MachineLearning.Clustering.TSNE();
+            tsne.NumberOfOutputs = numberOfOutputs;
+            // See https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.MachineLearning/Clustering/TSNE.cs
+            // 50 is default but (N - 1) / 3 is max.
+            tsne.Perplexity = Math.Min((embs.Length - 2) / 3.0, 50);
+            return tsne.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
+        }
+
+        var redEmbeddings = _reductionAlgo switch
+        {
+            PCA => Pca(),
+            UMAP => Umap(),
+            Tsne => tSne(),
+            _ => throw new NotImplementedException(),
+        };
 
         // prepend grey for the unknown ones
         const string GreyColor = "#4e4e4e";
