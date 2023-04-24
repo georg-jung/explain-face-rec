@@ -252,7 +252,7 @@
             tsne.NumberOfOutputs = numberOfOutputs;
             // See https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.MachineLearning/Clustering/TSNE.cs
             // 50 is default but (N - 1) / 3 is max.
-            tsne.Perplexity = Math.Min((embs.Length - 2) / 3.0, 50);
+            tsne.Perplexity = _perplexity;
             return tsne.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
         }
 
