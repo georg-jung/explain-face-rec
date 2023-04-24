@@ -21,8 +21,20 @@
 </p>
 <p class="d-flex flex-row align-items-center row">
     <span class="col-md-3 col-sm-6 col-12 mb-2">Dimensionality reduction algorithm:</span>
-    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {PCA, UMAP, Tsne})" @bind-SelectedChoice="@_reductionAlgo" @bind-SelectedChoice:after="@ReduceDims" />
+    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {PCA, UMAP, Tsne, MDS})" @bind-SelectedChoice="@_reductionAlgo" @bind-SelectedChoice:after="@ReduceDims" />
 </p>
+@if (MDS.Equals(_reductionAlgo) && !_parametersDirty)
+{
+    <p class="d-flex flex-row align-items-center row">
+        <div class="col-md-3 col-sm-6 col-12">
+            MDS-Stress: @_mdsStress
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-secondary" @onclick="@ReduceDims">Recalculate</button>
+        </div>
+    </p>
+
+}
 @if (UMAP.Equals(_reductionAlgo) || Tsne.Equals(_reductionAlgo))
 {
     <p class="d-flex flex-row align-items-center row">
@@ -99,12 +111,15 @@
     private const string UMAP = nameof(UMAP);
     private const string PCA = nameof(PCA);
     private const string Tsne = "t-SNE";
+    private const string MDS = nameof(MDS);
+
     private const string TwoD = "2D";
     private const string ThreeD = "3D";
     private const string HoveredPointFaceImgId = nameof(HoveredPointFaceImgId);
 
     private string _2dOr3d = ThreeD;
     private string _reductionAlgo = PCA;
+    private float _mdsStress = 0f;
     private int _perplexity = 3;
     private int _maxPerplexity => Embeddings is null ? 0 : (Embeddings.Count - 2) / 3;
     private bool _parametersDirty = false;
@@ -241,14 +256,23 @@
             return tsne.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
         }
 
+        float[][] Mds()
+        {
+            var distMatrix = MultidimensionalScaling.DotProductDistanceMatrix(Embeddings);
+            var mds = MultidimensionalScaling.Smacof(distMatrix, numberOfOutputs);
+            _mdsStress = mds.Stress;
+            return mds.Positions;
+        }
+
         var redEmbeddings = _reductionAlgo switch
         {
             PCA => Pca(),
             UMAP => Umap(),
             Tsne => tSne(),
+            MDS => Mds(),
             _ => throw new NotImplementedException(),
         };
-
+        
         // prepend grey for the unknown ones
         const string GreyColor = "#4e4e4e";
         var colors = _disableGrouping
