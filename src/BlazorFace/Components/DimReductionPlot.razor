@@ -206,6 +206,8 @@
         if (Embeddings.Count != FileNames?.Count) throw new InvalidOperationException("FileNames.Count needs to equal Embeddings.Count");
         if (Embeddings.Count != AlignedFaceImages?.Count) throw new InvalidOperationException("AlignedFaceImages.Count needs to equal Embeddings.Count");
 
+        _parametersDirty = false;
+
         var is2d = TwoD.Equals(_2dOr3d, StringComparison.Ordinal);
         var numberOfOutputs = is2d ? 2 : 3;
 
@@ -302,7 +304,6 @@
 
         await chart!.Clear();
         await chart!.AddTrace(trace);
-        _parametersDirty = false;
         StateHasChanged();
     }
 
