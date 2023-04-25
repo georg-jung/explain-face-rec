@@ -19,7 +19,6 @@ namespace BlazorFace
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
 
-            builder.Services.AddBlazoredModal();
             BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
             // Add the following line:

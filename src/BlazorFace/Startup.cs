@@ -27,6 +27,8 @@ public static class Startup
 
     public static void AddBlazorFaceServices(IServiceCollection services)
     {
+        services.AddBlazoredModal();
+
         services.AddMemoryCache();
         services.AddSingleton<IClock>(SystemClock.Instance);
         services.AddSingleton<IFilenameGrouper, CommonPrefixFilenameGrouper>();
