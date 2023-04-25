@@ -53,7 +53,7 @@
     </div>
     @if (_dot.HasValue)
     {
-        <p class="text-center">The dot product of the embedding vectors is @_dot.</p>
+        <p class="text-center">The dot product of the embedding vectors is <code>@(MathF.Round(_dot.Value, 3))</code>.</p>
         @if (_dot >= 0.42)
         {
             <div class="alert alert-success" role="alert">
@@ -127,7 +127,11 @@
         }
 
         var (res, imgId) = _embeddings1 is null ? (Handle(out _embeddings1), imgId1) : (Handle(out _embeddings2), imgId2);
-        if (res is not null) return res;
+        if (res is not null)
+        {
+            _dot = null;
+            return res;
+        }
 
         await JS.SetImageStream(image, imgId);
         if (_embeddings1 is not null && _embeddings2 is not null) _dot = _embeddings1.Dot(_embeddings2);
