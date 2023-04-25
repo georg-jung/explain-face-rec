@@ -14,10 +14,10 @@
     <EnableDefaultCssItems>false</EnableDefaultCssItems>
 
     <!-- Display name -->
-    <ApplicationTitle>BlazorFace.Maui</ApplicationTitle>
+    <ApplicationTitle>Understanding Face Recognition</ApplicationTitle>
 
     <!-- App Identifier -->
-    <ApplicationId>com.companyname.blazorface.maui</ApplicationId>
+    <ApplicationId>com.gjung.blazorface.maui</ApplicationId>
     <ApplicationIdGuid>6CA8894B-3BEE-408C-8C15-F0C9DC193AFC</ApplicationIdGuid>
 
     <!-- Versions -->
