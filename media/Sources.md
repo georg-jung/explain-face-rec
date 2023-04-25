@@ -1,8 +1,16 @@
-# Sources and Licenses
+# Media Sources and Licenses
 
 Some of the files might not be byte-wise copies of the sources listed but are recompressed.
 
 ## Photos
+
+### People Image Collections
+
+> Where multiple images of one person can be used as example, such as the images of Adam Sandler and George W. Bush.
+
+These images are a subset of the [LFW dataset](http://vis-www.cs.umass.edu/lfw/).
+
+### Individual Photos
 
 * portraits/John_F_Kennedy_01.jpg
   * <https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/John_F._Kennedy%2C_White_House_color_photo_portrait.jpg/592px-John_F._Kennedy%2C_White_House_color_photo_portrait.jpg>
@@ -57,14 +65,10 @@ Some of the files might not be byte-wise copies of the sources listed but are re
   * <https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Elaine_Chao_at_the_Regional_Media_Day.jpg/1026px-Elaine_Chao_at_the_Regional_Media_Day.jpg>
   * Public Domain
 
-### People image collections
-
-> Where multiple images of one person can be used as example, such as the images of Adam Sandler and George W. Bush.
-
-These images are a subset of the [LFW dataset](http://vis-www.cs.umass.edu/lfw/).
-
 ## Icons
 
+* matrix by Jino from [Noun Project](https://thenounproject.com/browse/icons/term/matrix/)
+* matrix by Marc Torrada from [Noun Project](https://thenounproject.com/browse/icons/term/matrix/)
 * image-with-people3.svg
   * Based on
     * <https://icons.getbootstrap.com/icons/image/>
@@ -83,6 +87,13 @@ These images are a subset of the [LFW dataset](http://vis-www.cs.umass.edu/lfw/)
     * <https://icons.getbootstrap.com/icons/person-fill/>
 * person-fill-perspective-warped.svg
   * Based on <https://icons.getbootstrap.com/icons/person-fill/>
+* logo.svg
+  * Based on <https://icons.getbootstrap.com/icons/person-bounding-box/>
+  * Colors were changed
+
+### Noun Project Icons
+
+The Noun Project's icons used here were purchased from the [Noun Project](https://thenounproject.com/) as part of a NounPro Unlimited Individual Subscription. Thus, the icons are versions without attribution. Their use is governed by the [Noun Project Terms of Use](https://thenounproject.com/legal/).
 
 ### Bootstrap Icons
 
