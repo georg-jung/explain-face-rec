@@ -57,11 +57,4 @@
     <ProjectReference Include="..\BlazorFace\BlazorFace.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\BlazorFace\wwwroot\**\*.*">
-      <Link>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
 </Project>

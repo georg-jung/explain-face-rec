@@ -24,8 +24,8 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        BlazorFace.Program.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
-        BlazorFace.Program.AddBlazorFaceServices(builder.Services);
+        BlazorFace.Startup.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
+        BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
         return builder.Build();
     }
