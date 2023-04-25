@@ -5,6 +5,25 @@
 <div class="container col-xxl-6 col-xl-8">
     <h1 class="fs-3">Comparing Faces</h1>
 
+    <p>
+        We now know that face recognition allows us to represent faces as vectors. The photos are likely to be of the same person if these vectors are similar. So we no longer have a task that seems to be intractable and that is best solved by artificial intelligence. The remaining question, how similar two vectors are, can be considered in a more classical mathematical way. In the previous step, we represented the vectors graphically. Intuitively, we could easily see which points belong to the same person because they are close to each other. This intuitive proximity is called Euclidean distance.
+    </p>
+    <p>
+        However, there are other distance measures that we can use to judge the similarity of two vectors. For the face recognition model we are using, ArcFace, the Euclidean distance also works (as we saw in the previous step), but we can get slightly better results by using the cosine similarity instead. Cosine similarity is the dot product of two normalized vectors. A vector is normalized if it has a length of 1 regardless of its direction. Our face embeddings are already normalized. Intuitively, cosine similarity can be thought of as a measure of how much two vectors point in the same direction. If two vectors are equal we get 1, if they are orthogonal we get 0, if they are exactly opposite we get -1.
+    </p>
+    <p>
+        So which value means what? In our real world we can move in three independent directions - it has three dimensions. Let's remember that our embeddings have 512 dimensions. This means that these vectors can also be orthogonal to each other in 512 independent ways. You may have noticed above that two exactly equal faces give a value of 1, since their embedding vectors are also equal. Accordingly, we get a number close to 1 if the AI considers the faces to be similar. If we look at two faces of different people, the result is likely to be close to 0. In order to get close to -1, the faces or the embeddings would have to be exactly opposite in as many of the 512 dimensions as possible. Even if we do not have a simple intuitive understanding of what this means, it becomes clear that this is unlikely.
+    </p>
+    <p>
+        Now we have a single number and we know what it means. But we still don't have a yes or no answer to the question of whether two images are of the same person. We could just use an arbitrary threshold, say 0.5. But in practice, it turns out that we get much better results if we experimentally determine the optimal threshold. For all the steps we perform here in the tutorial - i.e., our face recognition pipeline - and the widely used LFW test dataset, the optimal threshold is 0.42. If we consider all pairs of faces above 0.42 to be the same and the others to be different, we make the right decision for most pairs.
+    </p>
+    <p>
+        It is exciting to realize that we can change much of the character of our decisions if we do not consider the number merely as an optimal fixed limit. Instead, we can choose other values if we want to avoid certain mistakes more than others. When it comes to unlocking our smartphone, we may prefer to accept that facial recognition unlocking may not work every time, rather than having a stranger unlock our phone. In this case, we can use a value much higher than 0.42, for example 0.6. In other cases it is desirable to rather get too many hits. If we want to find as many photos of a certain person as possible on a smartphone or computer, we may prefer to find a few photos that actually show someone else than to miss real hits.
+    </p>
+    <p>
+        Please try the following demo to see all of the steps we learned about at work. It finally enables us to decide if two photos show the faces of the same person.
+    </p>
+
     <div class="card mt-4 mb-3">
         <div class="card-header center-and-right">
             <span>Live Demo: Compare Faces</span>
