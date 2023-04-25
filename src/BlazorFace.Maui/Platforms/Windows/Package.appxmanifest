@@ -7,9 +7,9 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="GeorgJung.UnderstandingFaceRecognition"
-    Publisher="CN=Georg Jung"
-    Version="1.0.0.0" />
+    Name="55080GeorgJung.UnderstandingFaceRecognition"
+    Publisher="CN=37400242-2C14-45FF-9436-03629C9EF047"
+    Version="0.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="DC1F92FF-64BD-418D-A629-996B97EB0A1E" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
