@@ -17,7 +17,7 @@ env:
 
 jobs:
   build-windows:
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -28,9 +28,9 @@ jobs:
     - uses: dotnet/nbgv@v0.4
       id: nbgv
     - name: Install MAUI Workload
-      run: dotnet workload install maui --ignore-failed-sources
-    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
-    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -c Release --no-restore
+      run: dotnet workload install maui-windows --ignore-failed-sources
+    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true -p:EnableWindowsTargeting=true
+    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -c Release --no-restore -p:EnableWindowsTargeting=true
     - uses: actions/upload-artifact@v3
       with:
         name: blazorface-maui-windows
