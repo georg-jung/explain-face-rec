@@ -34,4 +34,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: blazorface-maui-windows
-        path: bin/BlazorFace.Maui/**/AppPackages/**/*.msix
+        path: bin/BlazorFace.Maui/**/AppPackages/**/*
