@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,8 +20,6 @@ namespace DirectoryListingSourceGenerator;
 [Generator]
 public class DirectoryListingGenerator : IIncrementalGenerator
 {
-    private static readonly MemoryCache _cache = new(nameof(DirectoryListingGenerator));
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
@@ -220,14 +217,6 @@ namespace {namespaceName}
 
     private static string GetCached(string key, Func<string> factory)
     {
-        var cached = _cache.Get(key);
-        if (cached is string val)
-        {
-            return val;
-        }
-
-        var result = factory();
-        _cache.Add(key, result, DateTimeOffset.Now.AddMinutes(1));
-        return result;
+        return factory();
     }
 }
