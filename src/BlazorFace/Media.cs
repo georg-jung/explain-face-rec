@@ -9,8 +9,8 @@ namespace BlazorFace;
 
 public static partial class Media
 {
-#if __MOBILE__
-    public static readonly string MediaDir = "media";
+#if ANDROID
+    public static readonly string MediaDir = "wwwroot/media";
 #elif DEBUG
     public static readonly string MediaDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "wwwroot", "media");
 #else

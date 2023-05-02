@@ -3,9 +3,10 @@
 
 using System.Reflection;
 using Blazored.Modal;
+using BlazorFace.Services;
 using Microsoft.Extensions.FileProviders;
 
-namespace BlazorFace
+namespace BlazorFace.Web
 {
     public class Program
     {
@@ -18,6 +19,8 @@ namespace BlazorFace
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
+
+            builder.Services.AddSingleton<IFileOpener, DefaultFileOpener>();
 
             BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
