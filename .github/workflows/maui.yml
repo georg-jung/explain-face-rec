@@ -1,0 +1,57 @@
+name: MAUI Build
+
+on:
+  workflow_call:
+    inputs:
+      build-ref:
+        required: true
+        type: string
+  workflow_dispatch:
+  release:
+    types: [published]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        lfs: true
+    - uses: dotnet/nbgv@v0.4
+      id: nbgv
+    - name: Install MAUI Workload
+      run: dotnet workload install maui-windows --ignore-failed-sources
+    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
+    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net7.0-windows10.0.19041.0 -c Release --no-restore
+    - uses: actions/upload-artifact@v3
+      with:
+        name: blazorface-maui-windows
+        path: bin/BlazorFace.Maui/**/AppPackages/**/*
+
+  build-android:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        lfs: true
+    - uses: dotnet/nbgv@v0.4
+      id: nbgv
+    - name: Install MAUI Workload
+      run: dotnet workload install maui-android --ignore-failed-sources
+    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
+    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net7.0-android -c Release --no-restore
+    - uses: actions/upload-artifact@v3
+      with:
+        name: blazorface-maui-android
+        path: bin/BlazorFace.Maui/**/*

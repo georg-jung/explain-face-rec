@@ -13,7 +13,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  DOCKERFILE: src/BlazorFace/Dockerfile
+  DOCKERFILE: src/BlazorFace.Web/Dockerfile
 
 jobs:
 

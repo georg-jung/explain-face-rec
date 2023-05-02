@@ -3,6 +3,7 @@
 @using Humanizer;
 @using SixLabors.ImageSharp.PixelFormats;
 
+@inject IFileOpener opener;
 @inject ILogger<ChooseImageGroupBase> log;
 
 <div class="container d-flex flex-column align-items-center">
@@ -104,7 +105,8 @@
         _loading = true;
         StateHasChanged();
 
-        using var img = Image.Load<Rgb24>(path);
+        using var imgStream = await opener.OpenAsync(path);
+        using var img = await Image.LoadAsync<Rgb24>(imgStream);
         // attention: a potential error message is not processed here
         await OnImageLoadedAsync(img, System.IO.Path.GetFileName(path));
 
@@ -124,7 +126,8 @@
             var idx = 0;
             foreach (var file in files)
             {
-                using var img = await Image.LoadAsync<Rgb24>(file);
+                using var imgStream = await opener.OpenAsync(file);
+                using var img = await Image.LoadAsync<Rgb24>(imgStream);
                 var msg = await OnImageLoadedAsync(img, Path.GetFileName(file));
                 if (msg is not null) _uploadErrorMessages.Add(msg);
                 idx++;

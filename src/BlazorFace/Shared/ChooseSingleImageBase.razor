@@ -4,6 +4,7 @@
 @using SixLabors.ImageSharp.PixelFormats;
 
 @inject ILogger<ChooseSingleImageBase> log;
+@inject IFileOpener opener;
 
 <div class="container d-flex flex-column align-items-center">
     @if (_processing)
@@ -15,8 +16,8 @@
     }
 
     @*
-        It is important that the InputFile is not destroyed/removed from the RenderTree before we got
-        a Stream from the IBrowserFile. Thus, hide it instead of removing it.
+    It is important that the InputFile is not destroyed/removed from the RenderTree before we got
+    a Stream from the IBrowserFile. Thus, hide it instead of removing it.
     *@
     <div class="@(_processing ? "d-none" : "") d-flex flex-column align-items-center">
         <p>
@@ -30,7 +31,7 @@
             <p class="m-3"><em>- or -</em></p>
             <button class="btn btn-outline-primary" @onclick=ChooseFromGalleryClick>Choose from examples</button>
         </div>
-        
+
         @if (_uploadNoImage)
         {
             <div class="invalid-feedback">The uploaded file could not be read as image. Either the file you chose was to large or you didn't choose a supported image file format.</div>
@@ -101,7 +102,9 @@
         _processing = true;
         StateHasChanged();
 
-        using var img = Image.Load<Rgb24>(path);
+        using var imgStream = await opener.OpenAsync(path);
+        using var img = await Image.LoadAsync<Rgb24>(imgStream);
+
         // attention: a potential error message is not processed here
         await OnImageLoadedAsync(img);
 

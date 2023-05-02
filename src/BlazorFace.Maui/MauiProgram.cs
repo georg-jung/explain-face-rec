@@ -1,6 +1,7 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using BlazorFace.Services;
 using Microsoft.Extensions.Logging;
 
 namespace BlazorFace.Maui;
@@ -24,8 +25,10 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        BlazorFace.Program.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
-        BlazorFace.Program.AddBlazorFaceServices(builder.Services);
+        builder.Services.AddSingleton<IFileOpener, MauiResourceOpener>();
+
+        BlazorFace.Startup.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
+        BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
         return builder.Build();
     }
