@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -43,9 +43,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
-    <ProjectReference Include="..\DirectoryListingSourceGenerator\DirectoryListingSourceGenerator.csproj"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\DirectoryListingSourceGenerator\DirectoryListingSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="StaticResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StaticResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="StaticResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StaticResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

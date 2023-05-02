@@ -10,6 +10,7 @@ WORKDIR /src
 COPY ["BlazorFace.sln", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
+COPY ["src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.csproj", "src/DirectoryListingSourceGenerator"]
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
 COPY ["src/BlazorFace.Web/BlazorFace.Web.csproj", "src/BlazorFace.Web/"]
 COPY ["src/FaceAiSharp/FaceAiSharp.csproj", "src/FaceAiSharp/"]

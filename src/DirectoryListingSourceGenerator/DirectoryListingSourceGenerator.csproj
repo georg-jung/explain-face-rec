@@ -4,12 +4,38 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
-    <PackageReference Include="System.Runtime.Caching" />
+
+    <!-- Take a private dependency on System.Runtime.Caching (PrivateAssets=all).
+    Consumers of this generator will not reference it.
+    Set GeneratePathProperty=true so we can reference the binaries via the PKGSystem_Runtime_Caching property -->
+    <PackageReference Include="System.Runtime.Caching" PrivateAssets="none" GeneratePathProperty="true" />
   </ItemGroup>
-  
+
+  <!-- To make System.Runtime.Caching work for projects using this SourceGenerator from the same solution/from source -->
+  <!-- https://github.com/dotnet/sdk/issues/17775 -->
+  <PropertyGroup>
+    <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GetDependencyTargetPaths" AfterTargets="ResolvePackageDependenciesForBuild">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Include="@(ResolvedCompileFileDefinitions)" IncludeRuntimeDependency="false" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+    <!-- To pack System.Runtime.Caching if this was ever packaged. -->
+    <!-- https://github.com/dotnet/roslyn/blob/91fc1ac3275dd31a396613aafbced6c62ff69b08/docs/features/source-generators.cookbook.md#use-functionality-from-nuget-packages -->
+    <None Include="$(PkgSystem_Runtime_Caching)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
 </Project>
