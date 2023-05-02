@@ -10,16 +10,16 @@ WORKDIR /src
 COPY ["BlazorFace.sln", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
-COPY ["src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.csproj", "src/DirectoryListingSourceGenerator"]
+COPY ["src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.csproj", "src/DirectoryListingSourceGenerator/"]
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
 COPY ["src/BlazorFace.Web/BlazorFace.Web.csproj", "src/BlazorFace.Web/"]
 COPY ["src/FaceAiSharp/FaceAiSharp.csproj", "src/FaceAiSharp/"]
-RUN dotnet restore "src/BlazorFace.Web/BlazorFace.Web.csproj"
+RUN dotnet restore "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:TargetFramework=net7.0
 COPY . .
-RUN dotnet build "src/BlazorFace.Web/BlazorFace.Web.csproj" -c Release -o /app/build
+RUN dotnet build "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:TargetFramework=net7.0 -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "src/BlazorFace.Web/BlazorFace.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:TargetFramework=net7.0 -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
