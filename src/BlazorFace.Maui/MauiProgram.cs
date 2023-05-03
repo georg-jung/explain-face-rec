@@ -25,10 +25,14 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        builder.Services.AddSingleton<IFileOpener, MauiResourceOpener>();
-
         BlazorFace.Startup.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
+#if ANDROID
+        builder.Services.AddSingleton<IFileOpener, MauiResourceOpener>();
         BlazorFace.Startup.AddBlazorFaceServices(builder.Services, new MauiResourceOpener());
+#else
+        builder.Services.AddSingleton<IFileOpener, DefaultFileOpener>();
+        BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
+#endif
 
         return builder.Build();
     }
