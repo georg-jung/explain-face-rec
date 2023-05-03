@@ -37,7 +37,7 @@ public class ImageToTensorCorrectness
     [Fact]
     public void ArcFaceOptimizedEqualsNaive()
     {
-        var optimized = ArcFaceEmbeddingsGenerator.CreateImageTensor(new[] { _img });
+        var optimized = ArcFaceEmbeddingsGenerator.CreateImageTensor(_img);
         var naive = ArcFaceNaive(_img);
 
         var optimizedBuffer = optimized.Buffer.Span;

@@ -37,14 +37,14 @@ internal class CountClosedEyes
         _cache = new MemoryCache(iopts);
 
         _det = new ScrfdDetector(
+            _cache,
             new()
             {
                 ModelPath = scrfdModel.FullName,
-            },
-            _cache);
+            });
 
         _eyeState = new OpenVinoOpenClosedEye0001(
-            new()
+            new OpenVinoOpenClosedEye0001Options()
             {
                 ModelPath = eyeStateModel.FullName,
             });
