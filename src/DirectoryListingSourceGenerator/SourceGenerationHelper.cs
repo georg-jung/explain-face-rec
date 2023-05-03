@@ -25,8 +25,8 @@ using System;
 namespace {AttributeNamespace};
 
 /// <summary>
-/// Use a partial method with string[] as a return type to get a list of the files in the specified directory at compile time.
-/// Use a partial method with IReadOnlyDictionary<string, string[]> as a return type to get a list of the files in the subdirectories of the specified directory at compile time.
+/// Use a partial method with <see cref=""T:string""/> as a return type to get a list of the files in the specified directory at compile time.
+/// Use a partial method with <see cref=""T:IReadOnlyDictionary{{string, string[]}}""/> as a return type to get a list of the files in the subdirectories of the specified directory at compile time.
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 public class {AttributeClass} : Attribute
