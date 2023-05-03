@@ -109,37 +109,6 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     public ArcFaceEmbeddingsGeneratorOptions Options { get; }
 
-    public void Dispose() => _session.Dispose();
-
-    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
-    {
-        foreach (var img in alignedImages)
-        {
-            img.EnsureProperlySizedDestructive(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
-        }
-
-        var input = CreateImageTensor(alignedImages);
-
-        var inputMeta = _session.InputMetadata;
-        var name = inputMeta.Keys.First();
-
-        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(name, input) };
-        using var outputs = _session.Run(inputs);
-        var firstOut = outputs.First();
-        var tens = firstOut.Value as DenseTensor<float> ?? firstOut.AsTensor<float>().ToDenseTensor();
-        Debug.Assert(tens.Length % 512 == 0, "Output tensor length is invalid.");
-
-        var embSpan = tens.Buffer.Span;
-        var emb = new List<float[]>(alignedImages.Count);
-        for (var i = 0; i < alignedImages.Count; i++)
-        {
-            var span = embSpan.Slice(i * 512, 512);
-            emb.Add(GeometryExtensions.ToUnitLength(span));
-        }
-
-        return emb;
-    }
-
     /// <summary>
     /// Transform and crop the given image in the way ArcFace was trained.
     /// </summary>
@@ -191,6 +160,37 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
             SafeCrop(op, cutRect);
         });
+    }
+
+    public void Dispose() => _session.Dispose();
+
+    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
+    {
+        foreach (var img in alignedImages)
+        {
+            img.EnsureProperlySizedDestructive(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
+        }
+
+        var input = CreateImageTensor(alignedImages);
+
+        var inputMeta = _session.InputMetadata;
+        var name = inputMeta.Keys.First();
+
+        var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(name, input) };
+        using var outputs = _session.Run(inputs);
+        var firstOut = outputs.First();
+        var tens = firstOut.Value as DenseTensor<float> ?? firstOut.AsTensor<float>().ToDenseTensor();
+        Debug.Assert(tens.Length % 512 == 0, "Output tensor length is invalid.");
+
+        var embSpan = tens.Buffer.Span;
+        var emb = new List<float[]>(alignedImages.Count);
+        for (var i = 0; i < alignedImages.Count; i++)
+        {
+            var span = embSpan.Slice(i * 512, 512);
+            emb.Add(GeometryExtensions.ToUnitLength(span));
+        }
+
+        return emb;
     }
 
     internal static DenseTensor<float> CreateImageTensor(IReadOnlyCollection<Image<Rgb24>> imgs)
