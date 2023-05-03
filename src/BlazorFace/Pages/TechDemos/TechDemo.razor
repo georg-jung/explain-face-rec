@@ -187,15 +187,10 @@
             //var angleAligned = img.Clone();
             //angleAligned.CropAlignedDestructive(firstFaceRect, _angle.Value);
             var (leye, reye) = (det.GetLeftEyeCenter(firstFaceLandmarks), det.GetRightEyeCenter(firstFaceLandmarks));
-            var dist = leye.EuclideanDistance(reye);
-            var squareAroundEyeLen = dist / 3;
-            var eyeRectSz = new Size((int)squareAroundEyeLen * 2);
-            leye.Offset(-squareAroundEyeLen, -squareAroundEyeLen);
-            reye.Offset(-squareAroundEyeLen, -squareAroundEyeLen);
-            var leyeRect = new Rectangle(Point.Round(leye), eyeRectSz);
-            var reyeRect = new Rectangle(Point.Round(reye), eyeRectSz);
-            var leyeImg = img.CropAligned(leyeRect, _angle.Value, 32);
-            var reyeImg = img.CropAligned(reyeRect, _angle.Value, 32);
+
+            var bx = FaceAiSharp.ImageCalculations.GetEyeBoxesFromCenterPoints(leye, reye, 3);
+            var leyeImg = img.CropAligned(bx.Left, _angle.Value, 32);
+            var reyeImg = img.CropAligned(bx.Right, _angle.Value, 32);
             await JS.SetImageStream(leyeImg, ImgFirstFaceLEyeId);
             await JS.SetImageStream(reyeImg, ImgFirstFaceREyeId);
             _leftOpen = eyeState.IsOpen(leyeImg);

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using SimpleSimd;
@@ -11,107 +12,6 @@ namespace FaceAiSharp.Extensions;
 
 public static class GeometryExtensions
 {
-    /// <summary>
-    /// Gets an area that contains all pixels that could be needed if the given crop-rectangle should be rotated by any angle.
-    /// </summary>
-    /// <param name="rectangle">A crop rectangle.</param>
-    /// <returns>A larger rectangle.</returns>
-    public static Rectangle ScaleToRotationAngleInvariantCropArea(this Rectangle rectangle)
-    {
-        // adapted from https://github.com/FaceONNX/FaceONNX/blob/aa6943be0831bee06b16d317c4f3fd0888480049/netstandard/FaceONNX/face/utils/Rectangles.cs#L349
-        var r = (int)Math.Sqrt((rectangle.Width * rectangle.Width) + (rectangle.Height * rectangle.Height));
-        var dx = r - rectangle.Width;
-        var dy = r - rectangle.Height;
-
-        var x = rectangle.X - (dx / 2);
-        var y = rectangle.Y - (dy / 2);
-        var w = rectangle.Width + dx;
-        var h = rectangle.Height + dy;
-
-        return new Rectangle
-        {
-            X = x,
-            Y = y,
-            Width = w,
-            Height = h,
-        };
-    }
-
-    /// <summary>
-    /// Returns a square that contains the given rectangle in it's middle.
-    /// </summary>
-    /// <param name="rectangle">This rectangle's area should be in the center of the returned square.</param>
-    /// <returns>A square shaped area.</returns>
-    public static Rectangle GetMinimumSupersetSquare(this Rectangle rectangle)
-    {
-        var center = Rectangle.Center(rectangle);
-        var longerEdge = Math.Max(rectangle.Width, rectangle.Height);
-        var halfLongerEdge = (longerEdge + 1) / 2; // +1 => Floor
-        var minSuperSquare = new Rectangle(center.X - halfLongerEdge, center.Y - halfLongerEdge, longerEdge, longerEdge);
-        return minSuperSquare;
-    }
-
-    public static float GetScaleFactorToFitInto(this Rectangle rectangle, Size into)
-        => GetScaleFactorToFitInto(rectangle, new Rectangle(Point.Empty, into));
-
-    public static float GetScaleFactorToFitInto(this Rectangle rectangle, Rectangle into)
-    {
-        var xScale = into.Width / (double)rectangle.Width;
-        var yScale = into.Height / (double)rectangle.Height;
-        var min = Math.Min(xScale, yScale);
-        return (float)Math.Min(min, 1); // we wouldn't want to scale up
-    }
-
-    public static Rectangle Scale(this Rectangle rectangle, double factor)
-        => new(
-            (int)Math.Round(rectangle.X * factor),
-            (int)Math.Round(rectangle.Y * factor),
-            (int)Math.Round(rectangle.Width * factor),
-            (int)Math.Round(rectangle.Height * factor));
-
-    public static Rectangle ScaleCentered(this Rectangle rectangle, double factor)
-    {
-        var w = (int)Math.Round(rectangle.Width * factor);
-        var h = (int)Math.Round(rectangle.Height * factor);
-        var dw = w - rectangle.Width;
-        var dh = h - rectangle.Height;
-        return new(
-            rectangle.X - (dw / 2),
-            rectangle.Y - (dh / 2),
-            w,
-            h);
-    }
-
-    public static Size Scale(this Size size, double factor)
-        => new(
-            (int)Math.Round(size.Width * factor),
-            (int)Math.Round(size.Height * factor));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float TwoNorm(this ReadOnlySpan<float> vector)
-    {
-        double sum = 0;
-        foreach (var x in vector)
-        {
-            sum += x * x;
-        }
-
-        return (float)Math.Sqrt(sum);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float[] ToUnitLength(this ReadOnlySpan<float> vector)
-    {
-        var len = vector.TwoNorm();
-        var scaled = new float[vector.Length];
-        for (var i = 0; i < vector.Length; i++)
-        {
-            scaled[i] = vector[i] / len;
-        }
-
-        return scaled;
-    }
-
     // Euclidean inspired by
     // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Euclidean.cs
 
@@ -143,6 +43,10 @@ public static class GeometryExtensions
         return (float)Math.Sqrt(sum);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static float EuclideanDistance(this PointF x, PointF y)
+        => EuclideanDistance(new[] { x.X, x.Y }, new[] { y.X, y.Y });
+
     /// <summary>
     /// Gets a similarity measure between two points based on euclidean distance.
     /// </summary>
@@ -150,12 +54,9 @@ public static class GeometryExtensions
     /// <param name="y">The second vector to be compared.</param>
     /// <returns>A similarity measure between x and y.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1202:ElementsMustBeOrderedByAccess", Justification = "EuclideanDistances should stay together.")]
     public static float EuclideanSimilarity(this float[] x, float[] y)
         => 1.0f / (1.0f + EuclideanDistance(x, y));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float EuclideanDistance(this PointF x, PointF y)
-        => EuclideanDistance(new[] { x.X, x.Y }, new[] { y.X, y.Y });
 
     // Cosine inspired by
     // https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.Math/Distances/Cosine.cs
@@ -211,8 +112,109 @@ public static class GeometryExtensions
         return SimdOps<float>.Dot(x, y);
     }
 
+    /// <summary>
+    /// Gets an area that contains all pixels that could be needed if the given crop-rectangle should be rotated by any angle.
+    /// </summary>
+    /// <param name="rectangle">A crop rectangle.</param>
+    /// <returns>A larger rectangle.</returns>
+    internal static Rectangle ScaleToRotationAngleInvariantCropArea(this Rectangle rectangle)
+    {
+        // adapted from https://github.com/FaceONNX/FaceONNX/blob/aa6943be0831bee06b16d317c4f3fd0888480049/netstandard/FaceONNX/face/utils/Rectangles.cs#L349
+        var r = (int)Math.Sqrt((rectangle.Width * rectangle.Width) + (rectangle.Height * rectangle.Height));
+        var dx = r - rectangle.Width;
+        var dy = r - rectangle.Height;
+
+        var x = rectangle.X - (dx / 2);
+        var y = rectangle.Y - (dy / 2);
+        var w = rectangle.Width + dx;
+        var h = rectangle.Height + dy;
+
+        return new Rectangle
+        {
+            X = x,
+            Y = y,
+            Width = w,
+            Height = h,
+        };
+    }
+
+    /// <summary>
+    /// Returns a square that contains the given rectangle in it's middle.
+    /// </summary>
+    /// <param name="rectangle">This rectangle's area should be in the center of the returned square.</param>
+    /// <returns>A square shaped area.</returns>
+    internal static Rectangle GetMinimumSupersetSquare(this Rectangle rectangle)
+    {
+        var center = Rectangle.Center(rectangle);
+        var longerEdge = Math.Max(rectangle.Width, rectangle.Height);
+        var halfLongerEdge = (longerEdge + 1) / 2; // +1 => Floor
+        var minSuperSquare = new Rectangle(center.X - halfLongerEdge, center.Y - halfLongerEdge, longerEdge, longerEdge);
+        return minSuperSquare;
+    }
+
+    internal static float GetScaleFactorToFitInto(this Rectangle rectangle, Size into)
+        => GetScaleFactorToFitInto(rectangle, new Rectangle(Point.Empty, into));
+
+    internal static float GetScaleFactorToFitInto(this Rectangle rectangle, Rectangle into)
+    {
+        var xScale = into.Width / (double)rectangle.Width;
+        var yScale = into.Height / (double)rectangle.Height;
+        var min = Math.Min(xScale, yScale);
+        return (float)Math.Min(min, 1); // we wouldn't want to scale up
+    }
+
+    internal static Rectangle Scale(this Rectangle rectangle, double factor)
+        => new(
+            (int)Math.Round(rectangle.X * factor),
+            (int)Math.Round(rectangle.Y * factor),
+            (int)Math.Round(rectangle.Width * factor),
+            (int)Math.Round(rectangle.Height * factor));
+
+    internal static Rectangle ScaleCentered(this Rectangle rectangle, double factor)
+    {
+        var w = (int)Math.Round(rectangle.Width * factor);
+        var h = (int)Math.Round(rectangle.Height * factor);
+        var dw = w - rectangle.Width;
+        var dh = h - rectangle.Height;
+        return new(
+            rectangle.X - (dw / 2),
+            rectangle.Y - (dh / 2),
+            w,
+            h);
+    }
+
+    internal static Size Scale(this Size size, double factor)
+        => new(
+            (int)Math.Round(size.Width * factor),
+            (int)Math.Round(size.Height * factor));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static float TwoNorm(this ReadOnlySpan<float> vector)
+    {
+        double sum = 0;
+        foreach (var x in vector)
+        {
+            sum += x * x;
+        }
+
+        return (float)Math.Sqrt(sum);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static float[] ToUnitLength(this ReadOnlySpan<float> vector)
+    {
+        var len = vector.TwoNorm();
+        var scaled = new float[vector.Length];
+        for (var i = 0; i < vector.Length; i++)
+        {
+            scaled[i] = vector[i] / len;
+        }
+
+        return scaled;
+    }
+
     [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.NamingRules", "SA1312:Variable names should begin with lower-case letter", Justification = "Math")]
-    public static Matrix3x2 EstimateSimilarityMatrix(this IReadOnlyList<(PointF A, PointF B)> points)
+    internal static Matrix3x2 EstimateSimilarityMatrix(this IReadOnlyList<(PointF A, PointF B)> points)
     {
         // adapted from https://stackoverflow.com/a/65739116/1200847
         var rows = points.Count * 2;
@@ -247,7 +249,7 @@ public static class GeometryExtensions
         return affine;
     }
 
-    public static Rectangle SupersetAreaOfTransform(this Rectangle input, Matrix3x2 matrix)
+    internal static Rectangle SupersetAreaOfTransform(this Rectangle input, Matrix3x2 matrix)
     {
         input.Deconstruct(out var x, out var y, out var w, out var h);
         var p1 = new Vector2(x, y);
@@ -276,12 +278,12 @@ public static class GeometryExtensions
     /// </summary>
     /// <param name="m">Input matrix.</param>
     /// <returns>The horizontal scale factor/x axis.</returns>
-    public static float GetHScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M11 * m.M11) + (m.M21 * m.M21));
+    internal static float GetHScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M11 * m.M11) + (m.M21 * m.M21));
 
     /// <summary>
     /// Calculates the vertical scale factor (Y Axis) of a transform that is applied by multiplying the given matrix.
     /// </summary>
     /// <param name="m">Input matrix.</param>
     /// <returns>The vertical scale factor/y axis.</returns>
-    public static float GetVScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M12 * m.M12) + (m.M22 * m.M22));
+    internal static float GetVScaleFactor(this Matrix3x2 m) => (float)Math.Sqrt((m.M12 * m.M12) + (m.M22 * m.M22));
 }
