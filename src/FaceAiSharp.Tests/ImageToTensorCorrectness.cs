@@ -37,6 +37,7 @@ public class ImageToTensorCorrectness
     [Fact]
     public void ArcFaceOptimizedEqualsNaive()
     {
+        _img.EnsureProperlySizedDestructive(new() { Size = new(112, 112), PadColor = Color.Black, Mode = SixLabors.ImageSharp.Processing.ResizeMode.Pad }, false);
         var optimized = ArcFaceEmbeddingsGenerator.CreateImageTensor(_img);
         var naive = ArcFaceNaive(_img);
 

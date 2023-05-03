@@ -197,6 +197,11 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
     {
+        if (img.Height != 112 || img.Width != 112)
+        {
+            throw new ArgumentException("The given image must be 112x112 pixels.", nameof(img));
+        }
+
         // ArcFace uses the rgb values directly, just the ints converted to float,
         // no further preprocessing needed. The default ToTensor implementation assumes
         // we want the RGB[
