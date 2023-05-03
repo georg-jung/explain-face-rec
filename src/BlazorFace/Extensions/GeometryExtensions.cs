@@ -1,9 +1,6 @@
 // Copyright (c) Georg Jung. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using SixLabors.ImageSharp;
 
 namespace BlazorFace.Extensions;
@@ -23,4 +20,9 @@ internal static class GeometryExtensions
         var minSuperSquare = new Rectangle(center.X - halfLongerEdge, center.Y - halfLongerEdge, longerEdge, longerEdge);
         return minSuperSquare;
     }
+
+    internal static Size Scale(this Size size, double factor)
+        => new(
+            (int)Math.Round(size.Width * factor),
+            (int)Math.Round(size.Height * factor));
 }
