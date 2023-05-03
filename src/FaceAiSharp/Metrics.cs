@@ -112,6 +112,6 @@ public static class Metrics
             }
         }
 
-        return (float)pivot;
+        return pivot;
     }
 }

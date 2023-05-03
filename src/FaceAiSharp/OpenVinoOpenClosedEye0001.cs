@@ -12,7 +12,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace FaceAiSharp;
 
-public class OpenVinoOpenClosedEye0001 : IEyeStateDetector, IDisposable
+public sealed class OpenVinoOpenClosedEye0001 : IEyeStateDetector, IDisposable
 {
     private static readonly ResizeOptions _resizeOptions = new()
     {

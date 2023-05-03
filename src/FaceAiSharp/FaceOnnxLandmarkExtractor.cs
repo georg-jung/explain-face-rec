@@ -16,17 +16,14 @@ public sealed class FaceOnnxLandmarkExtractor : IFaceLandmarksExtractor, IDispos
     public static float GetFaceAlignmentAngle(IReadOnlyCollection<Point> landmarks)
         => FaceONNX.Landmarks.GetRotationAngle(landmarks.Select(p => new System.Drawing.Point(p.X, p.Y)).ToArray());
 
+    public void Dispose() => _fonnx.Dispose();
+
     public IReadOnlyCollection<Point> Detect(Image image)
     {
         var img = image.ToFaceOnnxFloatArray();
         var res = _fonnx.Forward(img);
 
         return res.Select(p => new Point(p.X, p.Y)).ToList();
-    }
-
-    public void Dispose()
-    {
-        _fonnx.Dispose();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
