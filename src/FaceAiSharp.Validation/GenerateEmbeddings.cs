@@ -47,11 +47,11 @@ internal sealed class GenerateEmbeddings : IDisposable
         _cache = new MemoryCache(iopts);
 
         _det = new ScrfdDetector(
+            _cache,
             new()
             {
                 ModelPath = scrfdModel.FullName,
-            },
-            _cache);
+            });
 
         _dataset = dataset;
         _db = db;

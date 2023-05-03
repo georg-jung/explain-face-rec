@@ -26,10 +26,10 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="ScrfdDetector"/> class.
     /// </summary>
-    /// <param name="options">Provide a path to the ONNX model file and customize the behaviour of <see cref="ScrfdDetector"/>.</param>
     /// <param name="cache">An <see cref="IMemoryCache"/> instance that is used internally by <see cref="ScrfdDetector"/>.</param>
+    /// <param name="options">Provide a path to the ONNX model file and customize the behaviour of <see cref="ScrfdDetector"/>.</param>
     /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
-    public ScrfdDetector(ScrfdDetectorOptions options, IMemoryCache cache, SessionOptions? sessionOptions = null)
+    public ScrfdDetector(IMemoryCache cache, ScrfdDetectorOptions options, SessionOptions? sessionOptions = null)
     {
         _ = options?.ModelPath ?? throw new ArgumentException("A model path is required in options.ModelPath.", nameof(options));
         Options = options;
