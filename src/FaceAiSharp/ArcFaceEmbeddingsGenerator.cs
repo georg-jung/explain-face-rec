@@ -94,17 +94,29 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     private readonly InferenceSession _session;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ArcFaceEmbeddingsGenerator"/> class.
+    /// </summary>
+    /// <param name="options">Provide a path to the ONNX model file and customize the behaviour of <see cref="ArcFaceEmbeddingsGenerator"/>.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
     public ArcFaceEmbeddingsGenerator(ArcFaceEmbeddingsGeneratorOptions options, SessionOptions? sessionOptions = null)
     {
+        _ = options?.ModelPath ?? throw new ArgumentException("A model path is required in options.ModelPath.", nameof(options));
         Options = options;
-        if (sessionOptions is null)
-        {
-            _session = new(options.ModelPath);
-        }
-        else
-        {
-            _session = new(options.ModelPath, sessionOptions);
-        }
+        _session = sessionOptions is null ? new(options.ModelPath) : new(options.ModelPath, sessionOptions);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ArcFaceEmbeddingsGenerator"/> class.
+    /// </summary>
+    /// <param name="model">An ONNX model containing the ResNet100 model with 1x3x112x112 input dimensions.</param>
+    /// <param name="options">Options to customize the behaviour of <see cref="ArcFaceEmbeddingsGenerator"/>. If options.ModelPath is set, it is ignored. The model provided in <paramref name="model"/> takes precedence.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
+    public ArcFaceEmbeddingsGenerator(byte[] model, ArcFaceEmbeddingsGeneratorOptions? options = null, SessionOptions? sessionOptions = null)
+    {
+        _ = model ?? throw new ArgumentNullException(nameof(model));
+        Options = options ?? new();
+        _session = sessionOptions is null ? new(model) : new(model, sessionOptions);
     }
 
     public ArcFaceEmbeddingsGeneratorOptions Options { get; }
@@ -232,9 +244,9 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 public record ArcFaceEmbeddingsGeneratorOptions
 {
     /// <summary>
-    /// Gets the path to the onnx file that contains the resnet100 model with 1x3x112x112 input.
+    /// Gets the path to the ONNX file that contains the ResNet100 model with 1x3x112x112 input dimensions.
     /// </summary>
-    public string ModelPath { get; init; } = default!;
+    public string? ModelPath { get; init; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an

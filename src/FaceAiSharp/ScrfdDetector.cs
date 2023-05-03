@@ -23,18 +23,35 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     private readonly ModelParameters _modelParameters;
     private readonly IMemoryCache _cache;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScrfdDetector"/> class.
+    /// </summary>
+    /// <param name="options">Provide a path to the ONNX model file and customize the behaviour of <see cref="ScrfdDetector"/>.</param>
+    /// <param name="cache">An <see cref="IMemoryCache"/> instance that is used internally by <see cref="ScrfdDetector"/>.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
     public ScrfdDetector(ScrfdDetectorOptions options, IMemoryCache cache, SessionOptions? sessionOptions = null)
     {
+        _ = options?.ModelPath ?? throw new ArgumentException("A model path is required in options.ModelPath.", nameof(options));
         Options = options;
         _cache = cache;
-        if (sessionOptions is null)
-        {
-            _session = new(options.ModelPath);
-        }
-        else
-        {
-            _session = new(options.ModelPath, sessionOptions);
-        }
+        _session = sessionOptions is null ? new(options.ModelPath) : new(options.ModelPath, sessionOptions);
+
+        _modelParameters = DetermineModelParameters();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScrfdDetector"/> class.
+    /// </summary>
+    /// <param name="model">An scrfd onnx model that supports facial landmarks ("kps").</param>
+    /// <param name="cache">An <see cref="IMemoryCache"/> instance that is used internally by <see cref="ScrfdDetector"/>.</param>
+    /// <param name="options">Options to customize the behaviour of <see cref="ScrfdDetector"/>. If options.ModelPath is set, it is ignored. The model provided in <paramref name="model"/> takes precedence.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
+    public ScrfdDetector(byte[] model, IMemoryCache cache, ScrfdDetectorOptions? options = null, SessionOptions? sessionOptions = null)
+    {
+        _ = model ?? throw new ArgumentNullException(nameof(model));
+        Options = options ?? new();
+        _cache = cache;
+        _session = sessionOptions is null ? new(model) : new(model, sessionOptions);
 
         _modelParameters = DetermineModelParameters();
     }
@@ -362,9 +379,9 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
 public record ScrfdDetectorOptions
 {
     /// <summary>
-    /// Gets the path to the onnx file that contains the model with dynamic input.
+    /// Gets the path to the onnx file that contains the scrfd model that supports facial landmarks ("kps").
     /// </summary>
-    public string ModelPath { get; init; } = default!;
+    public string? ModelPath { get; init; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an

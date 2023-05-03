@@ -23,17 +23,29 @@ public class OpenVinoOpenClosedEye0001 : IEyeStateDetector, IDisposable
 
     private readonly InferenceSession _session;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OpenVinoOpenClosedEye0001"/> class.
+    /// </summary>
+    /// <param name="options">Provide a path to the ONNX model file and customize the behaviour of <see cref="OpenVinoOpenClosedEye0001"/>.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
     public OpenVinoOpenClosedEye0001(OpenVinoOpenClosedEye0001Options options, SessionOptions? sessionOptions = null)
     {
+        _ = options?.ModelPath ?? throw new ArgumentException("A model path is required in options.ModelPath.", nameof(options));
         Options = options;
-        if (sessionOptions is null)
-        {
-            _session = new(options.ModelPath);
-        }
-        else
-        {
-            _session = new(options.ModelPath, sessionOptions);
-        }
+        _session = sessionOptions is null ? new(options.ModelPath) : new(options.ModelPath, sessionOptions);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OpenVinoOpenClosedEye0001"/> class.
+    /// </summary>
+    /// <param name="model">OpenVino's open-closed-eye-0001/open_closed_eye.onnx model with 1x3x32x32 BGR input.</param>
+    /// <param name="options">Options to customize the behaviour of <see cref="ArcFaceEmbeddingsGenerator"/>. If options.ModelPath is set, it is ignored. The model provided in <paramref name="model"/> takes precedence.</param>
+    /// <param name="sessionOptions"><see cref="SessionOptions"/> to customize OnnxRuntime's behaviour.</param>
+    public OpenVinoOpenClosedEye0001(byte[] model, OpenVinoOpenClosedEye0001Options? options = null, SessionOptions? sessionOptions = null)
+    {
+        _ = model ?? throw new ArgumentNullException(nameof(model));
+        Options = options ?? new();
+        _session = sessionOptions is null ? new(model) : new(model, sessionOptions);
     }
 
     public OpenVinoOpenClosedEye0001Options Options { get; }
@@ -75,7 +87,7 @@ public record OpenVinoOpenClosedEye0001Options
     /// <summary>
     /// Gets the path to the onnx file that contains open-closed-eye-0001/open_closed_eye.onnx with 1x3x32x32 BGR input.
     /// </summary>
-    public string ModelPath { get; init; } = default!;
+    public string? ModelPath { get; init; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an
