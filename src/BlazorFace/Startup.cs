@@ -34,7 +34,6 @@ public static class Startup
         services.AddSingleton<IFilenameGrouper, CommonPrefixFilenameGrouper>();
         services.AddTransient<IFaceDetector, ScrfdDetector>();
         services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
-        services.AddTransient<IFaceLandmarksExtractor, FaceOnnxLandmarkExtractor>();
         services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>();
 
         services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>(sp => new DefaultObjectPoolProvider

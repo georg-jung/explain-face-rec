@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Diagnostics" />
-    <PackageReference Include="FaceONNX" />
     <PackageReference Include="MathNet.Numerics" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" />
