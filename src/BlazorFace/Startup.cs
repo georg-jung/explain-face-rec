@@ -6,6 +6,7 @@ using Blazored.Modal;
 using BlazorFace.Services;
 using FaceAiSharp;
 using FaceAiSharp.Abstractions;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using NodaTime;
@@ -23,18 +24,31 @@ public static class Startup
         ConfigureOptionsIndependent<ArcFaceEmbeddingsGeneratorOptions>(services, configuration);
         ConfigureOptionsIndependent<ScrfdDetectorOptions>(services, configuration);
         ConfigureOptionsIndependent<OpenVinoOpenClosedEye0001Options>(services, configuration);
+        var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        services.PostConfigure<ArcFaceEmbeddingsGeneratorOptions>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/arcfaceresnet100-8.onnx"));
+        services.PostConfigure<ScrfdDetectorOptions>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/scrfd_2.5g_kps_640x640.onnx"));
+        services.PostConfigure<OpenVinoOpenClosedEye0001Options>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/open_closed_eye.onnx"));
     }
 
-    public static void AddBlazorFaceServices(IServiceCollection services)
+    public static void AddBlazorFaceServices(IServiceCollection services, IFileOpener? onnxModelFileOpener = null)
     {
         services.AddBlazoredModal();
 
         services.AddMemoryCache();
         services.AddSingleton<IClock>(SystemClock.Instance);
         services.AddSingleton<IFilenameGrouper, CommonPrefixFilenameGrouper>();
-        services.AddTransient<IFaceDetector, ScrfdDetector>();
-        services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
-        services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>();
+        if (onnxModelFileOpener is null)
+        {
+            services.AddTransient<IFaceDetector, ScrfdDetector>();
+            services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>();
+            services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>();
+        }
+        else
+        {
+            services.AddTransient<IFaceDetector, ScrfdDetector>(sp => new ScrfdDetector(onnxModelFileOpener.ReadAllBytes(@"onnx/scrfd_2.5g_kps_640x640.onnx"), sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ScrfdDetectorOptions>()));
+            services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>(sp => new ArcFaceEmbeddingsGenerator(onnxModelFileOpener.ReadAllBytes(@"onnx/arcfaceresnet100-8.onnx"), sp.GetRequiredService<ArcFaceEmbeddingsGeneratorOptions>()));
+            services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>(sp => new OpenVinoOpenClosedEye0001(onnxModelFileOpener.ReadAllBytes(@"onnx/open_closed_eye.onnx"), sp.GetRequiredService<OpenVinoOpenClosedEye0001Options>()));
+        }
 
         services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>(sp => new DefaultObjectPoolProvider
         {

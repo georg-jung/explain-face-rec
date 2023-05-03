@@ -87,11 +87,11 @@ public record OpenVinoOpenClosedEye0001Options
     /// <summary>
     /// Gets the path to the onnx file that contains open-closed-eye-0001/open_closed_eye.onnx with 1x3x32x32 BGR input.
     /// </summary>
-    public string? ModelPath { get; init; }
+    public string? ModelPath { get; set; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an
     /// exception if this is set to false and an image is passed in unsupported dimensions.
     /// </summary>
-    public bool AutoResizeInputToModelDimensions { get; init; } = true;
+    public bool AutoResizeInputToModelDimensions { get; set; } = true;
 }

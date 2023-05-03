@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FaceAiSharp\FaceAiSharp.csproj" />
+    <ProjectReference Include="..\FaceAiSharp.Bundle\FaceAiSharp.Bundle.csproj" />
     <ProjectReference Include="..\DirectoryListingSourceGenerator\DirectoryListingSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

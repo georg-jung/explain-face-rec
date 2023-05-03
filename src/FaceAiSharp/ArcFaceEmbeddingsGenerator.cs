@@ -241,11 +241,11 @@ public record ArcFaceEmbeddingsGeneratorOptions
     /// <summary>
     /// Gets the path to the ONNX file that contains the ResNet100 model with 1x3x112x112 input dimensions.
     /// </summary>
-    public string? ModelPath { get; init; }
+    public string? ModelPath { get; set; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an
     /// exception if this is set to false and an image is passed in unsupported dimensions.
     /// </summary>
-    public bool AutoResizeInputToModelDimensions { get; init; } = true;
+    public bool AutoResizeInputToModelDimensions { get; set; } = true;
 }

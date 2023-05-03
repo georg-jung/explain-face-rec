@@ -386,15 +386,15 @@ public record ScrfdDetectorOptions
     /// <summary>
     /// Gets the path to the onnx file that contains the scrfd model that supports facial landmarks ("kps").
     /// </summary>
-    public string? ModelPath { get; init; }
+    public string? ModelPath { get; set; }
 
     /// <summary>
     /// Resize the image to dimensions supported by the model if required. This detector throws an
     /// exception if this is set to false and an image is passed in unsupported dimensions.
     /// </summary>
-    public bool AutoResizeInputToModelDimensions { get; init; } = true;
+    public bool AutoResizeInputToModelDimensions { get; set; } = true;
 
-    public float NonMaxSupressionThreshold { get; init; } = 0.4f;
+    public float NonMaxSupressionThreshold { get; set; } = 0.4f;
 
-    public float ConfidenceThreshold { get; init; } = 0.5f;
+    public float ConfidenceThreshold { get; set; } = 0.5f;
 }

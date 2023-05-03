@@ -6,4 +6,6 @@ namespace BlazorFace.Services;
 public interface IFileOpener
 {
     ValueTask<Stream> OpenAsync(string path);
+
+    byte[] ReadAllBytes(string path);
 }

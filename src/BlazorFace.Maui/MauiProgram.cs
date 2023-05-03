@@ -28,7 +28,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IFileOpener, MauiResourceOpener>();
 
         BlazorFace.Startup.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
-        BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
+        BlazorFace.Startup.AddBlazorFaceServices(builder.Services, new MauiResourceOpener());
 
         return builder.Build();
     }
