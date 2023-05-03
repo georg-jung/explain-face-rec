@@ -176,14 +176,11 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
     public void Dispose() => _session.Dispose();
 
-    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
+    public float[] Generate(Image<Rgb24> alignedFace)
     {
-        foreach (var img in alignedImages)
-        {
-            img.EnsureProperlySizedDestructive(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
-        }
+        alignedFace.EnsureProperlySizedDestructive(_resizeOptions, !Options.AutoResizeInputToModelDimensions);
 
-        var input = CreateImageTensor(alignedImages);
+        var input = CreateImageTensor(alignedFace);
 
         var inputMeta = _session.InputMetadata;
         var name = inputMeta.Keys.First();
@@ -195,17 +192,10 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         Debug.Assert(tens.Length % 512 == 0, "Output tensor length is invalid.");
 
         var embSpan = tens.Buffer.Span;
-        var emb = new List<float[]>(alignedImages.Count);
-        for (var i = 0; i < alignedImages.Count; i++)
-        {
-            var span = embSpan.Slice(i * 512, 512);
-            emb.Add(GeometryExtensions.ToUnitLength(span));
-        }
-
-        return emb;
+        return GeometryExtensions.ToUnitLength(embSpan);
     }
 
-    internal static DenseTensor<float> CreateImageTensor(IReadOnlyCollection<Image<Rgb24>> imgs)
+    internal static DenseTensor<float> CreateImageTensor(Image<Rgb24> img)
     {
         // ArcFace uses the rgb values directly, just the ints converted to float,
         // no further preprocessing needed. The default ToTensor implementation assumes
@@ -213,8 +203,8 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
         var mean = new[] { 0f, 0f, 0f };
         var stdDevVal = 1 / 255f;
         var stdDev = new[] { stdDevVal, stdDevVal, stdDevVal };
-        var inputDim = new[] { imgs.Count, 3, 112, 112 };
-        return ImageToTensorExtensions.ImageToTensor(imgs, mean, stdDev, inputDim);
+        var inputDim = new[] { 1, 3, 112, 112 };
+        return img.ToTensor(mean, stdDev, inputDim);
     }
 
     internal static System.Numerics.Matrix3x2 EstimateAffineAlignmentMatrix(IReadOnlyList<PointF> landmarks)
