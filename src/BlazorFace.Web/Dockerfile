@@ -7,7 +7,6 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-RUN dotnet workload install android
 COPY ["BlazorFace.sln", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
@@ -15,12 +14,12 @@ COPY ["src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.cspro
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
 COPY ["src/BlazorFace.Web/BlazorFace.Web.csproj", "src/BlazorFace.Web/"]
 COPY ["src/FaceAiSharp/FaceAiSharp.csproj", "src/FaceAiSharp/"]
-RUN dotnet restore "src/BlazorFace.Web/BlazorFace.Web.csproj"
+RUN dotnet restore "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:NoAndroid=TRUE
 COPY . .
-RUN dotnet build "src/BlazorFace.Web/BlazorFace.Web.csproj" --no-restore -c Release -o /app/build
+RUN dotnet build "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:NoAndroid=TRUE --no-restore -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "src/BlazorFace.Web/BlazorFace.Web.csproj" --no-restore -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:NoAndroid=TRUE --no-restore -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
