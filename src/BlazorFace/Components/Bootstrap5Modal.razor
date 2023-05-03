@@ -16,9 +16,7 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    public string? ModalTitle => _modalBase.ModalTitle;
-
-    public ModalOptions ModalOptions => _modalBase.ModalOptions;
+    public string? ModalTitle => _modalBase?.ModalTitle;
 
     private Bootstrap5ModalBase? _modalBase;
 

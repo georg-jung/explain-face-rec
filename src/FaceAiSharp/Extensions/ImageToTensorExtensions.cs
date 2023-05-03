@@ -63,6 +63,7 @@ public static class ImageToTensorExtensions
     ///     will be set to 1 no matter what you pass in, as this method processes
     ///     exactly one picture.
     /// </param>
+    /// <param name="convertToBgr">Swap the image's channels during conversion. RGB -> BGR. Some models expect their input data in BGR instead of RGB.</param>
     /// <returns>A tensor containing the preprocessed image.</returns>
     public static DenseTensor<float> ToTensor(this Image<Rgb24> image, float[] mean, float[] stddev, int[] inputDimension, bool convertToBgr = false)
     {
@@ -78,6 +79,7 @@ public static class ImageToTensorExtensions
     /// <param name="mean">The rgb mean values used for normalization.</param>
     /// <param name="stddev">The rgb stddev values used for normalization.</param>
     /// <param name="inputDimension">The size of the tensor that the OnnxRuntime model is expecting, e.g. [1, 3, 224, 224].</param>
+    /// <param name="convertToBgr">Swap the image's channels during conversion. RGB -> BGR. Some models expect their input data in BGR instead of RGB.</param>
     /// <returns>A tensor that contains the converted batch of images.</returns>
     public static DenseTensor<float> ImageToTensor(IReadOnlyCollection<Image<Rgb24>> images, float[] mean, float[] stddev, int[] inputDimension, bool convertToBgr = false)
     {
