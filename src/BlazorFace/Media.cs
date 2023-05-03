@@ -39,12 +39,12 @@ public static partial class Media
 
     public static IReadOnlyDictionary<string, string[]> LfwFaces => _lfwFaces.Value;
 
-    [DirectoryListing(@"..\..\media\portraits")]
+    [DirectoryListing(@"../../media/portraits")]
     private static partial string[] PortraitsListing();
 
-    [DirectoryListing(@"..\..\media\groups")]
+    [DirectoryListing(@"../../media/groups")]
     private static partial string[] GroupsListing();
 
-    [DirectoryListing(@"..\..\media\lfw")]
+    [DirectoryListing(@"../../media/lfw")]
     private static partial IReadOnlyDictionary<string, string[]> LfwFacesListing();
 }
