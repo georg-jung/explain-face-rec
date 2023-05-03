@@ -75,6 +75,7 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
     /// <summary>
     /// Points from https://github.com/onnx/models/blob/8e893eb39b131f6d3970be6ebd525327d3df34ea/vision/body_analysis/arcface/dependencies/arcface_inference.ipynb.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S1144:Unused private types or members should be removed", Justification = "We want to keep these for possible future use")]
     private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositionsOnnxZoo = new List<PointF>()
     {
         new PointF(30.2946f, 51.6963f),
@@ -161,7 +162,7 @@ public sealed class ArcFaceEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDisp
 
         /* The matrix m transforms the given image in a way that the given landmark points will
          * be projected inside the 112x112 rectangle that is used as input for ArcFace. If the input
-         * image is much larger than the face area we are interested in, applying this transform to 
+         * image is much larger than the face area we are interested in, applying this transform to
          * the complete image would waste cpu time. Thus we first invert the matrix, project our
          * 112x112 crop area using the matrix' inverse and take the minimum surrounding rectangle
          * of that projection. We crop the image using that rectangle and proceed. */

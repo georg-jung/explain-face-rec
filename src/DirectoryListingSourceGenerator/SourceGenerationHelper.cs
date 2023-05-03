@@ -31,11 +31,18 @@ namespace {AttributeNamespace};
 [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 public class {AttributeClass} : Attribute
 {{
+    /// <summary>
+    /// Initializes a new instance of the <see cref=""DirectoryListingAttribute""/> class. Annotate a partial method with this attribute to get a list of the files in the specified directory at compile time.
+    /// </summary>
+    /// <param name=""path"">The path to the directory to list. Absolute or relative to the source code file this attribute is used in.</param>
     public DirectoryListingAttribute(string path)
     {{
         Path = path;
     }}
 
+    /// <summary>
+    /// The path to the directory to list. Absolute or relative to the source code file this attribute is used in.
+    /// </summary>
     public string Path {{ get; }}
 }}
 ";
