@@ -6,7 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>be9d73e1-90f3-4999-9997-bb88dea22bbf</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>../../..</DockerfileContext>
+    <DockerfileContext>../..</DockerfileContext>
+
+    <!-- copying of media does not work with container fast mode -->
+    <ContainerDevelopmentMode>Regular</ContainerDevelopmentMode>
   </PropertyGroup>
 
   <ItemGroup>
