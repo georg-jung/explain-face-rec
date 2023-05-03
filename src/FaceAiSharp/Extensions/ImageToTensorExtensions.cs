@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace FaceAiSharp.Extensions;
 
-public static class ImageToTensorExtensions
+internal static class ImageToTensorExtensions
 {
     /* this is heavily based on https://github.com/skywalkerisnull/onnxruntime-csharp-cv-template/blob/bb1454a51a722e293a918d2b5a25abda864f9f74/utils/ImageHelper.cs#L62
      * see also https://github.com/SixLabors/ImageSharp/discussions/1955

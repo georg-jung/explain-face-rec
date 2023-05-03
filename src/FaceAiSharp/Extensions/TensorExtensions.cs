@@ -8,7 +8,7 @@ using NumSharp.Backends.Unmanaged;
 
 namespace FaceAiSharp.Extensions;
 
-public static class TensorExtensions
+internal static class TensorExtensions
 {
     public static NDArray ToNDArray<T>(this NamedOnnxValue input)
     {

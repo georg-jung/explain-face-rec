@@ -73,17 +73,6 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static PointF GetMouthRight(IReadOnlyList<PointF> landmarks) => landmarks[4];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks)
-    {
-        // adapted from https://stackoverflow.com/a/12892493/1200847
-        var le = GetLeftEye(landmarks);
-        var re = GetRightEye(landmarks);
-
-        var diff = re - le;
-        return Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI * -1;
-    }
-
     public IReadOnlyCollection<FaceDetectorResult> Detect(Image image)
     {
         var resizeOptions = new ResizeOptions()
@@ -102,7 +91,23 @@ public sealed class ScrfdDetector : IFaceDetector, IDisposable
         return Detect(input, img.Size(), scale);
     }
 
-    public IReadOnlyCollection<FaceDetectorResult> Detect(DenseTensor<float> input, Size imgSize, float scale)
+    /// <summary>
+    /// Calculates the angle in which the face described by the given landmark points needs to be rotated by so that the eyes are parallel to the x-axis.
+    /// </summary>
+    /// <param name="landmarks">Landmark points as calculated by an instance of this class.</param>
+    /// <returns>The angle the face needs to be rotated by.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static double GetFaceAlignmentAngle(IReadOnlyList<PointF> landmarks)
+    {
+        // adapted from https://stackoverflow.com/a/12892493/1200847
+        var le = GetLeftEye(landmarks);
+        var re = GetRightEye(landmarks);
+
+        var diff = re - le;
+        return Math.Atan2(diff.Y, diff.X) * 180.0 / Math.PI * -1;
+    }
+
+    internal IReadOnlyCollection<FaceDetectorResult> Detect(DenseTensor<float> input, Size imgSize, float scale)
     {
         var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(_modelParameters.InputName, input) };
         using var outputs = _session.Run(inputs);

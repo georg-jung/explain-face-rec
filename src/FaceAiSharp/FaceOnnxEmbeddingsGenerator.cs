@@ -14,17 +14,9 @@ public sealed class FaceOnnxEmbeddingsGenerator : IFaceEmbeddingsGenerator, IDis
 
     public void Dispose() => _fonnx.Dispose();
 
-    public IEnumerable<float[]> Generate(IReadOnlyList<Image<Rgb24>> alignedImages)
+    public float[] Generate(Image<Rgb24> alignedFace)
     {
-        foreach (var image in alignedImages)
-        {
-            yield return Generate(image);
-        }
-    }
-
-    public float[] Generate(Image<Rgb24> image)
-    {
-        var img = image.ToFaceOnnxFloatArray();
+        var img = alignedFace.ToFaceOnnxFloatArray();
         var res = _fonnx.Forward(img);
         return res;
     }
