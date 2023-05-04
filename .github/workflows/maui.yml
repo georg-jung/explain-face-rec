@@ -55,4 +55,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: blazorface-maui-android
-        path: bin/BlazorFace.Maui/**/*
+        path: bin/BlazorFace.Maui/**/*Signed.aab
