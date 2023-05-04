@@ -54,15 +54,24 @@
 
         try
         {
-            var detections = det.Detect(image);
-            var rectangles = detections.Select(x => Rectangle.Round(x.Box)).ToList();
+            int DrawDetections()
+            {
+                var detections = det.Detect(image);
+                var rectangles = detections.Select(x => Rectangle.Round(x.Box)).ToList();
 
-            var brush = Brushes.Solid(_bboxColor);
-            image.DrawRectangles(brush, rectangles);
+                var brush = Brushes.Solid(_bboxColor);
+                image.DrawRectangles(brush, rectangles);
+                return detections.Count;
+            }
+#if ANDROID
+            var cnt = await Task.Run(DrawDetections);
+#else
+            var cnt = DrawDetections();
+#endif
             await JS.SetImageStream(image, imgId);
             StateHasChanged();
 
-            return detections.Count > 0 ? null : "No faces could be found in this image.";
+            return cnt > 0 ? null : "No faces could be found in this image.";
         }
         finally
         {

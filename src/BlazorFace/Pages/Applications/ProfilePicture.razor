@@ -46,7 +46,11 @@
 
         try
         {
+#if ANDROID
+            await Task.Run(() => FaceAiSharp.Applications.CropProfilePicture(det, image));
+#else
             FaceAiSharp.Applications.CropProfilePicture(det, image);
+#endif
             await JS.SetImageStream(image, imgId);
             await JS.SetImageStream(image, imgId2);
             return null;

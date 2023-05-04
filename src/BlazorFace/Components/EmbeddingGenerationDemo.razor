@@ -41,6 +41,15 @@
 
     protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image)
     {
+#if ANDROID
+        return await Task.Run(() => OnImageLoadedAsyncImpl(image));
+#else
+        return await OnImageLoadedAsyncImpl(image);
+#endif
+    }
+
+    private async Task<string?> OnImageLoadedAsyncImpl(Image<Rgb24> image)
+    {
         var det = detectorPool.Get();
         var emb = embGenPool.Get();
 
@@ -61,8 +70,11 @@
             ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 255);
 
             _showFig = true;
-            await JS.SetImageStream(image, imgId);
-            StateHasChanged();
+            await InvokeAsync(async () =>
+            {
+                await JS.SetImageStream(image, imgId);
+                StateHasChanged();
+            });
 
             _embeddings = emb.Generate(image);
 

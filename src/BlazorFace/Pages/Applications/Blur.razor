@@ -44,7 +44,11 @@
 
         try
         {
+#if ANDROID
+            await Task.Run(() => FaceAiSharp.Applications.BlurFaces(det, image));
+#else
             FaceAiSharp.Applications.BlurFaces(det, image);
+#endif
             await JS.SetImageStream(image, imgId);
             return null;
         }

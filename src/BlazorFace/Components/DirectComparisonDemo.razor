@@ -126,14 +126,26 @@
             }
         }
 
-        var (res, imgId) = _embeddings1 is null ? (Handle(out _embeddings1), imgId1) : (Handle(out _embeddings2), imgId2);
-        if (res is not null)
+        string? res = null;
+        string? imgId = null;
+
+        void CpuIntenseWork()
         {
-            _dot = null;
-            return res;
+            (res, imgId) = _embeddings1 is null ? (Handle(out _embeddings1), imgId1) : (Handle(out _embeddings2), imgId2);
+            if (res is not null)
+            {
+                _dot = null;
+            }
         }
 
-        await JS.SetImageStream(image, imgId);
+#if ANDROID
+        await Task.Run(() => CpuIntenseWork());
+#else
+        CpuIntenseWork();
+#endif
+        if (res is not null) return res;
+
+        await JS.SetImageStream(image, imgId!);
         if (_embeddings1 is not null && _embeddings2 is not null) _dot = _embeddings1.Dot(_embeddings2);
         StateHasChanged();
         return null;

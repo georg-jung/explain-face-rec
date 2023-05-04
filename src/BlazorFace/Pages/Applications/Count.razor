@@ -109,7 +109,11 @@
 
         try
         {
+#if ANDROID
+            var (faces, o, c) = await Task.Run(() => FaceAiSharp.Applications.CountEyeStates(det, es, image, _eyeDistanceDivisor));
+#else
             var (faces, o, c) = FaceAiSharp.Applications.CountEyeStates(det, es, image, _eyeDistanceDivisor);
+#endif
             _countMsg = $"Found {o} open {"eye".ToQuantity(o, ShowQuantityAs.None)} and {c} closed {"eye".ToQuantity(c, ShowQuantityAs.None)}.";
             if (faces > o + c)
             {

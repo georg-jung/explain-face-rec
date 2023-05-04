@@ -36,7 +36,16 @@
         StateHasChanged();
     }
 
-    protected override Task<string?> OnImageLoadedAsync(Image<Rgb24> image, string fileName)
+    protected override async Task<string?> OnImageLoadedAsync(Image<Rgb24> image, string fileName)
+    {
+#if ANDROID
+        return await Task.Run(() => OnImageLoadedAsyncImpl(image, fileName));
+#else
+        return await OnImageLoadedAsyncImpl(image, fileName);
+#endif
+    }
+
+    private Task<string?> OnImageLoadedAsyncImpl(Image<Rgb24> image, string fileName)
     {
         var det = detectorPool.Get();
         var embGen = embGenPool.Get();
