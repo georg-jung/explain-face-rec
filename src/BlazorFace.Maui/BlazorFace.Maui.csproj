@@ -33,6 +33,15 @@
     <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
+  <Target Name="ConvertToMauiAsset" DependsOnTargets="ResolveProjectReferences" BeforeTargets="PrepareForBuild">
+    <ItemGroup>
+      <ContentToMauiAsset Include="@(Content)" Condition="'%(Extension)' == '.onnx'" />
+      <MauiAsset Include="@(ContentToMauiAsset)" />
+      <Content Remove="@(ContentToMauiAsset)" />
+    </ItemGroup>
+    <Message Text="Changed BuildAction from Content to MauiAsset: @(ContentToMauiAsset)" Importance="high" Condition="'@(ContentToMauiAsset)' != ''" />
+  </Target>
+
   <ItemGroup>
     <!-- App Icon -->
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
@@ -51,6 +60,7 @@
 
   <ItemGroup>
     <PackageReference Include="FaceAiSharp.Bundle" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
   </ItemGroup>
 
