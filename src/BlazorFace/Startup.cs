@@ -25,7 +25,7 @@ public static class Startup
         ConfigureOptionsIndependent<ScrfdDetectorOptions>(services, configuration);
         ConfigureOptionsIndependent<OpenVinoOpenClosedEye0001Options>(services, configuration);
         var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        services.PostConfigure<ArcFaceEmbeddingsGeneratorOptions>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/arcfaceresnet100-8.onnx"));
+        services.PostConfigure<ArcFaceEmbeddingsGeneratorOptions>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/arcfaceresnet100-11-int8.onnx"));
         services.PostConfigure<ScrfdDetectorOptions>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/scrfd_2.5g_kps_640x640.onnx"));
         services.PostConfigure<OpenVinoOpenClosedEye0001Options>(opt => opt.ModelPath ??= Path.Combine(exeDir, @"onnx/open_closed_eye.onnx"));
     }
