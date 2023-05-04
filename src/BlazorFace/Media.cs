@@ -25,7 +25,7 @@ public static partial class Media
 
     private static readonly Lazy<IReadOnlyList<string>> _portraits = new(() => new List<string>(PortraitsListing().Select(x => Path.Combine(PortraitsDir, x))));
 
-    private static readonly Lazy<IReadOnlyList<string>> _groups = new(() => new List<string>(GroupsListing().Select(x => Path.Combine(PortraitsDir, x))));
+    private static readonly Lazy<IReadOnlyList<string>> _groups = new(() => new List<string>(GroupsListing().Select(x => Path.Combine(GroupsDir, x))));
 
     private static readonly Lazy<IReadOnlyDictionary<string, string[]>> _lfwFaces = new(() => LfwFacesListing().ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Select(x => Path.Combine(LfwDir, kvp.Key, x)).ToArray()));
 
