@@ -90,7 +90,6 @@
     private async Task<string?> OnImageLoadedAsyncImpl(Image<Rgb24> image)
     {
         var det = detectorPool.Get();
-        var emb = embedderPool.Get();
 
         try
         {
@@ -121,7 +120,6 @@
         }
         finally
         {
-            embedderPool.Return(emb);
             detectorPool.Return(det);
         }
     }
