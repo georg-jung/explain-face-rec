@@ -11,10 +11,8 @@ public static partial class Media
 {
 #if ANDROID
     public static readonly string MediaDir = "wwwroot/media";
-#elif DEBUG
-    public static readonly string MediaDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "wwwroot", "media");
 #else
-    public static readonly string MediaDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "media");
+    public static readonly string MediaDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "wwwroot", "media");
 #endif
 
     public static readonly string PortraitsDir = Path.Combine(MediaDir, "portraits");
