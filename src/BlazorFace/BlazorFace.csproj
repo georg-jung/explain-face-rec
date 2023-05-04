@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFrameworks>net7.0;net7.0-android</TargetFrameworks>
@@ -21,6 +21,7 @@
     <PackageReference Include="Accord.MachineLearning" />
     <PackageReference Include="Accord.Statistics" />
     <PackageReference Include="Blazored.Modal" />
+    <PackageReference Include="FaceAiSharp" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.AspNetCore.Components" />
@@ -43,7 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FaceAiSharp.Bundle\FaceAiSharp.Bundle.csproj" />
     <ProjectReference Include="..\DirectoryListingSourceGenerator\DirectoryListingSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
