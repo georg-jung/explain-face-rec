@@ -39,7 +39,6 @@
       <MauiAsset Include="@(ContentToMauiAsset)" />
       <Content Remove="@(ContentToMauiAsset)" />
     </ItemGroup>
-    <Message Text="Changed BuildAction from Content to MauiAsset: @(ContentToMauiAsset)" Importance="high" Condition="'@(ContentToMauiAsset)' != ''" />
   </Target>
 
   <ItemGroup>
