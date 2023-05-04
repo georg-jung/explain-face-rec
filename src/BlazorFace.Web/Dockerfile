@@ -13,8 +13,6 @@ COPY ["Directory.Packages.props", "./"]
 COPY ["src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.csproj", "src/DirectoryListingSourceGenerator/"]
 COPY ["src/BlazorFace/BlazorFace.csproj", "src/BlazorFace/"]
 COPY ["src/BlazorFace.Web/BlazorFace.Web.csproj", "src/BlazorFace.Web/"]
-COPY ["src/FaceAiSharp/FaceAiSharp.csproj", "src/FaceAiSharp/"]
-COPY ["src/FaceAiSharp.Bundle/FaceAiSharp.Bundle.csproj", "src/FaceAiSharp.Bundle/"]
 RUN dotnet restore "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:NoAndroid=TRUE
 COPY . .
 RUN dotnet build "src/BlazorFace.Web/BlazorFace.Web.csproj" -p:NoAndroid=TRUE --no-restore -c Release -o /app/build
