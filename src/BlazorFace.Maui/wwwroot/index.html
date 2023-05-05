@@ -16,7 +16,13 @@
 
     <div class="status-bar-safe-area"></div>
 
-    <div id="app" class="d-flex flex-column h-100">Loading...</div>
+    <div id="app" class="d-flex flex-column h-100">
+        <div style="position:absolute; top:40vh; width:100%; font-family: 'Roboto', sans-serif; text-align: center;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
