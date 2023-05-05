@@ -67,7 +67,7 @@
     <ProjectReference Include="..\BlazorFace\BlazorFace.csproj" />
   </ItemGroup>
 
-  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release' and ('$(CI)' == 'true' or '$(TF_BUILD)' == 'true')">
     <AndroidKeyStore>True</AndroidKeyStore>
     <AndroidSigningKeyStore>key.keystore</AndroidSigningKeyStore>
     <AndroidSigningKeyAlias>key</AndroidSigningKeyAlias>
