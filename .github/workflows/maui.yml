@@ -35,7 +35,7 @@ jobs:
     - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net7.0-windows10.0.19041.0 -c Release --no-restore
     - uses: actions/upload-artifact@v3
       with:
-        name: blazorface-maui-windows-${{ steps.nbgv.outputs.GitBuildVersion }}
+        name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/**/AppPackages/**/*
 
   build-android:
@@ -61,5 +61,5 @@ jobs:
     - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net7.0-android -c Release --no-restore -p:AndroidSigningStorePass=${{ secrets.KEYSTORE_PASSWORD }} -p:AndroidSigningKeyPass=${{ secrets.KEYSTORE_PASSWORD }}
     - uses: actions/upload-artifact@v3
       with:
-        name: blazorface-maui-android-${{ steps.nbgv.outputs.GitBuildVersion }}
+        name: blazorface-maui-android-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/Release/**/publish/*Signed.aab
