@@ -99,3 +99,14 @@ The Noun Project's icons used here were purchased from the [Noun Project](https:
 
 * [MIT License](https://github.com/twbs/icons/blob/a7c0bc0c8222cbbdfcf5c30a21a7af50cbe77d35/LICENSE.md)
 * Copyright (c) 2019-2021 The Bootstrap Authors
+
+## Badges
+
+The badges used on the home page were just downloaded and not altered in any way:
+
+* `badges/google-play/en_badge_web_generic.png`
+  * from <https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png>
+* `badges/microsoft-store/en-us-dark.svg`
+  * from <https://get.microsoft.com/images/en-us%20dark.svg>
+
+> Google Play and the Google Play logo are trademarks of Google LLC.

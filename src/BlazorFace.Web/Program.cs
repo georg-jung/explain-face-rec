@@ -22,6 +22,7 @@ namespace BlazorFace.Web
 
             builder.Services.AddSingleton<IFileOpener, DefaultFileOpener>();
 
+            BlazorFace.Startup.ShowTryLocallySection = true;
             BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
             // Add the following line:
