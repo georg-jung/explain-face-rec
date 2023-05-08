@@ -27,7 +27,7 @@ jobs:
       run: |
         # Update appxmanifest. This must be done before build.
         [xml]$manifest= get-content "src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest"
-        $manifest.Package.Identity.Version = "${{ steps.nbgv.outputs.GitBuildVersion }}"
+        $manifest.Package.Identity.Version = "${{ steps.nbgv.outputs.SimpleVersion }}.0"
         $manifest.save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
     - name: Install MAUI Workload
       run: dotnet workload install maui-windows --ignore-failed-sources
