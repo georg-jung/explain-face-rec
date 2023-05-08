@@ -22,6 +22,13 @@ jobs:
         lfs: true
     - uses: dotnet/nbgv@v0.4
       id: nbgv
+    - name: Update appxmanifest with nbgv version
+      shell: pwsh
+      run: |
+        # Update appxmanifest. This must be done before build.
+        [xml]$manifest= get-content "src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest"
+        $manifest.Package.Identity.Version = "${{ steps.nbgv.outputs.GitBuildVersion }}"
+        $manifest.save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
     - name: Install MAUI Workload
       run: dotnet workload install maui-windows --ignore-failed-sources
     - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
