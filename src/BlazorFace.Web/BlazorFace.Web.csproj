@@ -23,4 +23,8 @@
     <ProjectReference Include="..\BlazorFace\BlazorFace.csproj" />
   </ItemGroup>
 
+  <ItemGroup Label="Global-Tool Watch">
+    <Watch Include="..\BlazorFace\**\*.razor" />
+</ItemGroup>
+
 </Project>
