@@ -102,8 +102,5 @@ public static class Startup
     }
 
     private static string? GetInformationalVersion() =>
-        Assembly
-            .GetEntryAssembly()
-            ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
+        ThisAssembly.AssemblyInformationalVersion;
 }
