@@ -39,7 +39,7 @@ namespace BlazorFace {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("StaticResources", typeof(StaticResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("BlazorFace.StaticResources", typeof(StaticResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
