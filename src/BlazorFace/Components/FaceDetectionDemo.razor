@@ -16,6 +16,20 @@
     </p>
 </div>
 
+<p class="d-flex flex-row align-items-center row justify-content-center">
+    <div class="col-12 col-sm-8 col-lg-4">
+        @{
+            var thresholdId = Guid.NewGuid().ToString("n");
+        }
+        <label for="@thresholdId" class="form-label">Detection Threshold: @_detectionThreshold.ToString("0.00")</label>
+        <input
+            @bind-value="@_detectionThreshold"
+            @bind-value:event="oninput"
+            @bind-value:culture="@System.Globalization.CultureInfo.InvariantCulture"
+            type="range" class="form-range" min="0.01" max="1.0" step="0.01" id="@thresholdId">
+    </div>
+</p>
+
 @{
     base.BuildRenderTree(__builder);
 }
@@ -31,6 +45,8 @@
     private const string Green = nameof(Green);
 
     private readonly string imgId = Guid.NewGuid().ToString("n");
+
+    private float _detectionThreshold = 0.5f;
 
     private string _bboxColorString = Yellow;
     private Color _bboxColor => _bboxColorString switch
@@ -56,8 +72,12 @@
         {
             int DrawDetections()
             {
+                var scrfd = (FaceAiSharp.ScrfdDetector)det;
+                var old = scrfd.Options.ConfidenceThreshold;
+                scrfd.Options.ConfidenceThreshold = _detectionThreshold;
                 var detections = det.Detect(image);
-                var rectangles = detections.Select(x => Rectangle.Round(x.Box)).ToList();
+                scrfd.Options.ConfidenceThreshold = old;
+                var rectangles = detections.Where(x => x.Confidence >= _detectionThreshold).Select(x => Rectangle.Round(x.Box)).ToList();
 
                 var brush = Brushes.Solid(_bboxColor);
                 image.DrawRectangles(brush, rectangles);
