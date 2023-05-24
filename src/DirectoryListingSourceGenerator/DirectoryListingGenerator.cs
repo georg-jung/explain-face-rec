@@ -89,7 +89,7 @@ public class DirectoryListingGenerator : IIncrementalGenerator
             var methodSymbol = model?.GetDeclaredSymbol(methodDeclaration);
 
             var attributeData = methodSymbol?.GetAttributes()
-                .FirstOrDefault(attr => SourceGenerationHelper.AttributeClass.Equals(attr.AttributeClass?.Name) && attr.ConstructorArguments.Length == 1);
+                .FirstOrDefault(attr => SourceGenerationHelper.AttributeClass.Equals(attr.AttributeClass?.Name, StringComparison.Ordinal) && attr.ConstructorArguments.Length == 1);
 
             if (attributeData is null)
             {
