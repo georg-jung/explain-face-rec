@@ -61,7 +61,8 @@
         }
     </style>
     <PlotlyChart @bind-Config="config" @bind-Layout="layout" @ref="chart"
-                 style="aspect-ratio: 1 / 1; width: min(60vw, 60vh);"
+                 style="aspect-ratio: 1 / 1; width: min(70vw, 70vh, 100%);"
+                 class="mb-3"
                  HoverAction="HoverAction" AfterRender="async () => await SubscribeEvents()" />
     <div class="ms-md-4 mb-4 mb-md-0 d-flex flex-column md-mw-20vw">
         <p><em>Drag the plot to move it.</em></p>
@@ -191,6 +192,14 @@
                 }
             },
             ShowLegend = false,
+            Margin = new()
+            {
+                B = 0,
+                L = 0,
+                Pad = 1,
+                R = 0,
+                T = 0,
+            },
         };
 
 
