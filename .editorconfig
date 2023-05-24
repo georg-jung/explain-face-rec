@@ -206,3 +206,7 @@ dotnet_diagnostic.SA1623.severity = none
 
 # SA1601: Partial elements should be documented
 dotnet_diagnostic.SA1601.severity = none
+
+# avoid culture aware string comparisons, see https://devblogs.microsoft.com/dotnet/performance-improvements-in-dotnet-maui/#dont-use-culture-aware-string-comparisons
+dotnet_diagnostic.CA1307.severity = error
+dotnet_diagnostic.CA1309.severity = error
