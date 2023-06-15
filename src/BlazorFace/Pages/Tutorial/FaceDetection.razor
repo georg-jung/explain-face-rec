@@ -39,6 +39,60 @@
         <li><a href="/Demos/Count">Count faces or open eyes</a></li>
     </ul>
 
+    <h2 class="fs-4 mt-4">Try this yourself</h2>
+    <p>
+        You can use the exact same face detection mechanism that is used in the demos above from your own code.
+    </p>
+    <ol>
+        <li>Install a recent version of <a href="https://dotnet.microsoft.com/en-us/download">.NET</a>.</li>
+        <li>
+            Create a new console app project by running this command in your favorite shell in an empty folder:<br />
+            <HighlightedCode LanguageClass="language-shell">
+dotnet new console
+            </HighlightedCode>
+        </li>
+        <li>
+            Install two packages providing the relevant code and models:<br />
+            <HighlightedCode LanguageClass="language-shell">
+dotnet add package Microsoft.ML.OnnxRuntime
+dotnet add package FaceAiSharp.Bundle
+            </HighlightedCode>
+        </li>
+        <li>
+            Replace the content of the <code>Program.cs</code> file with the following code:<br />
+            <HighlightedCode LanguageClass="language-csharp">
+using FaceAiSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+using var hc = new HttpClient();
+var groupPhoto = await hc.GetByteArrayAsync("https://raw.githubusercontent.com/georg-jung/FaceAiSharp/master/examples/obama_family.jpg");
+
+var img = Image.Load&lt;Rgb24&gt;(groupPhoto);
+var det = FaceAiSharpBundleFactory.CreateFaceDetector();
+var faces = det.DetectFaces(img);
+foreach (var face in faces)
+{
+    Console.WriteLine($"Found a face with conficence {face.Confidence}: {face.Box}");
+}
+            </HighlightedCode>
+        </li>
+        <li>
+            Run the program you just created:<br />
+            <HighlightedCode LanguageClass="language-shell">
+dotnet run
+            </HighlightedCode>
+
+            You should see output similar to:<br />
+<HighlightedCode LanguageClass="language-plaintext">
+Found a face with conficence 0.89665085: RectangleF [ X=176.05847, Y=79.44571, Width=62.074905, Height=84.46396 ]
+Found a face with conficence 0.88412976: RectangleF [ X=454.50806, Y=88.49284, Width=65.97302, Height=78.17378 ]
+Found a face with conficence 0.8757608: RectangleF [ X=383.41547, Y=82.51477, Width=63.718292, Height=95.04758 ]
+Found a face with conficence 0.87154955: RectangleF [ X=249.2981, Y=103.57684, Width=57.793823, Height=83.17267 ]
+</HighlightedCode>
+        </li>
+    </ol>
+
     <div class="mt-5 d-flex flex-row justify-content-evenly align-items-center">
         <a href="/DivideAndConquer" class="btn btn-secondary">
             Previous
