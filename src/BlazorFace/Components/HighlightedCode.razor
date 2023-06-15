@@ -1,0 +1,23 @@
+@inject IJSRuntime JS
+
+<pre @ref=_ref class="@LanguageClass"><code>
+    @ChildContent
+</code></pre>
+
+@code {
+    [Parameter]
+    public string LanguageClass { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private ElementReference _ref;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("highlightElement", _ref);
+        }
+    }
+}

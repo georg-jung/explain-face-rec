@@ -12,6 +12,7 @@
     <meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="css/bootstrap-5.2.3/bootstrap.min.css" />
     <link rel="stylesheet" href="bootstrap-icons-1.10.3/bootstrap-icons.css" />
+    <link rel="stylesheet" href="highlight.js-11.7.0/styles/vs.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="BlazorFace.Web.styles.css" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -35,6 +36,7 @@
     <script src="_content/Plotly.Blazor/plotly-interop.js" type="text/javascript"></script>
     <script src="_framework/blazor.server.js"></script>
     <script src="js/bootstrap-5.2.3/bootstrap.bundle.min.js"></script>
+    <script src="highlight.js-11.7.0/highlight.min.js"></script>
 
     <!-- https://learn.microsoft.com/en-us/aspnet/core/blazor/images?view=aspnetcore-7.0#stream-image-data -->
     <script>
@@ -52,6 +54,10 @@
         window.clearImage = async (imageElementId) => {
             const image = document.getElementById(imageElementId);
             image.removeAttribute('src', '');
+        }
+
+        window.highlightElement = function (elem) {
+            hljs.highlightElement(elem);
         }
     </script>
 </body>
