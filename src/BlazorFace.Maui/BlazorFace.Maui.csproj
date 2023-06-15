@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFrameworks>net7.0-android</TargetFrameworks>
@@ -65,6 +65,7 @@
   <ItemGroup>
     <PackageReference Include="FaceAiSharp.Bundle" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
   </ItemGroup>
 
