@@ -22,6 +22,11 @@ jobs:
         lfs: true
     - uses: dotnet/nbgv@v0.4
       id: nbgv
+    # this is just a workaround, see https://github.com/dotnet/razor/issues/8718#issuecomment-1590731689
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.304'
+    # temporary workaround end
     - name: Update appxmanifest with nbgv version
       shell: pwsh
       run: |
@@ -49,6 +54,11 @@ jobs:
         lfs: true
     - uses: dotnet/nbgv@v0.4
       id: nbgv
+    # this is just a workaround, see https://github.com/dotnet/razor/issues/8718#issuecomment-1590731689
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.304'
+    # temporary workaround end
     - name: Install MAUI Workload
       run: dotnet workload install maui-android --ignore-failed-sources
     - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
