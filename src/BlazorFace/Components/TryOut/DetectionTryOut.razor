@@ -1,19 +1,8 @@
 <p>
-    You can use the exact same face detection mechanism that is used in the demos above from your own code.
+    If you're writing your own application, you can use the exact same face detection mechanism that is used in the demo above from your own code.
+    The following example uses C# as programming language and leverages the <a href="https://github.com/georg-jung/FaceAiSharp">FaceAiSharp</a> library.
 </p>
-<ol>
-    <li>Install a recent version of <a href="https://dotnet.microsoft.com/en-us/download">.NET</a>.</li>
-    <li>
-        Create a new console app project by running this command in your favorite shell in an empty folder:<br />
-        <HighlightedCode LanguageClass="language-shell">
-dotnet new console</HighlightedCode>
-    </li>
-    <li>
-        Install two packages providing the relevant code and models:<br />
-        <HighlightedCode LanguageClass="language-shell">
-dotnet add package Microsoft.ML.OnnxRuntime
-dotnet add package FaceAiSharp.Bundle</HighlightedCode>
-    </li>
+<TryOutSteps>
     <li>
         Replace the content of the <code>Program.cs</code> file with the following code:<br />
         <HighlightedCode LanguageClass="language-csharp">
@@ -22,7 +11,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 using var hc = new HttpClient();
-var groupPhoto = await hc.GetByteArrayAsync("https://raw.githubusercontent.com/georg-jung/FaceAiSharp/master/examples/obama_family.jpg");
+var groupPhoto = await hc.GetByteArrayAsync(
+    "https://raw.githubusercontent.com/georg-jung/FaceAiSharp/master/examples/obama_family.jpg");
 
 var img = Image.Load&lt;Rgb24&gt;(groupPhoto);
 var det = FaceAiSharpBundleFactory.CreateFaceDetector();
@@ -44,4 +34,4 @@ Found a face with conficence 0.88412976: RectangleF [ X=454.50806, Y=88.49284, W
 Found a face with conficence 0.8757608: RectangleF [ X=383.41547, Y=82.51477, Width=63.718292, Height=95.04758 ]
 Found a face with conficence 0.87154955: RectangleF [ X=249.2981, Y=103.57684, Width=57.793823, Height=83.17267 ]</HighlightedCode>
     </li>
-</ol>
+</TryOutSteps>

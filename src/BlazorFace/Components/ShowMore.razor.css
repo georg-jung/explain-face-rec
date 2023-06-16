@@ -22,11 +22,11 @@
     position: relative;
 }
 
-button.collapser:not(.collapsed)::after {
+.collapser:not(.collapsed)::after {
     content: '- Show Less';
 }
 
-button.collapser.collapsed::after,
-.collapse:not(.show) + button.collapser::after {
+.collapser.collapsed::after,
+.collapse:not(.show) + .collapser::after {
     content: '+ Show More';
 }

@@ -1,0 +1,21 @@
+<ol>
+    <li>Install a recent version of <a href="https://dotnet.microsoft.com/en-us/download">.NET</a>.</li>
+    <li>
+        Create a new console app project by running this command in your favorite shell in an empty folder:<br />
+        <HighlightedCode LanguageClass="language-shell">
+dotnet new console</HighlightedCode>
+    </li>
+    <li>
+        Install two packages providing the relevant code and models:<br />
+        <HighlightedCode LanguageClass="language-shell">
+dotnet add package Microsoft.ML.OnnxRuntime
+dotnet add package FaceAiSharp.Bundle</HighlightedCode>
+    </li>
+    @ChildContent
+</ol>
+
+@code
+{
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
