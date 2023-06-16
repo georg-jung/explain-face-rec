@@ -1,5 +1,5 @@
 <p>
-    If you're writing your own application, you can use the exact same face detection mechanism that is used in the demo above from your own code.
+    If you're writing your own application, you can use the exact same face recognition mechanism that is used in the demo above from your own code.
     The following example uses C# as programming language and leverages the <a href="https://github.com/georg-jung/FaceAiSharp">FaceAiSharp</a> library.
 </p>
 <TryOutSteps>
@@ -15,12 +15,13 @@ var groupPhoto = await hc.GetByteArrayAsync(
     "https://raw.githubusercontent.com/georg-jung/FaceAiSharp/master/examples/obama_family.jpg");
 var img = Image.Load&lt;Rgb24&gt;(groupPhoto);
 
-var det = FaceAiSharpBundleFactory.CreateFaceDetector();
-var faces = det.DetectFaces(img);
-foreach (var face in faces)
-{
-    Console.WriteLine($"Found a face with conficence {face.Confidence}: {face.Box}");
-}</HighlightedCode>
+var det = FaceAiSharpBundleFactory.CreateFaceDetectorWithLandmarks();
+var rec = FaceAiSharpBundleFactory.CreateFaceEmbeddingsGenerator();
+
+var face = det.DetectFaces(img).First();
+rec.AlignFaceUsingLandmarks(img, face.Landmarks!);
+var embedding = rec.GenerateEmbedding(img);
+Console.WriteLine($"Generated an embedding for one face:\nn{string.Join("\t", embedding)}");</HighlightedCode>
     </li>
     <li>
         Run the program you just created:<br />
@@ -29,9 +30,10 @@ dotnet run</HighlightedCode>
 
         You should see output similar to:<br />
         <HighlightedCode LanguageClass="language-plaintext">
-Found a face with conficence 0.89665085: RectangleF [ X=176.05847, Y=79.44571, Width=62.074905, Height=84.46396 ]
-Found a face with conficence 0.88412976: RectangleF [ X=454.50806, Y=88.49284, Width=65.97302, Height=78.17378 ]
-Found a face with conficence 0.8757608: RectangleF [ X=383.41547, Y=82.51477, Width=63.718292, Height=95.04758 ]
-Found a face with conficence 0.87154955: RectangleF [ X=249.2981, Y=103.57684, Width=57.793823, Height=83.17267 ]</HighlightedCode>
+Generated an embedding for one face:
+-0,029764613    0,13904491      -0,017976629    0,010621089     0,015310788     -0,077746354
+0,026660273     -0,03839961     -0,06403088     0,023788495     -0,1461524      -0,010910285
+-0,001902924    -0,07354331     -0,06590692    0,09289711       0,0023482481    0,035271123
+&lt;... more numbers between -1 and 1 ...&gt;</HighlightedCode>
     </li>
 </TryOutSteps>

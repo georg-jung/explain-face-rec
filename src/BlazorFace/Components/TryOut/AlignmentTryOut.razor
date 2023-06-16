@@ -1,0 +1,32 @@
+<p>
+    If you're writing your own application, you can use the exact same face detection, face landmarks detection and face alignment mechanisms that are used in the demo above from your own code.
+    The following example uses C# as programming language and leverages the <a href="https://github.com/georg-jung/FaceAiSharp">FaceAiSharp</a> library.
+</p>
+<TryOutSteps>
+    <li>
+        Replace the content of the <code>Program.cs</code> file with the following code:<br />
+        <HighlightedCode LanguageClass="language-csharp">
+using FaceAiSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
+using var hc = new HttpClient();
+var groupPhoto = await hc.GetByteArrayAsync(
+    "https://raw.githubusercontent.com/georg-jung/FaceAiSharp/master/examples/obama_family.jpg");
+var img = Image.Load&lt;Rgb24&gt;(groupPhoto);
+
+var det = FaceAiSharpBundleFactory.CreateFaceDetectorWithLandmarks();
+var rec = FaceAiSharpBundleFactory.CreateFaceEmbeddingsGenerator();
+
+var face = det.DetectFaces(img).First();
+rec.AlignFaceUsingLandmarks(img, face.Landmarks!);
+img.Save("aligned.jpg");</HighlightedCode>
+    </li>
+    <li>
+        Run the program you just created:<br />
+        <HighlightedCode LanguageClass="language-shell">
+dotnet run</HighlightedCode>
+
+        Now you can find an <code>aligned.jpg</code> file in the same folder as the <code>Program.cs</code> file, which contains an aligned version of one of the faces in the photo.
+    </li>
+</TryOutSteps>
