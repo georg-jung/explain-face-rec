@@ -1,0 +1,15 @@
+@{
+    var id = $"collapse-{Guid.NewGuid():n}";
+}
+
+<div id="@id" class="collapse">
+    @ChildContent
+</div>
+
+<button class="btn btn-link collapser" type="button" data-bs-toggle="collapse" data-bs-target="#@id" aria-expanded="false" aria-controls="@id">
+</button>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

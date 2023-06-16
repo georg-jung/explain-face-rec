@@ -1,0 +1,32 @@
+.collapse:not(.show) {
+    display: block;
+    height: 16em !important;
+    overflow: hidden;
+    position: relative;
+}
+
+    .collapse:not(.show)::after,
+    .collapsing::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4rem;
+        background: linear-gradient(transparent, white);
+        z-index: 1;
+    }
+
+.collapsing {
+    min-height: 16em !important;
+    position: relative;
+}
+
+button.collapser:not(.collapsed)::after {
+    content: '- Show Less';
+}
+
+button.collapser.collapsed::after,
+.collapse:not(.show) + button.collapser::after {
+    content: '+ Show More';
+}
