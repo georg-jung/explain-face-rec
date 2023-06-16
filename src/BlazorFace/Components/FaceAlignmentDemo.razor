@@ -54,9 +54,7 @@
         {
             @((MarkupString)SvgDrawer.DrawPoints(_predictionViewbox, _predictionViewbox.Width / 40, _predicitonPoints, $"class=\"overlay\" style=\"color: #{OverlayColor(_predictedOverlayColorString).ToHex()}\""))
         }
-        <svg class="overlay" style="color: #@(OverlayColor(_expectedOverlayColorString).ToHex())">
-            <use xlink:href='/media/deepinsight-targetpoints.opt.svg#img' href="/media/deepinsight-targetpoints.opt.svg#img"></use>
-        </svg>
+        @((MarkupString)SvgDrawer.DrawPoints(new Rectangle(0, 0, 112, 112), 112 / 40, ExpectedLandmarkPositions, $"class=\"overlay\" style=\"color: #{OverlayColor(_expectedOverlayColorString).ToHex()}\""))
     </div>
 </div>
 
@@ -67,6 +65,16 @@
     private const string Blue = nameof(Blue);
     private const string Green = nameof(Green);
     private const string Hide = nameof(Hide);
+
+    // see FaceAiSharp src\FaceAiSharp\ArcFaceEmbeddingsGenerator.cs
+    private static readonly IReadOnlyList<PointF> ExpectedLandmarkPositions = new List<PointF>()
+    {
+        new PointF(38.2946f, 51.6963f),
+        new PointF(73.5318f, 51.5014f),
+        new PointF(56.0252f, 71.7366f),
+        new PointF(41.5493f, 92.3655f),
+        new PointF(70.7299f, 92.2041f),
+    }.AsReadOnly();
 
     private string _predictedOverlayColorString = Hide;
     private string _expectedOverlayColorString = Yellow;
