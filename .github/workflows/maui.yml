@@ -36,8 +36,8 @@ jobs:
         $manifest.save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
     - name: Install MAUI Workload
       run: dotnet workload install maui-windows --ignore-failed-sources
-    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
-    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net7.0-windows10.0.19041.0 -c Release --no-restore
+    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -p:PublishReadyToRun=true
+    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -f net7.0-windows10.0.19041.0 -c Release --no-restore
     - uses: actions/upload-artifact@v3
       with:
         name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
