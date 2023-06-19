@@ -1,14 +1,13 @@
 @inherits ChooseSingleImageBase
 
-@using FaceAiSharp.Abstractions;
-@using FaceAiSharp.Extensions;
 @using FaceAiSharp;
+@using FaceAiSharp.Extensions;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 @inject ObjectPool<IFaceEmbeddingsGenerator> embGenPool
 
 @{
@@ -55,7 +54,7 @@
 
         try
         {
-            var detections = det.Detect(image);
+            var detections = det.DetectFaces(image);
             if (detections.Count == 0)
             {
                 return "No faces could be found in this image.";
@@ -67,7 +66,7 @@
                 throw new InvalidOperationException("Landmarks are required.");
             }
 
-            ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 255);
+            ArcFaceEmbeddingsGenerator.AlignFaceUsingLandmarks(image, first.Landmarks, 255);
 
             _showFig = true;
             await InvokeAsync(async () =>
@@ -76,7 +75,7 @@
                 StateHasChanged();
             });
 
-            _embeddings = emb.Generate(image);
+            _embeddings = emb.GenerateEmbedding(image);
 
             return null;
         }

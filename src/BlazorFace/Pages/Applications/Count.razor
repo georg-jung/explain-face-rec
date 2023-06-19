@@ -2,13 +2,13 @@
 @page "/Demos/Count"
 @layout GoBackLayout
 
-@using FaceAiSharp.Abstractions;
+@using FaceAiSharp;
 @using Humanizer;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 @inject ObjectPool<IEyeStateDetector> esPool
 
 <div class="text-center mb-4">

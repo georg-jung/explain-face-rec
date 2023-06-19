@@ -1,14 +1,13 @@
 @inherits ChooseSingleImageBase
 
-@using FaceAiSharp.Abstractions;
-@using FaceAiSharp.Extensions;
 @using FaceAiSharp;
+@using FaceAiSharp.Extensions;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 @inject ObjectPool<IFaceEmbeddingsGenerator> embedderPool
 
 @{
@@ -114,7 +113,7 @@
 
         try
         {
-            var detections = det.Detect(image);
+            var detections = det.DetectFaces(image);
             if (detections.Count == 0)
             {
                 return "No faces could be found in this image.";
@@ -131,7 +130,7 @@
 
             using var unaligned = image.Extract(Rectangle.Round(first.Box).GetMinimumSupersetSquare(), 450, true);
 
-            ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks, 450);
+            ArcFaceEmbeddingsGenerator.AlignFaceUsingLandmarks(image, first.Landmarks, 450);
 
             await InvokeAsync(async () =>
             {

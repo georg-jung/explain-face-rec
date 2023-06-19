@@ -2,12 +2,12 @@
 @page "/Demos/ProfilePicture"
 @layout GoBackLayout
 
-@using FaceAiSharp.Abstractions;
+@using FaceAiSharp;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 
 <div class="text-center mb-4">
     <h1>Demo: Profile Picture Crop</h1>

@@ -1,13 +1,13 @@
 @inherits ChooseSingleImageBase
 
-@using FaceAiSharp.Abstractions;
+@using FaceAiSharp;
 @using FaceAiSharp.Extensions;
 @using SixLabors.ImageSharp.Drawing.Processing;
 @using SixLabors.ImageSharp.PixelFormats;
 @using BlazorFace.Components
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 
 <div class="d-flex flex-row align-items-center justify-content-center row mb-3">
     <span class="col-12 col-sm-auto mb-2 mb-sm-0 text-center">Bounding Box Color:</span>
@@ -73,7 +73,7 @@
                 var scrfd = (FaceAiSharp.ScrfdDetector)det;
                 var old = scrfd.Options.ConfidenceThreshold;
                 scrfd.Options.ConfidenceThreshold = _detectionThreshold;
-                var detections = det.Detect(image);
+                var detections = det.DetectFaces(image);
                 scrfd.Options.ConfidenceThreshold = old;
                 var rectangles = detections.Where(x => x.Confidence >= _detectionThreshold).Select(x => Rectangle.Round(x.Box)).ToList();
 

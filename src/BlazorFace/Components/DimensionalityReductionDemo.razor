@@ -1,10 +1,10 @@
 @inherits ChooseImageGroupBase
 
-@using FaceAiSharp.Abstractions;
+@using FaceAiSharp;
 @using SixLabors.ImageSharp.PixelFormats;
 
 @inject IJSRuntime JS
-@inject ObjectPool<IFaceDetector> detectorPool
+@inject ObjectPool<IFaceDetectorWithLandmarks> detectorPool
 @inject ObjectPool<IFaceEmbeddingsGenerator> embGenPool
 
 @{
@@ -51,7 +51,7 @@
         var embGen = embGenPool.Get();
         try
         {
-            var detection = det.Detect(image);
+            var detection = det.DetectFaces(image);
             if (detection.Count == 0)
             {
                 return Task.FromResult<string?>($"{fileName} was skipped because no face was found.");
@@ -60,8 +60,8 @@
             var first = detection.First();
             var lmrks = first.Landmarks ?? throw new InvalidOperationException("Face detection with landmarks is required.");
 
-            FaceAiSharp.ArcFaceEmbeddingsGenerator.AlignUsingFacialLandmarks(image, first.Landmarks);
-            var emb = embGen.Generate(image);
+            embGen.AlignFaceUsingLandmarks(image, first.Landmarks);
+            var emb = embGen.GenerateEmbedding(image);
             _embeddings.Add(emb);
 
             using var ms = new MemoryStream();
