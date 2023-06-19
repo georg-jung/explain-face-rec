@@ -9,11 +9,9 @@
 @inject IJSRuntime JS
 @inject ObjectPool<IFaceDetector> detectorPool
 
-<div class="d-flex flex-row justify-content-center">
-    <p>
-        Bounding Box Color:
-        <MultiChoiceRadio Class="ms-2" Choices="@(new[] {Yellow, Red, Blue, Green})" @bind-SelectedChoice="@_bboxColorString" />
-    </p>
+<div class="d-flex flex-row align-items-center justify-content-center row mb-3">
+    <span class="col-12 col-sm-auto mb-2 mb-sm-0 text-center">Bounding Box Color:</span>
+    <MultiChoiceRadio Class="col-auto" Choices="@(new[] {Yellow, Red, Blue, Green})" @bind-SelectedChoice="@_bboxColorString" />
 </div>
 
 <p class="d-flex flex-row align-items-center row justify-content-center">
