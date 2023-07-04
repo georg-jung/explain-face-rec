@@ -14,9 +14,9 @@ namespace BlazorFace;
 
 public static class Startup
 {
-    public static bool ShowTryLocallySection { get; set; } = false;
-
     private static readonly Lazy<string?> _version = new(GetInformationalVersion);
+
+    public static bool ShowTryLocallySection { get; set; } = false;
 
     public static string? Version => _version.Value;
 

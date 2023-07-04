@@ -19,7 +19,7 @@ var det = FaceAiSharpBundleFactory.CreateFaceDetector();
 var faces = det.DetectFaces(img);
 foreach (var face in faces)
 {
-    Console.WriteLine($"Found a face with conficence {face.Confidence}: {face.Box}");
+    Console.WriteLine($"Found a face with confidence {face.Confidence}: {face.Box}");
 }</HighlightedCode>
     </li>
     <li>
@@ -29,9 +29,9 @@ dotnet run</HighlightedCode>
 
         You should see output similar to:<br />
         <HighlightedCode LanguageClass="language-plaintext">
-Found a face with conficence 0.89665085: RectangleF [ X=176.05847, Y=79.44571, Width=62.074905, Height=84.46396 ]
-Found a face with conficence 0.88412976: RectangleF [ X=454.50806, Y=88.49284, Width=65.97302, Height=78.17378 ]
-Found a face with conficence 0.8757608: RectangleF [ X=383.41547, Y=82.51477, Width=63.718292, Height=95.04758 ]
-Found a face with conficence 0.87154955: RectangleF [ X=249.2981, Y=103.57684, Width=57.793823, Height=83.17267 ]</HighlightedCode>
+Found a face with confidence 0.89665085: RectangleF [ X=176.05847, Y=79.44571, Width=62.074905, Height=84.46396 ]
+Found a face with confidence 0.88412976: RectangleF [ X=454.50806, Y=88.49284, Width=65.97302, Height=78.17378 ]
+Found a face with confidence 0.8757608: RectangleF [ X=383.41547, Y=82.51477, Width=63.718292, Height=95.04758 ]
+Found a face with confidence 0.87154955: RectangleF [ X=249.2981, Y=103.57684, Width=57.793823, Height=83.17267 ]</HighlightedCode>
     </li>
 </TryOutSteps>

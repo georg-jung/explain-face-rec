@@ -42,8 +42,29 @@
             @{
                 var rangeId = Guid.NewGuid().ToString("n");
             }
-            <label for="@rangeId" class="form-label">Number of neighbors/perplexity: @_perplexity</label>
-            <input @bind="@_perplexity" type="range" class="form-range" min="1" max="@_maxPerplexity" @bind:event="oninput" id="@rangeId">
+            @if (Tsne.Equals(_reductionAlgo))
+            {
+                <label for="@rangeId" class="form-label">Perplexity: @($"{_perplexity:N1}")</label>
+                @if (_maxPerplexity >= 0.4) {
+                    <input
+                        @bind="@_perplexity" @bind:event="oninput" @bind:culture="@System.Globalization.CultureInfo.InvariantCulture"
+                        min="0.4" step="0.1"
+                        max=@(_maxPerplexity.ToString("N1", System.Globalization.CultureInfo.InvariantCulture))
+                        type="range" class="form-range" id="@rangeId" />
+                }
+                else
+                {
+                    <div><em>Please add more faces to be able to change perplexity.</em></div>
+                }
+            }
+            else
+            { // UMAP
+                <label for="@rangeId" class="form-label">Number of neighbors: @_perplexity</label>
+                <input
+                    @bind="@_perplexity" @bind:event="oninput" @bind:culture="@System.Globalization.CultureInfo.InvariantCulture"
+                    min="1" step="1" max="100"
+                    type="range" class="form-range" id="@rangeId" />
+            }
         </div>
         <div class="mt-3 col-sm-4 col-12">
             <button class="btn btn-secondary" @onclick="@ReduceDims">Recalculate</button>
@@ -121,8 +142,8 @@
     private string _2dOr3d = ThreeD;
     private string _reductionAlgo = PCA;
     private float _mdsStress = 0f;
-    private int _perplexity = 3;
-    private int _maxPerplexity => Embeddings is null ? 0 : (Embeddings.Count - 2) / 3;
+    private float _perplexity = 3;
+    private float _maxPerplexity => Embeddings is null ? 0 : (Embeddings.Count - 2) / 3.0f;
     private bool _parametersDirty = false;
     private int? _hoveredIndex;
     private Dictionary<string, List<string>>? _groups;
@@ -237,7 +258,8 @@
 
         float[][] Umap()
         {
-            var umap = new UMAP.Umap(dimensions: numberOfOutputs, numberOfNeighbors: _perplexity);
+            _perplexity = Math.Max(1, (int)(Math.Round(_perplexity)));
+            var umap = new UMAP.Umap(dimensions: numberOfOutputs, numberOfNeighbors: (int)(Math.Round(_perplexity)));
             var numEpochs = umap.InitializeFit(Embeddings.ToArray());
             for (var i = 0; i < numEpochs; i++)
                 umap.Step();
@@ -261,7 +283,7 @@
             tsne.NumberOfOutputs = numberOfOutputs;
             // See https://github.com/accord-net/framework/blob/1ab0cc0ba55bcc3d46f20e7bbe7224b58cd01854/Sources/Accord.MachineLearning/Clustering/TSNE.cs
             // 50 is default but (N - 1) / 3 is max.
-            tsne.Perplexity = _perplexity;
+            tsne.Perplexity = _perplexity = Math.Min(_perplexity, _maxPerplexity);
             return tsne.Transform(embs).Select(arr => Array.ConvertAll(arr, x => (float)x)).ToArray();
         }
 
@@ -281,7 +303,7 @@
             MDS => Mds(),
             _ => throw new NotImplementedException(),
         };
-        
+
         // prepend grey for the unknown ones
         const string GreyColor = "#4e4e4e";
         var colors = _disableGrouping
