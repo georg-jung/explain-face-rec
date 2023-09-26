@@ -11,8 +11,8 @@
 # Interactive Face Recognition Tutorial
 
 [![facerec.gjung.com](https://img.shields.io/badge/Web_App-facerec.gjung.com-blue)](https://facerec.gjung.com)
-![Google Play](https://img.shields.io/badge/Android-Google_Play-blue?logo=google-play&link=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.gjung.blazorface.maui%26utm_source%3Dgithub-badge)
-![Microsoft Store](https://img.shields.io/badge/Windows-Microsoft_Store-blue?logo=microsoft&link=https%3A%2F%2Fapps.microsoft.com%2Fstore%2Fdetail%2F9NM3NZ1MQ394%3Flaunch%3Dtrue%26cid%3Dgithub-badge%26mode%3Dmini)
+[![Google Play](https://img.shields.io/badge/Android-Google_Play-blue?logo=google-play&link=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.gjung.blazorface.maui%26utm_source%3Dgithub-badge)](https://play.google.com/store/apps/details?id=com.gjung.blazorface.maui&utm_source=github-badge)
+[![Microsoft Store](https://img.shields.io/badge/Windows-Microsoft_Store-blue?logo=microsoft&link=https%3A%2F%2Fapps.microsoft.com%2Fstore%2Fdetail%2F9NM3NZ1MQ394%3Flaunch%3Dtrue%26cid%3Dgithub-badge%26mode%3Dmini)](https://apps.microsoft.com/store/detail/9NM3NZ1MQ394?launch=true&cid=github-badge&mode=mini)
 
 Understand how modern technology works with faces, from scratch. You don't need to be an AI expert. If you know how to program, you will be able to apply state-of-the-art methods yourself, locally on your device and for free. This is an interactive tutorial – you can bring your own pictures if you like to.
 
