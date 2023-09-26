@@ -1,3 +1,13 @@
+<p align="center">
+  <a href="https://facerec.gjung.com/">
+    <img
+      alt="logo"
+      src="/media/logo-filled.svg"
+      width="64"
+    />
+  </a>
+</p>
+
 # Interactive Face Recognition Tutorial
 
 [![facerec.gjung.com](https://img.shields.io/badge/Web_App-facerec.gjung.com-blue)](https://facerec.gjung.com)
