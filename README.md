@@ -32,6 +32,7 @@ Understand how modern technology works with faces, from scratch. You don't need 
 * Experiment to see how parameters change results.
 * Apply what you learn to your own production applications.
 * Free, local, no dependency on cloud services.
+* Uses the MIT-licensed [FaceAiSharp](https://github.com/georg-jung/FaceAiSharp) library.
 
 ## Get started
 
