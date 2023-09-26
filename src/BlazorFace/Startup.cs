@@ -46,7 +46,7 @@ public static class Startup
         }
         else
         {
-            services.AddTransient<IFaceDetector, ScrfdDetector>(sp => new ScrfdDetector(onnxModelFileOpener.ReadAllBytes(@"onnx/scrfd_2.5g_kps.onnx"), sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ScrfdDetectorOptions>()));
+            services.AddTransient<IFaceDetectorWithLandmarks, ScrfdDetector>(sp => new ScrfdDetector(onnxModelFileOpener.ReadAllBytes(@"onnx/scrfd_2.5g_kps.onnx"), sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ScrfdDetectorOptions>()));
             services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>(sp => new ArcFaceEmbeddingsGenerator(onnxModelFileOpener.ReadAllBytes(@"onnx/arcfaceresnet100-11-int8.onnx"), sp.GetRequiredService<ArcFaceEmbeddingsGeneratorOptions>()));
             services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>(sp => new OpenVinoOpenClosedEye0001(onnxModelFileOpener.ReadAllBytes(@"onnx/open_closed_eye.onnx"), sp.GetRequiredService<OpenVinoOpenClosedEye0001Options>()));
         }
