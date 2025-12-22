@@ -3,6 +3,7 @@
 
 using Accord.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Processing;
 
@@ -19,7 +20,7 @@ internal static class ImageExtensions
     /// <param name="toDraw">An enumeration of the rectangles to draw.</param>
     /// <param name="thickness">The thickness to draw the lines in. Chosen automatically based on image dimensions if null.</param>
     /// <remarks>This is a destructive operation.</remarks>
-    public static void DrawRectangles(this Image image, IBrush brush, IEnumerable<Rectangle> toDraw, float? thickness = null)
+    public static void DrawRectangles(this Image image, Brush brush, IEnumerable<Rectangle> toDraw, float? thickness = null)
         => image.Mutate(op =>
         {
             var tn = thickness ?? Math.Max(image.Width / 400f, 1);
@@ -36,7 +37,7 @@ internal static class ImageExtensions
     /// <param name="brush">The brush to draw the points with.</param>
     /// <param name="toDraw">An enumeration of the points to draw.</param>
     /// <returns>A copy of the given image with the points drawn onto.</returns>
-    public static Image DrawPoints(this Image image, IBrush brush, IEnumerable<Point> toDraw)
+    public static Image DrawPoints(this Image image, Brush brush, IEnumerable<Point> toDraw)
         => image.Clone(op =>
         {
             var delta = Math.Max(image.Width / 400, 1);
@@ -55,7 +56,7 @@ internal static class ImageExtensions
     /// <param name="rectsToDraw">An enumeration of the rectangles to draw.</param>
     /// <param name="pointsToDraw">An enumeration of the points to draw.</param>
     /// <returns>A copy of the given image with the points drawn onto.</returns>
-    public static Image DrawRectanglesAndPoints(this Image image, IBrush brush, IEnumerable<RectangleF> rectsToDraw, IEnumerable<PointF> pointsToDraw)
+    public static Image DrawRectanglesAndPoints(this Image image, Brush brush, IEnumerable<RectangleF> rectsToDraw, IEnumerable<PointF> pointsToDraw)
         => image.Clone(op =>
         {
             var delta = Math.Max(image.Width / 400, 1);
@@ -82,7 +83,7 @@ internal static class ImageExtensions
             var factor = 1.0 / tooLargeFactor; // scale factor
 
             // cropping before resizing is much faster, see benchmarks
-            var cropArea = sourceImage.Bounds();
+            var cropArea = sourceImage.Bounds;
             cropArea.Intersect(sourceArea);
             op.Crop(cropArea);
 

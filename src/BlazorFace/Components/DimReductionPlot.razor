@@ -362,9 +362,9 @@
         StateHasChanged();
     }
 
-    public async void HoverAction(IEnumerable<HoverEventDataPoint> e)
+    public async void HoverAction(IEnumerable<EventDataPoint> e)
     {
-        _hoveredIndex = e.FirstOrDefault()?.PointNumber;
+        _hoveredIndex = e.FirstOrDefault()?.PointNumber as int?;
         if (AlignedFaceImages is not null && _hoveredIndex.HasValue && AlignedFaceImages.Count > _hoveredIndex.Value)
         {
             await JS.SetImageStream(AlignedFaceImages[_hoveredIndex.Value], HoveredPointFaceImgId);
