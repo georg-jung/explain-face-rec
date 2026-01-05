@@ -35,7 +35,7 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.DirectML" Version="1.23.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Microsoft.Web.LibraryManager.Build" Version="3.0.71" />
-    <PackageVersion Include="NodaTime" Version="3.2.3" />
+    <PackageVersion Include="NodaTime" Version="3.3.0" />
     <PackageVersion Include="NumSharp" Version="0.30.0" />
     <PackageVersion Include="Plotly.Blazor" Version="6.0.2" />
     <PackageVersion Include="Sentry.AspNetCore" Version="6.0.0" />
