@@ -20,7 +20,7 @@ jobs:
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         lfs: true
-    - uses: dotnet/nbgv@v0.4
+    - uses: dotnet/nbgv@v0.5
       id: nbgv
     - name: Update appxmanifest with nbgv version
       shell: pwsh
@@ -47,7 +47,7 @@ jobs:
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         lfs: true
-    - uses: dotnet/nbgv@v0.4
+    - uses: dotnet/nbgv@v0.5
       id: nbgv
     - name: Install MAUI Workload
       run: dotnet workload install maui-android --ignore-failed-sources
