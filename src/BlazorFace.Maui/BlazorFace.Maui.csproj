@@ -75,6 +75,14 @@
     <ProjectReference Include="..\BlazorFace\BlazorFace.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <MauiAsset Include="..\BlazorFace\wwwroot\css\site.css" LogicalName="wwwroot/maui-shared/css/site.css" />
+    <MauiAsset Include="..\BlazorFace\wwwroot\lib\bootstrap\**\*" LogicalName="wwwroot/maui-shared/lib/bootstrap/%(RecursiveDir)%(Filename)%(Extension)" />
+    <MauiAsset Include="..\BlazorFace\wwwroot\lib\bootstrap-icons\**\*" LogicalName="wwwroot/maui-shared/lib/bootstrap-icons/%(RecursiveDir)%(Filename)%(Extension)" />
+    <MauiAsset Include="..\BlazorFace\wwwroot\lib\highlightjs\**\*" LogicalName="wwwroot/maui-shared/lib/highlightjs/%(RecursiveDir)%(Filename)%(Extension)" />
+    <MauiAsset Include="..\BlazorFace\wwwroot\lib\open-iconic\**\*" LogicalName="wwwroot/maui-shared/lib/open-iconic/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
     <AndroidLinkTool>r8</AndroidLinkTool>
     <EnableLLVM>True</EnableLLVM>
