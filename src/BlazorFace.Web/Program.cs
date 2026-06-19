@@ -25,11 +25,16 @@ namespace BlazorFace.Web
             BlazorFace.Startup.ShowTryLocallySection = true;
             BlazorFace.Startup.AddBlazorFaceServices(builder.Services);
 
-            // Add the following line:
-            builder.WebHost.UseSentry(o =>
+            var sentryDsn = builder.Configuration["Sentry:Dsn"] ?? Environment.GetEnvironmentVariable("SENTRY_DSN");
+            var sentryEnabled = !string.IsNullOrEmpty(sentryDsn);
+
+            if (sentryEnabled)
             {
-                o.TracesSampleRate = 1.0;
-            });
+                builder.WebHost.UseSentry(o =>
+                {
+                    o.TracesSampleRate = 1.0;
+                });
+            }
 
             var app = builder.Build();
 
@@ -47,7 +52,14 @@ namespace BlazorFace.Web
 
             app.UseAntiforgery();
 
-            app.UseSentryTracing();
+            if (sentryEnabled)
+            {
+                app.UseSentryTracing();
+            }
+            else
+            {
+                app.Logger.LogInformation("Sentry DSN is not configured. Sentry integration is disabled.");
+            }
 
             app.MapStaticAssets();
             app.MapRazorComponents<Components.App>()
