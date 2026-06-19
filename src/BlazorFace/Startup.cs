@@ -5,7 +5,6 @@ using System.Reflection;
 using Blazored.Modal;
 using BlazorFace.Services;
 using FaceAiSharp;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using NodaTime;
@@ -35,7 +34,6 @@ public static class Startup
     {
         services.AddBlazoredModal();
 
-        services.AddMemoryCache();
         services.AddSingleton<IClock>(SystemClock.Instance);
         services.AddSingleton<IFilenameGrouper, CommonPrefixFilenameGrouper>();
         if (onnxModelFileOpener is null)
@@ -46,7 +44,7 @@ public static class Startup
         }
         else
         {
-            services.AddTransient<IFaceDetectorWithLandmarks, ScrfdDetector>(sp => new ScrfdDetector(onnxModelFileOpener.ReadAllBytes(@"onnx/scrfd_2.5g_kps.onnx"), sp.GetRequiredService<IMemoryCache>(), sp.GetRequiredService<ScrfdDetectorOptions>()));
+            services.AddTransient<IFaceDetectorWithLandmarks, ScrfdDetector>(sp => new ScrfdDetector(onnxModelFileOpener.ReadAllBytes(@"onnx/scrfd_2.5g_kps.onnx"), sp.GetRequiredService<ScrfdDetectorOptions>()));
             services.AddTransient<IFaceEmbeddingsGenerator, ArcFaceEmbeddingsGenerator>(sp => new ArcFaceEmbeddingsGenerator(onnxModelFileOpener.ReadAllBytes(@"onnx/arcfaceresnet100-11-int8.onnx"), sp.GetRequiredService<ArcFaceEmbeddingsGeneratorOptions>()));
             services.AddTransient<IEyeStateDetector, OpenVinoOpenClosedEye0001>(sp => new OpenVinoOpenClosedEye0001(onnxModelFileOpener.ReadAllBytes(@"onnx/open_closed_eye.onnx"), sp.GetRequiredService<OpenVinoOpenClosedEye0001Options>()));
         }
