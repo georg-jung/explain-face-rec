@@ -36,7 +36,7 @@ jobs:
     - uses: actions/upload-artifact@v7
       with:
         name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
-        path: bin/BlazorFace.Maui/**/AppPackages/**/*
+        path: bin/BlazorFace.Maui/AppPackages/**/*
 
   build-android:
     runs-on: ubuntu-22.04
