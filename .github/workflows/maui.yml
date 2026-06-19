@@ -16,11 +16,11 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         lfs: true
-    - uses: dotnet/nbgv@v0.4
+    - uses: dotnet/nbgv@v0.5
       id: nbgv
     - name: Update appxmanifest with nbgv version
       shell: pwsh
@@ -33,7 +33,7 @@ jobs:
       run: dotnet workload install maui-windows android --ignore-failed-sources
     - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -p:PublishReadyToRun=true
     - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -f net10.0-windows10.0.19041.0 -c Release --no-restore
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/**/AppPackages/**/*
@@ -43,11 +43,11 @@ jobs:
     permissions:
       contents: read
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
         lfs: true
-    - uses: dotnet/nbgv@v0.4
+    - uses: dotnet/nbgv@v0.5
       id: nbgv
     - name: Install MAUI Workload
       run: dotnet workload install maui-android --ignore-failed-sources
@@ -59,7 +59,7 @@ jobs:
         echo $KEYSTORE_FILE_BASE64 | base64 --decode > key.keystore
         cp key.keystore src/BlazorFace.Maui/
     - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-android -c Release --no-restore -p:AndroidSigningStorePass=${{ secrets.KEYSTORE_PASSWORD }} -p:AndroidSigningKeyPass=${{ secrets.KEYSTORE_PASSWORD }}
-    - uses: actions/upload-artifact@v6
+    - uses: actions/upload-artifact@v7
       with:
         name: blazorface-maui-android-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/Release/**/publish/*Signed.aab
