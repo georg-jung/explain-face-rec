@@ -76,6 +76,10 @@
     <ProjectReference Include="..\BlazorFace\BlazorFace.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <MauiAsset Include="..\BlazorFace\wwwroot\lib\**\*" LogicalName="wwwroot/lib/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
     <AndroidLinkTool>r8</AndroidLinkTool>
     <EnableLLVM>True</EnableLLVM>
