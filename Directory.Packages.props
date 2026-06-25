@@ -28,7 +28,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.71" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.80" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.9" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.27.0" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.27.0" />
