@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net10.0-android</TargetFrameworks>
+    <TargetFrameworks>net10.0;net10.0-android36.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(NoAndroid)' == 'TRUE'">net10.0</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

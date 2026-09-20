@@ -19,6 +19,7 @@ public static class MauiProgram
             });
 
         builder.Services.AddMauiBlazorWebView();
+        builder.Services.AddTransient<MainPage>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
@@ -27,8 +28,9 @@ public static class MauiProgram
 
         BlazorFace.Startup.ConfigureBlazorFaceServices(builder.Services, builder.Configuration);
 #if ANDROID
-        builder.Services.AddSingleton<IFileOpener, MauiResourceOpener>();
-        BlazorFace.Startup.AddBlazorFaceServices(builder.Services, new MauiResourceOpener());
+        var resourceOpener = new MauiResourceOpener();
+        builder.Services.AddSingleton<IFileOpener>(resourceOpener);
+        BlazorFace.Startup.AddBlazorFaceServices(builder.Services, resourceOpener);
 #else
         builder.Services.AddSingleton<IFileOpener, DefaultFileOpener>();
         BlazorFace.Startup.AddBlazorFaceServices(builder.Services);

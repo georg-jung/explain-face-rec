@@ -5,19 +5,20 @@ namespace BlazorFace.Maui;
 
 public partial class App : Application
 {
-    public App()
+    private readonly IServiceProvider _services;
+
+    public App(IServiceProvider services)
     {
         InitializeComponent();
+        _services = services;
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var window = new Window(new MainPage());
-        if (DeviceInfo.Current.Platform == DevicePlatform.WinUI)
+        // Resolve after application resources are initialized, with a fresh page for each window.
+        return new Window(_services.GetRequiredService<MainPage>())
         {
-            window.Title = "Understanding Face Recognition";
-        }
-
-        return window;
+            Title = "Understanding Face Recognition",
+        };
     }
 }

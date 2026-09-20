@@ -7,7 +7,8 @@ namespace BlazorFace.Maui
 {
     internal class MauiResourceOpener : IFileOpener
     {
-        public async ValueTask<Stream> OpenAsync(string path) => await FileSystem.Current.OpenAppPackageFileAsync(path);
+        public async ValueTask<Stream> OpenAsync(string path) =>
+            await FileSystem.Current.OpenAppPackageFileAsync(path).ConfigureAwait(false);
 
         public byte[] ReadAllBytes(string path)
         {

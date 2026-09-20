@@ -1,9 +1,13 @@
 name: MAUI Build
 
 on:
+  pull_request:
   workflow_dispatch:
   release:
     types: [published]
+
+permissions:
+  contents: read
 
 env:
   DOTNET_NOLOGO: true
@@ -12,54 +16,85 @@ env:
 
 jobs:
   build-windows:
-    runs-on: windows-2022
-    permissions:
-      contents: read
+    runs-on: windows-2025
     steps:
     - uses: actions/checkout@v7
       with:
-        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        fetch-depth: 0 # NBGV needs the version history.
         lfs: true
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
     - uses: dotnet/nbgv@v0.5
       id: nbgv
-    - name: Update appxmanifest with nbgv version
+    - name: Update appxmanifest with NBGV version
       shell: pwsh
+      env:
+        APP_VERSION: ${{ steps.nbgv.outputs.SimpleVersion }}.0
       run: |
-        # Update appxmanifest. This must be done before build.
-        [xml]$manifest= get-content "src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest"
-        $manifest.Package.Identity.Version = "${{ steps.nbgv.outputs.SimpleVersion }}.0"
-        $manifest.save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
-    - name: Install MAUI Workload
-      run: dotnet workload install maui-windows android --ignore-failed-sources
-    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -p:PublishReadyToRun=true
-    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:NoAndroid=TRUE -f net10.0-windows10.0.19041.0 -c Release --no-restore
+        [xml]$manifest = Get-Content "src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest"
+        $manifest.Package.Identity.Version = $env:APP_VERSION
+        $manifest.Save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
+    - name: Install MAUI workload
+      run: dotnet workload install maui-windows
+    - name: Build Windows package
+      run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -f net10.0-windows10.0.19041.0 -c Release -p:AppxPackageSigningEnabled=false
     - uses: actions/upload-artifact@v7
       with:
         name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/AppPackages/**/*
+        if-no-files-found: error
 
   build-android:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v7
       with:
-        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+        fetch-depth: 0 # NBGV needs the version history.
         lfs: true
+    - uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+    - uses: actions/setup-java@v6
+      with:
+        distribution: microsoft
+        java-version: '21'
     - uses: dotnet/nbgv@v0.5
       id: nbgv
-    - name: Install MAUI Workload
-      run: dotnet workload install maui-android --ignore-failed-sources
-    - run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:PublishReadyToRun=true
-    - name: Retrieve android keystore secret and decode it to a file
+    - name: Install MAUI workload
+      run: dotnet workload install maui-android
+    - name: Install Android SDK dependencies
+      run: >-
+        dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj
+        -t:InstallAndroidDependencies
+        -f net10.0-android36.0
+        -p:MauiTargetFrameworks=net10.0-android36.0
+        -p:AndroidSdkDirectory="$ANDROID_HOME"
+        -p:JavaSdkDirectory="$JAVA_HOME"
+        -p:AcceptAndroidSdkLicenses=true
+    - name: Build Android app
+      if: github.event_name != 'release'
+      run: dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-android36.0 -f net10.0-android36.0 -c Release
+    - name: Publish signed Android release bundle
+      if: github.event_name == 'release'
       env:
         KEYSTORE_FILE_BASE64: ${{ secrets.KEYSTORE_FILE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       run: |
-        echo $KEYSTORE_FILE_BASE64 | base64 --decode > key.keystore
-        cp key.keystore src/BlazorFace.Maui/
-    - run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-android -c Release --no-restore -p:AndroidSigningStorePass=${{ secrets.KEYSTORE_PASSWORD }} -p:AndroidSigningKeyPass=${{ secrets.KEYSTORE_PASSWORD }}
+        set -euo pipefail
+        umask 077
+        trap 'rm -f "$RUNNER_TEMP/key.keystore" "$RUNNER_TEMP/password.txt"' EXIT
+        printf '%s' "$KEYSTORE_FILE_BASE64" | base64 --decode > "$RUNNER_TEMP/key.keystore"
+        printf '%s' "$KEYSTORE_PASSWORD" > "$RUNNER_TEMP/password.txt"
+        dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj \
+          -p:MauiTargetFrameworks=net10.0-android36.0 \
+          -f net10.0-android36.0 -c Release \
+          -p:AndroidSigningKeyStore="$RUNNER_TEMP/key.keystore" \
+          -p:AndroidSigningKeyPass="file:$RUNNER_TEMP/password.txt" \
+          -p:AndroidSigningStorePass="file:$RUNNER_TEMP/password.txt"
     - uses: actions/upload-artifact@v7
+      if: github.event_name == 'release'
       with:
         name: blazorface-maui-android-${{ steps.nbgv.outputs.Version }}
         path: bin/BlazorFace.Maui/Release/**/publish/*Signed.aab
+        if-no-files-found: error

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:BlazorFace.Maui"
              xmlns:blazor="clr-namespace:BlazorFace;assembly=BlazorFace"
              x:Class="BlazorFace.Maui.MainPage"
-             BackgroundColor="{DynamicResource PageBackgroundColor}">
+             SafeAreaEdges="All"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundColor}, Dark={StaticResource DarkPageBackgroundColor}}">
 
+    <!-- Native insets keep the web UI clear of system bars, cutouts, and the keyboard. -->
     <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
         <BlazorWebView.RootComponents>
             <RootComponent Selector="#app" ComponentType="{x:Type blazor:Components.Routes}" />
