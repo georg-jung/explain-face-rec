@@ -89,9 +89,7 @@ jobs:
         dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj \
           -p:MauiTargetFrameworks=net10.0-android36.0 \
           -f net10.0-android36.0 -c Release \
-          -p:AndroidKeyStore=true \
           -p:AndroidSigningKeyStore="$RUNNER_TEMP/key.keystore" \
-          -p:AndroidSigningKeyAlias=key \
           -p:AndroidSigningKeyPass="file:$RUNNER_TEMP/password.txt" \
           -p:AndroidSigningStorePass="file:$RUNNER_TEMP/password.txt"
     - uses: actions/upload-artifact@v7

@@ -82,4 +82,9 @@
     <AndroidPackageFormats Condition="'$(Configuration)' == 'Release'">aab</AndroidPackageFormats>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' and '$(Configuration)' == 'Release' and '$(AndroidSigningKeyStore)' != ''">
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyAlias>key</AndroidSigningKeyAlias>
+  </PropertyGroup>
+
 </Project>
