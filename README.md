@@ -88,7 +88,7 @@ dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-windows10.0.1
 
 The MAUI workflow validates pull requests and manual runs without production signing credentials. Published GitHub releases additionally produce a signed Android App Bundle using the existing `KEYSTORE_FILE_BASE64` and `KEYSTORE_PASSWORD` secrets and key alias `key`. Passwords use temporary files with the `file:` syntax supported by [AAB signing](https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-10.0). Windows builds produce unsigned packages for Store submission. Artifacts are attached to the workflow run; the workflow does not submit apps to either store.
 
-Nerdbank.GitVersioning derives Android's version code from `version.json` and Git history. Before submitting the signed AAB to Google Play, confirm its version code exceeds the published version, test it on Android 16 (including image selection, system bars, keyboard and navigation), and check Play Console's native-library/16 KB page-size validation. The target-API warning is cleared only after a compliant production release is accepted.
+Nerdbank.GitVersioning derives Android's version code from `version.json` and Git history.
 
 ## Credits
 
