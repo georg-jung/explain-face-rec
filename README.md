@@ -63,6 +63,41 @@ docker run -p 8080:8080 ghcr.io/georg-jung/explain-face-rec:latest
 
 As soon as your container is running, you can access the tutorial at [localhost:8080](http://localhost:8080).
 
+### Building the MAUI apps
+
+The native apps use stable .NET 10 and MAUI 10. Android targets Android 16 (API 36) and supports Android 7.0 (API 24) or newer; Windows targets the Windows 10 SDK 19041. Install a stable .NET 10 SDK compatible with `global.json`, and use Git LFS to retrieve the sample images (`git lfs pull`). The AI models are restored through NuGet.
+
+For Android, install Microsoft OpenJDK 21 and set `JAVA_HOME` and `ANDROID_HOME` to your JDK and Android SDK directories. Then run from the repository root:
+
+```sh
+dotnet workload install maui-android
+dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -t:InstallAndroidDependencies -f net10.0-android36.0 -p:MauiTargetFrameworks=net10.0-android36.0 -p:AcceptAndroidSdkLicenses=true
+dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-android36.0 -p:MauiTargetFrameworks=net10.0-android36.0 -c Release
+```
+
+`InstallAndroidDependencies` installs the SDK components required by the project's target API. See Microsoft's [Android dependency setup](https://learn.microsoft.com/en-us/dotnet/android/getting-started/installation/dependencies) for initial SDK installation and custom paths.
+
+After building Android in Release, check the packaged web UI, stylesheets, fonts, example images and AI models with Python 3:
+
+```sh
+python3 scripts/verify-android-assets.py bin/BlazorFace.Maui/Release/net10.0-android36.0/com.gjung.blazorface.maui.aab
+```
+
+CI runs this check before release signing to catch missing assets that would break the installed app.
+
+On Windows, install the Windows development tools and SDK with Visual Studio's .NET MAUI workload, then build just the Windows target:
+
+```powershell
+dotnet workload install maui-windows
+dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-windows10.0.19041.0 -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -c Release
+```
+
+`MauiTargetFrameworks` selects the app platform without overriding the frameworks of its referenced projects. `NoAndroid=true` also skips the shared library's Android target when building on Windows.
+
+The MAUI workflow validates pull requests and manual runs without production signing credentials. Published GitHub releases additionally produce a signed Android App Bundle using the existing `KEYSTORE_FILE_BASE64` and `KEYSTORE_PASSWORD` secrets and key alias `key`. Passwords use temporary files with the `file:` syntax supported by [AAB signing](https://learn.microsoft.com/en-us/dotnet/maui/android/deployment/publish-cli?view=net-maui-10.0). Windows builds produce unsigned packages for Store submission. Artifacts are attached to the workflow run; the workflow does not submit apps to either store.
+
+Nerdbank.GitVersioning derives Android's version code from `version.json` and Git history. Before submitting the signed AAB to Google Play, confirm its version code exceeds the published version, test it on Android 16 (including image selection, system bars, keyboard and navigation), and check Play Console's native-library/16 KB page-size validation. The target-API warning is cleared only after a compliant production release is accepted.
+
 ## Credits
 
 Created in the context of Georg Jung's master thesis, supervised by [Dr. Guido Rößling](https://www.roessling.com/). Thanks for the supervision and the great support!

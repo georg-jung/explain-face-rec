@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <!-- Pin the Android API used to compile and package the app for Google Play. -->
+    <TargetFrameworks>net10.0-android36.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(NoAndroid)' == 'TRUE'">net10.0-windows10.0.19041.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(NoAndroid)' != 'TRUE'">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
-    <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-    <!-- <TargetFrameworks>$(TargetFrameworks);net10.0-tizen</TargetFrameworks> -->
+    <!-- Select one app target without overriding frameworks in referenced projects. -->
+    <TargetFrameworks Condition="'$(MauiTargetFrameworks)' != ''">$(MauiTargetFrameworks)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>BlazorFace.Maui</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -18,20 +19,14 @@
 
     <!-- App Identifier -->
     <ApplicationId>com.gjung.blazorface.maui</ApplicationId>
-    <ApplicationIdGuid>6CA8894B-3BEE-408C-8C15-F0C9DC193AFC</ApplicationIdGuid>
 
     <!-- Versions -->
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-
-    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
   </PropertyGroup>
 
   <Target Name="ConvertToMauiAsset" DependsOnTargets="ResolveProjectReferences" BeforeTargets="PrepareForBuild">
@@ -46,8 +41,6 @@
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#fff" BaseSize="128,128" />
 
-    <!-- Images -->
-
     <!-- Custom Fonts -->
     <MauiFont Include="Resources\Fonts\*" />
 
@@ -55,11 +48,11 @@
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <ItemGroup Condition="!($(TargetFramework.Contains('-android')))">
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) != 'android'">
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#fff" ForegroundScale="0.8" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#fff" ForegroundScale="0.5" />
   </ItemGroup>
 
@@ -83,17 +76,10 @@
     </ItemGroup>
   </Target>
 
-  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
-    <AndroidLinkTool>r8</AndroidLinkTool>
-    <EnableLLVM>True</EnableLLVM>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release' and ('$(CI)' == 'true' or '$(TF_BUILD)' == 'true')">
-    <AndroidKeyStore>True</AndroidKeyStore>
-    <AndroidSigningKeyStore>key.keystore</AndroidSigningKeyStore>
-    <AndroidSigningKeyAlias>key</AndroidSigningKeyAlias>
-    <AndroidSigningKeyPass></AndroidSigningKeyPass>
-    <AndroidSigningStorePass></AndroidSigningStorePass>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <!-- Native dependencies must support Android devices with 16 KB memory pages. -->
+    <WarningsAsErrors>$(WarningsAsErrors);XA0141</WarningsAsErrors>
+    <AndroidPackageFormats Condition="'$(Configuration)' == 'Release'">aab</AndroidPackageFormats>
   </PropertyGroup>
 
 </Project>
