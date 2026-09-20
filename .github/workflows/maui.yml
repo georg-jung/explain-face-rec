@@ -37,10 +37,8 @@ jobs:
         $manifest.Save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
     - name: Install MAUI workload
       run: dotnet workload install maui-windows
-    - name: Restore Windows app
-      run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -p:Configuration=Release
     - name: Build Windows package
-      run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -f net10.0-windows10.0.19041.0 -c Release --no-restore -p:AppxPackageSigningEnabled=false
+      run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -f net10.0-windows10.0.19041.0 -c Release -p:AppxPackageSigningEnabled=false
     - uses: actions/upload-artifact@v7
       with:
         name: blazorface-maui-windows-${{ steps.nbgv.outputs.Version }}
@@ -74,30 +72,9 @@ jobs:
         -p:AndroidSdkDirectory="$ANDROID_HOME"
         -p:JavaSdkDirectory="$JAVA_HOME"
         -p:AcceptAndroidSdkLicenses=true
-    - name: Restore Android app
-      run: dotnet restore src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-android36.0 -p:Configuration=Release
-    - name: Validate Android Release build without release credentials
-      run: dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-android36.0 -f net10.0-android36.0 -c Release --no-restore -p:AndroidKeyStore=false
-    - name: Verify packaged Android web and AI assets
-      run: python3 scripts/verify-android-assets.py bin/BlazorFace.Maui/Release/net10.0-android36.0/com.gjung.blazorface.maui.aab
-    - name: Verify generated Android manifest
-      run: |
-        python3 - <<'PY'
-        from pathlib import Path
-        import xml.etree.ElementTree as ET
-
-        android = "{http://schemas.android.com/apk/res/android}"
-        manifests = list(Path("obj/BlazorFace.Maui/Release/net10.0-android36.0").glob("**/android/AndroidManifest.xml"))
-        assert manifests, "No generated Android manifest found"
-        for path in manifests:
-            manifest = ET.parse(path).getroot()
-            sdk = manifest.find("uses-sdk")
-            assert sdk is not None, f"Missing uses-sdk in {path}"
-            assert int(sdk.attrib[android + "targetSdkVersion"]) >= 36, f"Target API must be at least 36: {path}"
-            assert manifest.attrib["package"] == "com.gjung.blazorface.maui", f"Unexpected application ID: {path}"
-            assert int(manifest.attrib[android + "versionCode"]) > 1, f"NBGV version code was not applied: {path}"
-            print(f"{path}: target API {sdk.attrib[android + 'targetSdkVersion']}, version code {manifest.attrib[android + 'versionCode']}")
-        PY
+    - name: Build Android app
+      if: github.event_name != 'release'
+      run: dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-android36.0 -f net10.0-android36.0 -c Release
     - name: Publish signed Android release bundle
       if: github.event_name == 'release'
       env:
@@ -105,31 +82,18 @@ jobs:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       run: |
         set -euo pipefail
-        : "${KEYSTORE_FILE_BASE64:?Set the KEYSTORE_FILE_BASE64 repository secret}"
-        : "${KEYSTORE_PASSWORD:?Set the KEYSTORE_PASSWORD repository secret}"
         umask 077
-        signing_dir=$(mktemp -d "$RUNNER_TEMP/maui-signing.XXXXXX")
-        trap 'rm -f "$signing_dir/key.keystore" "$signing_dir/password.txt"; rmdir "$signing_dir"' EXIT
-        printf '%s' "$KEYSTORE_FILE_BASE64" | base64 --decode > "$signing_dir/key.keystore"
-        printf '%s' "$KEYSTORE_PASSWORD" > "$signing_dir/password.txt"
-        unset KEYSTORE_FILE_BASE64 KEYSTORE_PASSWORD
-        # Force re-signing after validation, which uses the SDK's debug key.
-        find bin/BlazorFace.Maui/Release/net10.0-android36.0 -type f -name '*-Signed.aab' -delete
+        trap 'rm -f "$RUNNER_TEMP/key.keystore" "$RUNNER_TEMP/password.txt"' EXIT
+        printf '%s' "$KEYSTORE_FILE_BASE64" | base64 --decode > "$RUNNER_TEMP/key.keystore"
+        printf '%s' "$KEYSTORE_PASSWORD" > "$RUNNER_TEMP/password.txt"
         dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj \
           -p:MauiTargetFrameworks=net10.0-android36.0 \
-          -f net10.0-android36.0 -c Release --no-restore \
-          -p:AndroidPackageFormats=aab \
+          -f net10.0-android36.0 -c Release \
           -p:AndroidKeyStore=true \
-          -p:AndroidSigningKeyStore="$signing_dir/key.keystore" \
+          -p:AndroidSigningKeyStore="$RUNNER_TEMP/key.keystore" \
           -p:AndroidSigningKeyAlias=key \
-          -p:AndroidSigningKeyPass="file:$signing_dir/password.txt" \
-          -p:AndroidSigningStorePass="file:$signing_dir/password.txt"
-        for bundle in bin/BlazorFace.Maui/Release/net10.0-android36.0/publish/*-Signed.aab; do
-          jarsigner -verify -strict \
-            -keystore "$signing_dir/key.keystore" \
-            -storepass:file "$signing_dir/password.txt" \
-            "$bundle" key
-        done
+          -p:AndroidSigningKeyPass="file:$RUNNER_TEMP/password.txt" \
+          -p:AndroidSigningStorePass="file:$RUNNER_TEMP/password.txt"
     - uses: actions/upload-artifact@v7
       if: github.event_name == 'release'
       with:

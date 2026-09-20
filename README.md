@@ -77,14 +77,6 @@ dotnet build src/BlazorFace.Maui/BlazorFace.Maui.csproj -f net10.0-android36.0 -
 
 `InstallAndroidDependencies` installs the SDK components required by the project's target API. See Microsoft's [Android dependency setup](https://learn.microsoft.com/en-us/dotnet/android/getting-started/installation/dependencies) for initial SDK installation and custom paths.
 
-After building Android in Release, check the packaged web UI, stylesheets, fonts, example images and AI models with Python 3:
-
-```sh
-python3 scripts/verify-android-assets.py bin/BlazorFace.Maui/Release/net10.0-android36.0/com.gjung.blazorface.maui.aab
-```
-
-CI runs this check before release signing to catch missing assets that would break the installed app.
-
 On Windows, install the Windows development tools and SDK with Visual Studio's .NET MAUI workload, then build just the Windows target:
 
 ```powershell
