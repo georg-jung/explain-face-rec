@@ -4,11 +4,44 @@ updates:
   directory: "/"
   schedule:
     interval: daily
+  groups:
+    nuget-minor-and-patch:
+      patterns:
+      - "*"
+      update-types:
+      - minor
+      - patch
+    # Keep breaking upgrades from blocking routine maintenance.
+    nuget-major:
+      patterns:
+      - "*"
+      update-types:
+      - major
+    nuget-security:
+      applies-to: security-updates
+      patterns:
+      - "*"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
     interval: daily
+  groups:
+    github-actions:
+      patterns:
+      - "*"
+    github-actions-security:
+      applies-to: security-updates
+      patterns:
+      - "*"
 - package-ecosystem: "docker"
-  directory: "/"
+  directory: "/src/BlazorFace.Web"
   schedule:
     interval: "daily"
+  groups:
+    docker:
+      patterns:
+      - "*"
+    docker-security:
+      applies-to: security-updates
+      patterns:
+      - "*"
