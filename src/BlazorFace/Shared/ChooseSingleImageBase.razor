@@ -34,11 +34,11 @@
 
         @if (_uploadNoImage)
         {
-            <div class="invalid-feedback">The uploaded file could not be read as image. Either the file you chose was to large or you didn't choose a supported image file format.</div>
+            <div class="invalid-feedback d-block">The uploaded file could not be read as an image. Either the file you chose was too large or you didn't choose a supported image file format.</div>
         }
         @if (_uploadErrorMessage is not null)
         {
-            <div class="invalid-feedback">@_uploadErrorMessage</div>
+            <div class="invalid-feedback d-block">@_uploadErrorMessage</div>
         }
     </div>
 </div>
@@ -64,8 +64,7 @@
     /// </summary>
     protected virtual Task OnBeforeLoadFileAsync()
     {
-        Clear();
-        return Task.CompletedTask;
+        return Clear();
     }
 
     /// <summary>
@@ -88,9 +87,8 @@
         return Task.FromResult<string?>(null);
     }
 
-    private async Task ChooseFromGalleryClick()
+    private Task ChooseFromGalleryClick() => ProcessImageAsync(async () =>
     {
-        await OnBeforeLoadFileAsync();
         var diag = Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
         var res = await diag.Result;
         if (res.Cancelled || res.Data is not string path)
@@ -98,39 +96,44 @@
             return;
         }
 
-        ClearInputFile();
-        _processing = true;
-        StateHasChanged();
-
         using var imgStream = await opener.OpenAsync(path);
         using var img = await Image.LoadAsync<Rgb24>(imgStream);
+        _uploadErrorMessage = await OnImageLoadedAsync(img);
+    });
 
-        // attention: a potential error message is not processed here
-        await OnImageLoadedAsync(img);
-
-        _processing = false;
-        StateHasChanged();
-    }
-
-    private async void LoadFiles(InputFileChangeEventArgs e)
+    private Task LoadFiles(InputFileChangeEventArgs e) => ProcessImageAsync(async () =>
     {
-        await OnBeforeLoadFileAsync();
+        using var img = await e.File.TryOpenImageBrowserConverted(MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
+        if (img is null)
+        {
+            _uploadNoImage = true;
+            return;
+        }
+
+        _uploadErrorMessage = await OnImageLoadedAsync(img);
+    });
+
+    private async Task ProcessImageAsync(Func<Task> loadImage)
+    {
+        if (_processing) return;
+
         _processing = true;
-        StateHasChanged();
+        _uploadNoImage = false;
+        _uploadErrorMessage = null;
         try
         {
-            using var img = await e.File.TryOpenImageBrowserConverted(MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
-            ClearInputFile();
-            if (img is null)
-            {
-                _uploadNoImage = true;
-                return;
-            }
-
-            _uploadErrorMessage = await OnImageLoadedAsync(img);
+            StateHasChanged();
+            await OnBeforeLoadFileAsync();
+            await loadImage();
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Could not load or process the selected image.");
+            _uploadErrorMessage = "The image could not be processed. Please try again or choose another image.";
         }
         finally
         {
+            ClearInputFile();
             _processing = false;
             StateHasChanged();
         }
