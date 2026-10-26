@@ -13,6 +13,7 @@
   <Project Path="src/BlazorFace.Maui/BlazorFace.Maui.csproj">
     <Deploy />
   </Project>
+  <Project Path="src/BlazorFace.Tests/BlazorFace.Tests.csproj" />
   <Project Path="src/BlazorFace.Web/BlazorFace.Web.csproj" />
   <Project Path="src/BlazorFace/BlazorFace.csproj" />
   <Project Path="src/DirectoryListingSourceGenerator/DirectoryListingSourceGenerator.csproj" />
