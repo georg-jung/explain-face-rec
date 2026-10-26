@@ -21,14 +21,14 @@ jobs:
       build-ref: ${{ steps.latestrelease.outputs.releasetag }}
     steps:
       - name: Log in to the Container registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker Image Update Checker
         id: check
-        uses: lucacome/docker-image-update-checker@f97e2a3cdbf2d8f9788fb87081a76542645a4252 # v3.1.1
+        uses: lucacome/docker-image-update-checker@958e0b396cd5227e7da180826286ef48c20296f9 # v3.1.2
         with:
           base-image: ${{ env.BASE_IMAGE }}
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
