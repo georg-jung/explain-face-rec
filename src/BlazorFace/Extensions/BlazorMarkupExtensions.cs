@@ -14,7 +14,7 @@ internal static class BlazorMarkupExtensions
     public static async Task SetImageStream(this IJSRuntime js, byte[] image, string imgId)
     {
         using var ms = new MemoryStream(image);
-        var dotnetImageStream = new DotNetStreamReference(ms);
+        using var dotnetImageStream = new DotNetStreamReference(ms);
         await js.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
     }
 
@@ -25,7 +25,7 @@ internal static class BlazorMarkupExtensions
         image.SaveAsJpeg(outStr);
         outStr.Position = 0;
 
-        var dotnetImageStream = new DotNetStreamReference(outStr);
+        using var dotnetImageStream = new DotNetStreamReference(outStr);
         await js.InvokeVoidAsync("setImage", imgId, dotnetImageStream);
     }
 
@@ -119,7 +119,7 @@ internal static class BlazorMarkupExtensions
             }
         }
 
-        var s = bf.TryOpen(maxUploadSize, out var _);
+        using var s = bf.TryOpen(maxUploadSize, out var _);
         return s is null ? null : await s.TryOpenImage();
     }
 

@@ -46,8 +46,6 @@
 </div>
 
 @code {
-    [CascadingParameter] public IModalService Modal { get; set; } = default!;
-
     protected virtual int MaxUploadSize => 1024 * 1024 * 10; // 10 MB
     protected virtual int MaxNoConversionSize => 1024 * 1024 / 2; // 0.5 MB
     protected virtual int MaxImageEdge => 1024;
@@ -91,89 +89,71 @@
         await LoadFiles(files);
     }
 
-    private async Task ChooseFromGalleryClick()
+    private Task LoadFiles(IReadOnlyCollection<string> files) => ProcessImagesAsync(async () =>
     {
-        await OnBeforeLoadFileAsync();
-        var diag = Modal.Show<ChooseGalleryImageModal>("Choose from example gallery");
-        var res = await diag.Result;
-        if (res.Cancelled || res.Data is not string path)
+        var cnt = files.Count;
+        if (cnt == 0) return;
+
+        _loadProgress = (0, cnt);
+        var idx = 0;
+        foreach (var file in files)
         {
-            return;
-        }
-
-        ClearInputFile();
-        _loading = true;
-        StateHasChanged();
-
-        using var imgStream = await opener.OpenAsync(path);
-        using var img = await Image.LoadAsync<Rgb24>(imgStream);
-        // attention: a potential error message is not processed here
-        await OnImageLoadedAsync(img, System.IO.Path.GetFileName(path));
-
-        _loading = false;
-        StateHasChanged();
-    }
-
-    private async Task LoadFiles(IReadOnlyCollection<string> files)
-    {
-        await OnBeforeLoadFileAsync();
-        _loading = true;
-        StateHasChanged();
-        try
-        {
-            var cnt = files.Count;
-            _loadProgress = (0, cnt);
-            var idx = 0;
-            foreach (var file in files)
-            {
-                using var imgStream = await opener.OpenAsync(file);
-                using var img = await Image.LoadAsync<Rgb24>(imgStream);
-                var msg = await OnImageLoadedAsync(img, Path.GetFileName(file));
-                if (msg is not null) _uploadErrorMessages.Add(msg);
-                idx++;
-                _loadProgress = (idx, cnt);
-                StateHasChanged();
-            }
-            ClearInputFile();
-        }
-        finally
-        {
-            _loadProgress = null;
-            _loading = false;
+            using var imgStream = await opener.OpenAsync(file);
+            using var img = await Image.LoadAsync<Rgb24>(imgStream);
+            var msg = await OnImageLoadedAsync(img, Path.GetFileName(file));
+            if (msg is not null) _uploadErrorMessages.Add(msg);
+            idx++;
+            _loadProgress = (idx, cnt);
             StateHasChanged();
         }
-    }
+    });
 
-    private async void LoadFiles(InputFileChangeEventArgs e)
+    private Task LoadFiles(InputFileChangeEventArgs e) => ProcessImagesAsync(async () =>
     {
-        await OnBeforeLoadFileAsync();
+        var cnt = Math.Min(e.FileCount, 100);
+        if (cnt == 0) return;
+
+        _loadProgress = (0, cnt);
+        var uploads = e.TryOpenMultipleImagesBrowserConverted(100, MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
+        var idx = 0;
+        await foreach (var upload in uploads)
+        {
+            using var img = upload.Content;
+            if (img is null)
+            {
+                _uploadErrorMessages.Add($"{upload.FileName} could not be loaded.");
+            }
+            else
+            {
+                var msg = await OnImageLoadedAsync(img, upload.FileName);
+                if (msg is not null) _uploadErrorMessages.Add(msg);
+            }
+            idx++;
+            _loadProgress = (idx, cnt);
+            StateHasChanged();
+        }
+    });
+
+    private async Task ProcessImagesAsync(Func<Task> loadImages)
+    {
+        if (IsProcessing) return;
+
         _loading = true;
-        StateHasChanged();
+        _uploadErrorMessages.Clear();
         try
         {
-            var cnt = Math.Min(e.FileCount, 100);
-            _loadProgress = (0, cnt);
-            var uploads = e.TryOpenMultipleImagesBrowserConverted(100, MaxNoConversionSize, MaxUploadSize, MaxImageEdge, MaxImageEdge, log);
-            var idx = 0;
-            await foreach(var upload in uploads) {
-                using var img = upload.Content;
-                if (img is null)
-                {
-                    _uploadErrorMessages.Add($"{upload.FileName} could not be loaded.");
-                }
-                else
-                {
-                    var msg = await OnImageLoadedAsync(img, upload.FileName);
-                    if (msg is not null) _uploadErrorMessages.Add(msg);
-                }
-                idx++;
-                _loadProgress = (idx, cnt);
-                StateHasChanged();
-            }
-            ClearInputFile();
+            StateHasChanged();
+            await OnBeforeLoadFileAsync();
+            await loadImages();
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Could not load or process the selected images.");
+            _uploadErrorMessages.Add("The selected images could not all be processed. Please try again or choose different images.");
         }
         finally
         {
+            ClearInputFile();
             _loadProgress = null;
             _loading = false;
             StateHasChanged();

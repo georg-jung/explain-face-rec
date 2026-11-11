@@ -60,7 +60,12 @@
     <PackageReference Include="Microsoft.Maui.Controls" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" />
     <PackageReference Include="FaceAiSharp.Bundle" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime">
+      <!-- Android native libraries come from the package's AAR build target. Exclude
+           NuGet's desktop native assets, which can otherwise replace the AAR's .so
+           when publishing on Linux (https://github.com/microsoft/onnxruntime/issues/29270). -->
+      <ExcludeAssets Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">native</ExcludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
   </ItemGroup>
