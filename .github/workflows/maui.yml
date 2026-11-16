@@ -37,6 +37,8 @@ jobs:
         $manifest.Save("src/BlazorFace.Maui/Platforms/Windows/Package.appxmanifest")
     - name: Install MAUI workload
       run: dotnet workload install maui-windows
+    - name: Run tests
+      run: dotnet test src/BlazorFace.Tests/BlazorFace.Tests.csproj -p:NoAndroid=true -c Release
     - name: Build Windows package
       run: dotnet publish src/BlazorFace.Maui/BlazorFace.Maui.csproj -p:MauiTargetFrameworks=net10.0-windows10.0.19041.0 -p:NoAndroid=true -f net10.0-windows10.0.19041.0 -c Release -p:AppxPackageSigningEnabled=false
     - uses: actions/upload-artifact@v7
@@ -92,6 +94,20 @@ jobs:
           -p:AndroidSigningKeyStore="$RUNNER_TEMP/key.keystore" \
           -p:AndroidSigningKeyPass="file:$RUNNER_TEMP/password.txt" \
           -p:AndroidSigningStorePass="file:$RUNNER_TEMP/password.txt"
+    - name: Verify packaged ONNX Runtime libraries come from the Android AAR
+      if: github.event_name == 'release'
+      run: |
+        set -euo pipefail
+        pkg=$(dotnet msbuild src/BlazorFace.Maui/BlazorFace.Maui.csproj -nologo -p:TargetFramework=net10.0-android36.0 -p:MauiTargetFrameworks=net10.0-android36.0 -getProperty:PkgMicrosoft_ML_OnnxRuntime)
+        aar="$pkg/runtimes/android/native/onnxruntime.aar"
+        aab=$(find bin/BlazorFace.Maui/Release -name '*Signed.aab' -print -quit)
+        for abi in arm64-v8a x86_64; do
+          if ! diff <(unzip -p "$aar" "jni/$abi/libonnxruntime.so" | sha256sum) \
+                    <(unzip -p "$aab" "base/lib/$abi/libonnxruntime.so" | sha256sum); then
+            echo "::error::libonnxruntime.so for $abi does not match the Android AAR"
+            exit 1
+          fi
+        done
     - uses: actions/upload-artifact@v7
       if: github.event_name == 'release'
       with:
